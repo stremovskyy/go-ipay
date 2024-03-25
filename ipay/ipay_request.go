@@ -9,20 +9,21 @@ const (
 	ActionGetPaymentStatus Action = "GetPaymentStatus"
 )
 
-func CreateCreateToken3DSRequest(withAmount bool) RequestWrapper {
+func CreateCreateToken3DSRequest(withAmount bool) *RequestWrapper {
 	amountString := "no_amount"
 
 	if withAmount {
 		amountString = "with_amount"
 	}
 
-	return RequestWrapper{
+	return &RequestWrapper{
 		Request: Request{
 			Auth:   Auth{},
 			Action: ActionCreateToken3DS,
 			Body: Body{
 				VerifyType: amountString,
 			},
+			Lang: "uk",
 		},
 	}
 }

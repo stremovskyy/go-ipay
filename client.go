@@ -24,7 +24,7 @@ func (c *Client) VerificationLink(request *Request) (*url.URL, error) {
 		return nil, ErrRequestIsNil
 	}
 
-	createTokenRequest := ipay.CreateCreateTokenRequest()
+	createTokenRequest := ipay.CreateCreateToken3DSRequest(false)
 	createTokenRequest.SetAuth(request.GetAuth())
 	createTokenRequest.SetRedirects(request.GetRedirects())
 	createTokenRequest.SetPersonalData(request.GetPersonalData())
