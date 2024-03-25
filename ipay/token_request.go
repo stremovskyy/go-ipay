@@ -74,10 +74,13 @@ type Body struct {
 }
 
 type Info struct {
-	UserID  string `json:"user_id,omitempty"`
-	Cvd     *Cvd   `json:"cvd,omitempty"`
-	Aml     *Aml   `json:"aml,omitempty"`
-	MctsVts bool   `json:"mcts_vts,omitempty"`
+	OrderId     string `json:"order_id,omitempty"`
+	ExtId       string `json:"ext_id,omitempty"`
+	UserID      string `json:"user_id,omitempty"`
+	Cvd         *Cvd   `json:"cvd,omitempty"`
+	Aml         *Aml   `json:"aml,omitempty"`
+	MctsVts     bool   `json:"mcts_vts,omitempty"`
+	ExternalCVD *Cvd   `json:"external_cvd"`
 }
 
 type Cvd struct {

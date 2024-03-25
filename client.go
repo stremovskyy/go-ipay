@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/google/uuid"
 	"github.com/megakit-pro/go-ipay/internal/http"
 	"github.com/megakit-pro/go-ipay/ipay"
 )
@@ -27,6 +28,7 @@ func (c *Client) VerificationLink(request *Request) (*url.URL, error) {
 	createTokenRequest.SetAuth(request.GetAuth())
 	createTokenRequest.SetRedirects(request.GetRedirects())
 	createTokenRequest.SetPersonalData(request.GetPersonalData())
+	createTokenRequest.Request.Body.Info.OrderId = uuid.New().String()
 
 	apiResponse, err := c.client.Api(createTokenRequest)
 	if err != nil {
