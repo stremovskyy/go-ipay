@@ -9,20 +9,27 @@ import (
 // Payment represents the root element of the notification with an ID.
 type Payment struct {
 	XMLName       xml.Name      `xml:"payment"`
-	ID            int64         `xml:"id,attr"`         // Payment ID in the iPay system
-	Ident         string        `xml:"ident"`           // Unique payment identifier
-	Status        PaymentStatus `xml:"status"`          // Payment status
-	Amount        float64       `xml:"amount"`          // Total payment amount
-	Currency      string        `xml:"currency"`        // Currency code
-	Timestamp     int64         `xml:"timestamp"`       // Date of authorization/completion in UNIX-timestamp
-	CardToken     string        `xml:"card_token"`      // Card token
-	CardIsPrepaid string        `xml:"card_is_prepaid"` // Whether the card is prepaid (1) or not (0), optional
-	ValidTaxID    int           `xml:"valid_tax_id"`    // Valid (1) or not (0) tax ID sent in one of the requests: CreateToken, CreateToken3DS, PaymentCreate, optional
-	CardHolder    string        `xml:"card_holder"`     // Full name of the cardholder, optional
-	PaymentType   string        `xml:"payment_type"`    // Type of payment: Manual/GooglePay/ApplePay, optional
-	Transactions  Transactions  `xml:"transactions"`    // Transactions element
-	Salt          string        `xml:"salt"`            // Signature salt
-	Sign          string        `xml:"sign"`            // Request signature
+	ID            int64         `xml:"id,attr"`                                // Payment ID in the iPay system
+	Ident         string        `xml:"ident" json:"ident"`                     // Unique payment identifier
+	Status        PaymentStatus `xml:"status" json:"status"`                   // Payment status
+	Amount        float64       `xml:"amount" json:"amount"`                   // Total payment amount
+	Currency      string        `xml:"currency" json:"currency"`               // Currency code
+	Timestamp     int64         `xml:"timestamp" json:"timestamp"`             // Date of authorization/completion in UNIX-timestamp
+	CardToken     string        `xml:"card_token" json:"card_token"`           // Card token
+	CardIsPrepaid string        `xml:"card_is_prepaid" json:"card_is_prepaid"` // Whether the card is prepaid (1) or not (0), optional
+	ValidTaxID    int           `xml:"valid_tax_id" json:"valid_tax_id"`       // Valid (1) or not (0) tax ID sent in one of the requests: CreateToken, CreateToken3DS, PaymentCreate, optional
+	CardHolder    string        `xml:"card_holder" json:"card_holder"`         // Full name of the cardholder, optional
+	PaymentType   string        `xml:"payment_type" json:"payment_type"`       // Type of payment: Manual/GooglePay/ApplePay, optional
+	Transactions  Transactions  `xml:"transactions" json:"transactions"`       // Transactions element
+	Salt          string        `xml:"salt"`                                   // Signature salt
+	Sign          string        `xml:"sign"`                                   // Request signature
+	PmtId         int           `json:"pmt_id" json:"pmt_id"`
+	CardMask      string        `json:"card_mask" json:"card_mask"`
+	Invoice       int           `json:"invoice" json:"invoice"`
+	Desc          string        `json:"desc" json:"desc"`
+	BnkErrorGroup interface{}   `json:"bnk_error_group" json:"bnk_error_group"`
+	BnkErrorNote  interface{}   `json:"bnk_error_note" json:"bnk_error_note"`
+	InitDate      string        `json:"init_date" json:"init_date"`
 }
 
 // Transactions represents a collection of Transaction.

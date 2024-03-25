@@ -42,3 +42,20 @@ func (c *Client) VerificationLink(request *Request) (*url.URL, error) {
 
 	return u, nil
 }
+
+func (c *Client) Status(request *Request) (*ipay.Response, error) {
+	if request == nil {
+		return nil, ErrRequestIsNil
+	}
+
+	statusRequest := ipay.CreateStatusRequest()
+	statusRequest.SetAuth(request.GetAuth())
+	statusRequest.SetIpayPaymentID(request.GetIpayPaymentID())
+
+	apiResponse, err := c.client.Api(statusRequest)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get API response: %v", err)
+	}
+
+	return apiResponse, nil
+}

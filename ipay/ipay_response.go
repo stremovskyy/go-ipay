@@ -10,10 +10,11 @@ type IpayResponseWrapper struct {
 }
 
 type Response struct {
-	PmtId int    `json:"pmt_id"`
-	Url   string `json:"url"`
-	Salt  string `json:"salt"`
-	Sign  string `json:"sign"`
+	PmtId int      `json:"pmt_id"`
+	Pmt   *Payment `json:"pmt"`
+	Url   string   `json:"url"`
+	Salt  string   `json:"salt"`
+	Sign  string   `json:"sign"`
 }
 
 func (ctr *IpayResponseWrapper) Debug() string {

@@ -9,6 +9,7 @@ import (
 type Request struct {
 	Merchant     *Merchant
 	PersonalData *PersonalData
+	PaymentData  *PaymentData
 }
 
 func (r *Request) GetAuth() ipay.Auth {
@@ -63,4 +64,12 @@ func (r *Request) GetPersonalData() ipay.Info {
 	}
 
 	return info
+}
+
+func (r *Request) GetIpayPaymentID() int64 {
+	if r.PaymentData == nil {
+		return 0
+	}
+
+	return r.PaymentData.IpayPaymentID
 }

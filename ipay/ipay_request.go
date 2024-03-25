@@ -4,8 +4,9 @@ type Action string
 
 // Action types for RequestWrapper
 const (
-	ActionCreateToken    Action = "CreateToken"
-	ActionCreateToken3DS Action = "CreateToken3DS"
+	ActionCreateToken      Action = "CreateToken"
+	ActionCreateToken3DS   Action = "CreateToken3DS"
+	ActionGetPaymentStatus Action = "GetPaymentStatus"
 )
 
 func CreateCreateToken3DSRequest(withAmount bool) RequestWrapper {
@@ -35,6 +36,14 @@ func CreateCreateTokenRequest() *RequestWrapper {
 	}
 }
 
+func CreateStatusRequest() *RequestWrapper {
+	return &RequestWrapper{
+		Request: Request{
+			Action: ActionGetPaymentStatus,
+		},
+	}
+}
+
 type RequestWrapper struct {
 	Request Request `json:"request"`
 }
@@ -50,6 +59,10 @@ func (r *RequestWrapper) SetAuth(auth Auth) {
 func (r *RequestWrapper) SetRedirects(success string, fail string) {
 	r.Request.Body.UrlGood = success
 	r.Request.Body.UrlBad = fail
+}
+
+func (r *RequestWrapper) SetIpayPaymentID(ipayPaymentID int64) {
+	r.Request.Body.PmtId = &ipayPaymentID
 }
 
 type Request struct {
@@ -71,6 +84,7 @@ type Body struct {
 	UrlBad     string `json:"url_bad,omitempty"`
 	Info       Info   `json:"info,omitempty"`
 	VerifyType string `json:"verify_type,omitempty"`
+	PmtId      *int64 `json:"pmt_id,omitempty"`
 }
 
 type Info struct {
