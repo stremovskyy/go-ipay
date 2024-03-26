@@ -1,37 +1,98 @@
 package ipay
 
-// StatusCode holds the machine-readable error and the user-friendly message
-type StatusCode struct {
-	Error   string
+// BankErrorStatusCode holds the machine-readable error and the user-friendly message.
+type BankErrorStatusCode struct {
+	Code    string
+	Reason  string
 	Message string
 }
 
-// StatusCodes maps numeric status codes to their descriptions
-var StatusCodes = map[int]StatusCode{
-	41: {"eminent_decline", "The payment was declined by the bank possibly due to restrictions or limits on online operations. Please contact your bank's support to inquire about the refusal."},
-	42: {"insufficient_funds", "The payment was declined by the bank due to insufficient funds. Please consider using a different card or checking for the correct amount."},
-	43: {"limits_emitent", "Payment unsuccessful due to limits on internet operations set on your card. Please contact your bank to modify these limits."},
-	44: {"limits_terminal", "The payment was declined due to restrictions set by our banking partner. Please try a different payment method."},
-	50: {"verification_error_CVV", "The payment was declined by the bank. Please verify the CVV code and try again or contact your bank for assistance."},
-	51: {
-		"verification_error_3d_2d",
-		"The payment was declined because the 3DS verification failed or the session expired. Please attempt the payment again and ensure you enter the confirmation code sent by your bank.",
+// StatusCode is a type alias for string to represent the status codes.
+type StatusCode string
+
+// statusCodes holds the map of possible API response codes and messages.
+var statusCodes = map[StatusCode]BankErrorStatusCode{
+	"41-eminent_decline": {
+		Code:    "41-eminent_decline",
+		Reason:  "Operation declined by the issuing bank",
+		Message: "Payment declined by the bank. Possible restrictions or limits on internet operations. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
 	},
-	52: {"connection_error", "The payment was declined due to a connection error at the time of the transaction. Please try again in a few minutes."},
-	55: {"unmatched_error", "The payment was declined by the bank for an unspecified reason. Please contact your bank's support for more information."},
-	56: {"expired_card", "The payment was declined because the card is expired or the validity period was incorrectly specified. Please check the card's expiry date and try again."},
-	57: {"invalid_card", "The payment was declined by the bank due to an invalid card number or because the card is in an unacceptable state. Please verify the card details and try again."},
-	58: {"card_limits_failed", "The payment was declined by the bank because the transaction exceeded the card's limits. Please contact your bank to inquire about modifying these limits."},
-	59: {"invalid_amount", "The payment was declined due to an incorrect amount being specified. Please verify the amount and try again."},
-	60: {"3ds_fail", "The payment was declined because the 3DS verification could not be completed. Please try the payment again later."},
-	61: {"call_issuer", "The payment was declined. Please contact your card issuer for further assistance."},
-	62: {"card_lost_or_stolen", "The payment was declined because the card was reported lost or stolen. Please contact your bank for further assistance."},
+	"42-insufficient_funds": {
+		Code:    "42-insufficient_funds",
+		Reason:  "Insufficient funds",
+		Message: "Payment declined by the bank due to insufficient funds. Recommend specifying a lower amount or using another card.",
+	},
+	"43-limits_emitent": {
+		Code:    "43-limits_emitent",
+		Reason:  "Exceeded the card's limit for transactions - possibly not open for online payments",
+		Message: "Unsuccessful payment, your card has hit the limits for internet operations. It's recommended to contact the bank's hotline to have the operator increase the limits.",
+	},
+	"44-limits_terminal": {
+		Code:    "44-limits_terminal",
+		Reason:  "Exceeded the merchant's limit or transactions prohibited to the merchant",
+		Message: "Payment declined by the bank used for payment as our partner bank has set its restrictions.",
+	},
+	"50-verification_error_CVV": {
+		Code:    "50-verification_error_CVV",
+		Reason:  "Incorrect CVV code",
+		Message: "Payment declined by the bank. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
+	},
+	"51-verification_error_3d_2d": {
+		Code:    "51-verification_error_3d_2d",
+		Reason:  "Incorrect 3DS confirmation code or session expired",
+		Message: "Payment declined because you did not enter the confirmation code from your bank. Recommend trying the payment again, entering the new code sent to the phone linked to your card.",
+	},
+	"52-connection_error": {
+		Code:    "52-connection_error",
+		Reason:  "Script error",
+		Message: "Payment declined as there was no connection with the bank at the time of payment. Recommend trying the payment again in 2 minutes.",
+	},
+	"55-unmatched_error": {
+		Code:    "55-unmatched_error",
+		Reason:  "Undefined error",
+		Message: "Payment declined by the bank. It's recommended to contact the hotline to clarify the reason for the refusal.",
+	},
+	"56-expired_card": {
+		Code:    "56-expired_card",
+		Reason:  "Card expired or incorrectly specified validity period",
+		Message: "Payment declined by the bank. The card might be expired or the validity period incorrectly specified. Check the card's expiry date and try again.",
+	},
+	"57-invalid_card": {
+		Code:    "57-invalid_card",
+		Reason:  "Incorrect card number entered, or card in an unacceptable state",
+		Message: "Payment declined by the bank. Possible restrictions or limits on internet operations. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
+	},
+	"58-card_limits_failed": {
+		Code:    "58-card_limits_failed",
+		Reason:  "Exceeded card limit",
+		Message: "Payment declined by the bank. Your card has hit the limits for internet operations. It's recommended to contact the bank's hotline to clarify the reason for the refusal.",
+	},
+	"59-invalid_amount": {
+		Code:    "59-invalid_amount",
+		Reason:  "Incorrect amount",
+		Message: "Payment declined by the bank. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
+	},
+	"60-3ds_fail": {
+		Code:    "60-3ds_fail",
+		Reason:  "Unable to perform 3DS transaction",
+		Message: "Payment declined as there was no connection with the bank or the one-time password was incorrectly specified. Recommend trying the payment again in 2 minutes.",
+	},
+	"61-call_issuer": {
+		Code:    "61-call_issuer",
+		Reason:  "Call the card issuer",
+		Message: "Payment declined by the bank. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
+	},
+	"62-card_lost_or_stolen": {
+		Code:    "62-card_lost_or_stolen",
+		Reason:  "Card lost or stolen",
+		Message: "Payment declined by the bank. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
+	},
 }
 
-// Function to retrieve status code information by its numeric code
-func GetStatusCode(code int) (StatusCode, bool) {
-	statusCode, exists := StatusCodes[code]
-	return statusCode, exists
+// GetStatusCode retrieves status code information by its code.
+func GetStatusCode(code StatusCode) (BankErrorStatusCode, bool) {
+	statusCode, found := statusCodes[code]
+	return statusCode, found
 }
 
 // A2CPayStatusCode holds the machine-readable error and the user-friendly message

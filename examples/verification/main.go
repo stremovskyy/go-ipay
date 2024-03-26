@@ -14,7 +14,6 @@ func main() {
 		Name:            private.MerchantName,
 		MerchantID:      private.MerchantID,
 		MerchantKey:     private.MerchantKey,
-		SystemKey:       private.SystemKey,
 		SuccessRedirect: private.SuccessRedirect,
 		FailRedirect:    private.FailRedirect,
 	}

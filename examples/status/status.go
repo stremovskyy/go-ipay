@@ -4,6 +4,7 @@ import (
 	go_ipay "github.com/megakit-pro/go-ipay"
 	"github.com/megakit-pro/go-ipay/internal/log"
 	"github.com/megakit-pro/go-ipay/private"
+	"github.com/megakit-pro/go-ipay/utils"
 )
 
 func main() {
@@ -18,7 +19,7 @@ func main() {
 	request := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: private.IpayPaymentID,
+			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
 		},
 	}
 

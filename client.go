@@ -4,22 +4,21 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/google/uuid"
 	"github.com/megakit-pro/go-ipay/internal/http"
 	"github.com/megakit-pro/go-ipay/ipay"
 )
 
-type Client struct {
+type client struct {
 	client *http.Client
 }
 
-func NewDefaultClient() *Client {
-	return &Client{
+func NewDefaultClient() Ipay {
+	return &client{
 		client: http.NewClient(http.DefaultOptions()),
 	}
 }
 
-func (c *Client) VerificationLink(request *Request) (*url.URL, error) {
+func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
@@ -28,7 +27,7 @@ func (c *Client) VerificationLink(request *Request) (*url.URL, error) {
 	createTokenRequest.SetAuth(request.GetAuth())
 	createTokenRequest.SetRedirects(request.GetRedirects())
 	createTokenRequest.SetPersonalData(request.GetPersonalData())
-	createTokenRequest.Request.Body.Info.OrderId = uuid.New().String()
+	createTokenRequest.SetPaymentID(request.GetPaymentID())
 
 	apiResponse, err := c.client.Api(createTokenRequest)
 	if err != nil {
@@ -43,7 +42,7 @@ func (c *Client) VerificationLink(request *Request) (*url.URL, error) {
 	return u, nil
 }
 
-func (c *Client) Status(request *Request) (*ipay.Response, error) {
+func (c *client) Status(request *Request) (*ipay.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
@@ -58,4 +57,69 @@ func (c *Client) Status(request *Request) (*ipay.Response, error) {
 	}
 
 	return apiResponse, nil
+}
+
+func (c *client) PaymentURL(request *Request) (*ipay.PaymentResponse, error) {
+	if request == nil {
+		return nil, ErrRequestIsNil
+	}
+
+	paymentURLRequest := ipay.CreatePaymentCreateRequest()
+	paymentURLRequest.SetAuth(request.GetAuth())
+	paymentURLRequest.SetRedirects(request.GetRedirects())
+	paymentURLRequest.AddTransaction(request.GetTransaction())
+	paymentURLRequest.SetPersonalData(request.GetPersonalData())
+	paymentURLRequest.AddCardToken(request.GetCardToken())
+
+	apiResponse, err := c.client.ApiXML(paymentURLRequest)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get API response: %v", err)
+	}
+
+	return apiResponse, nil
+}
+
+func (c *client) Payment(request *Request) (*ipay.Response, error) {
+	if request == nil {
+		return nil, ErrRequestIsNil
+	}
+
+	paymentRequest := ipay.CreatePaymentRequest()
+	paymentRequest.SetAuth(request.GetAuth())
+	paymentRequest.SetRedirects(request.GetRedirects())
+	paymentRequest.AddTransaction(request.GetTransaction())
+	paymentRequest.SetPersonalData(request.GetPersonalData())
+	paymentRequest.AddCardToken(request.GetCardToken())
+	paymentRequest.SetPaymentID(request.GetPaymentID())
+
+	apiResponse, err := c.client.Api(paymentRequest)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get API response: %v", err)
+	}
+
+	if apiResponse.Error() != nil {
+		return nil, apiResponse.Error()
+	}
+
+	return apiResponse, nil
+}
+
+func (c *client) Hold(invoiceRequest *Request) (*ipay.Response, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (c *client) Refund(invoiceRequest *Request) (*ipay.Response, error) {
+	// TODO implement me
+	panic("implement me")
+}
+
+func (c *client) Credit(invoiceRequest *Request) (*ipay.Response, error) {
+	// TODO implement me
+	panic("implement me")
 }
