@@ -10,6 +10,7 @@ const (
 	ActionCreateToken3DS   Action = "CreateToken3DS"
 	ActionGetPaymentStatus Action = "GetPaymentStatus"
 	ActionDebiting         Action = "Debiting"
+	ActionCompletion       Action = "Completion"
 )
 
 func CreateCreateToken3DSRequest(withAmount bool) *RequestWrapper {
@@ -52,6 +53,14 @@ func CreatePaymentRequest() *RequestWrapper {
 	return &RequestWrapper{
 		Request: Request{
 			Action: ActionDebiting,
+			Lang:   LangUk,
+		},
+	}
+}
+func CreateCaptureRequest() *RequestWrapper {
+	return &RequestWrapper{
+		Request: Request{
+			Action: ActionCompletion,
 			Lang:   LangUk,
 		},
 	}

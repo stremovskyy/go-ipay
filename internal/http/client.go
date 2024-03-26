@@ -72,7 +72,16 @@ func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
 	c.logger.Debug("Response: %v", string(raw))
 	c.logger.Debug("Response status: %v", resp.StatusCode)
 
-	return ipay.UnmarshalJSONResponse(raw)
+	response, err := ipay.UnmarshalJSONResponse(raw)
+	if err != nil {
+		return nil, fmt.Errorf("cannot unmarshal response: %v", err)
+	}
+
+	if response.GetError() != nil {
+		return nil, fmt.Errorf("ipay error: %v", response.GetError())
+	}
+
+	return response, nil
 }
 
 func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse, error) {

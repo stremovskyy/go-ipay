@@ -97,10 +97,6 @@ func (c *client) Payment(request *Request) (*ipay.Response, error) {
 		return nil, fmt.Errorf("cannot get API response: %v", err)
 	}
 
-	if apiResponse.Error() != nil {
-		return nil, apiResponse.Error()
-	}
-
 	return apiResponse, nil
 }
 
@@ -110,8 +106,16 @@ func (c *client) Hold(invoiceRequest *Request) (*ipay.Response, error) {
 }
 
 func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
-	// TODO implement me
-	panic("implement me")
+	captureRequest := ipay.CreateCaptureRequest()
+	captureRequest.SetAuth(invoiceRequest.GetAuth())
+	captureRequest.SetIpayPaymentID(invoiceRequest.GetIpayPaymentID())
+
+	apiResponse, err := c.client.Api(captureRequest)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get API response: %v", err)
+	}
+
+	return apiResponse, nil
 }
 
 func (c *client) Refund(invoiceRequest *Request) (*ipay.Response, error) {
