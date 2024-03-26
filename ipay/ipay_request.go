@@ -11,6 +11,7 @@ const (
 	ActionGetPaymentStatus Action = "GetPaymentStatus"
 	ActionDebiting         Action = "Debiting"
 	ActionCompletion       Action = "Completion"
+	ActionReversal         Action = "Reversal"
 )
 
 func CreateCreateToken3DSRequest(withAmount bool) *RequestWrapper {
@@ -61,6 +62,15 @@ func CreateCaptureRequest() *RequestWrapper {
 	return &RequestWrapper{
 		Request: Request{
 			Action: ActionCompletion,
+			Lang:   LangUk,
+		},
+	}
+}
+
+func CreateRefundRequest() *RequestWrapper {
+	return &RequestWrapper{
+		Request: Request{
+			Action: ActionReversal,
 			Lang:   LangUk,
 		},
 	}
