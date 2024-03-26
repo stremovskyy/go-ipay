@@ -3,7 +3,7 @@ package go_ipay
 import (
 	"strconv"
 
-	"github.com/megakit-pro/go-ipay/ipay"
+	"github.com/megakit-pro/go-ipay/internal/ipay"
 )
 
 type Merchant struct {

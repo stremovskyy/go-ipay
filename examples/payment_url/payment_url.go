@@ -4,8 +4,8 @@ import (
 	"github.com/google/uuid"
 	go_ipay "github.com/megakit-pro/go-ipay"
 	"github.com/megakit-pro/go-ipay/internal/log"
+	"github.com/megakit-pro/go-ipay/internal/utils"
 	"github.com/megakit-pro/go-ipay/private"
-	"github.com/megakit-pro/go-ipay/utils"
 )
 
 func main() {

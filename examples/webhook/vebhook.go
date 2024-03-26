@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/megakit-pro/go-ipay/ipay"
+	"github.com/megakit-pro/go-ipay/internal/ipay"
 	"github.com/megakit-pro/go-ipay/private"
 )
 

@@ -40,8 +40,8 @@ func Test_sha1string(t *testing.T) {
 
 func Test_signer_Sign(t *testing.T) {
 	s := NewSigner("testkey")
-	got := s.Sign()
-	if got == "" {
+	got := s.Sign("testkey")
+	if got == nil || got.Sign == "" {
 		t.Errorf("Sign() returned an empty string, expected a non-empty signature")
 	}
 }

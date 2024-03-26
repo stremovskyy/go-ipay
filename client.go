@@ -5,7 +5,7 @@ import (
 	"net/url"
 
 	"github.com/megakit-pro/go-ipay/internal/http"
-	"github.com/megakit-pro/go-ipay/ipay"
+	"github.com/megakit-pro/go-ipay/internal/ipay"
 )
 
 type client struct {
