@@ -10,12 +10,9 @@ func main() {
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:            private.MerchantName,
-		MerchantID:      private.MerchantID,
-		MerchantKey:     private.MerchantKey,
-		SystemKey:       private.SystemKey,
-		SuccessRedirect: private.SuccessRedirect,
-		FailRedirect:    private.FailRedirect,
+		Name:        private.MerchantName,
+		MerchantID:  private.MerchantID,
+		MerchantKey: private.MerchantKey,
 	}
 
 	request := &go_ipay.Request{
