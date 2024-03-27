@@ -6,10 +6,15 @@ import (
 
 	"github.com/stremovskyy/go-ipay/internal/http"
 	"github.com/stremovskyy/go-ipay/internal/ipay"
+	"github.com/stremovskyy/go-ipay/internal/log"
 )
 
 type client struct {
 	client *http.Client
+}
+
+func (c *client) SetLogLevel(levelDebug int) {
+	log.SetLevel(log.Level(levelDebug))
 }
 
 func NewDefaultClient() Ipay {

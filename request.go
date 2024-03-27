@@ -91,3 +91,12 @@ func (r *Request) GetPaymentID() *string {
 
 	return r.PaymentData.PaymentID
 }
+
+func (r *Request) SetRedirects(successURL string, failURL string) {
+	if r.Merchant == nil {
+		r.Merchant = &Merchant{}
+	}
+
+	r.Merchant.SuccessRedirect = successURL
+	r.Merchant.FailRedirect = failURL
+}

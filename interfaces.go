@@ -15,4 +15,5 @@ type Ipay interface {
 	Capture(invoiceRequest *Request) (*ipay.Response, error)
 	Refund(invoiceRequest *Request) (*ipay.Response, error)
 	Credit(invoiceRequest *Request) (*ipay.Response, error)
+	SetLogLevel(levelDebug int)
 }
