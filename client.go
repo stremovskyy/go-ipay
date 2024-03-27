@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/megakit-pro/go-ipay/internal/http"
-	"github.com/megakit-pro/go-ipay/internal/ipay"
+	"github.com/stremovskyy/go-ipay/internal/http"
+	"github.com/stremovskyy/go-ipay/internal/ipay"
 )
 
 type client struct {

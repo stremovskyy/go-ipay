@@ -13,9 +13,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	go_ipay "github.com/megakit-pro/go-ipay/internal/consts"
-	"github.com/megakit-pro/go-ipay/internal/ipay"
-	"github.com/megakit-pro/go-ipay/internal/log"
+
+	go_ipay "github.com/stremovskyy/go-ipay/internal/consts"
+	"github.com/stremovskyy/go-ipay/internal/ipay"
+	"github.com/stremovskyy/go-ipay/internal/log"
 )
 
 type Client struct {

@@ -3,8 +3,8 @@ package go_ipay
 import (
 	"strconv"
 
-	"github.com/megakit-pro/go-ipay/internal/ipay"
-	"github.com/megakit-pro/go-ipay/internal/utils"
+	"github.com/stremovskyy/go-ipay/internal/ipay"
+	"github.com/stremovskyy/go-ipay/internal/utils"
 )
 
 type Request struct {

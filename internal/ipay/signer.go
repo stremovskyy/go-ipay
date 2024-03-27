@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/megakit-pro/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/internal/log"
 )
 
 type Signer interface {

@@ -1,4 +1,4 @@
-module github.com/megakit-pro/go-ipay
+module github.com/stremovskyy/go-ipay
 
 go 1.22
 

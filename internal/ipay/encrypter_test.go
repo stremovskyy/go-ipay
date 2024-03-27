@@ -3,7 +3,7 @@ package ipay
 import (
 	"testing"
 
-	"github.com/megakit-pro/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/internal/log"
 )
 
 func TestNewCipher(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/megakit-pro/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/internal/log"
 )
 
 type Cipher interface {

@@ -3,7 +3,7 @@ package go_ipay
 import (
 	"net/url"
 
-	"github.com/megakit-pro/go-ipay/internal/ipay"
+	"github.com/stremovskyy/go-ipay/internal/ipay"
 )
 
 type Ipay interface {

@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/google/uuid"
-	go_ipay "github.com/megakit-pro/go-ipay"
-	"github.com/megakit-pro/go-ipay/internal/log"
-	"github.com/megakit-pro/go-ipay/internal/utils"
-	"github.com/megakit-pro/go-ipay/private"
+
+	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/internal/utils"
+	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
