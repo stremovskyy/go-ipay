@@ -22,10 +22,19 @@
  * SOFTWARE.
  */
 
-package go_ipay
+package ipay
 
-import "errors"
+type Lang string
 
-var ErrRequestIsNil = errors.New("request is nil")
-var ErrMerchantIsNil = errors.New("merchant is nil")
-var ErrPersonalDataIsNil = errors.New("personal data is nil")
+const (
+	LangUk Lang = "ua"
+	LangEn Lang = "en"
+)
+
+type CurrencyKey string
+
+const (
+	CurrencyUAH CurrencyKey = "UAH"
+	CurrencyUSD CurrencyKey = "USD"
+	CurrencyEUR CurrencyKey = "EUR"
+)

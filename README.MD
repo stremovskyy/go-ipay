@@ -32,6 +32,7 @@ client := go_ipay.NewDefaultClient()
 ```
 
 ### Using a merchant account
+
 Merchant account is a structure that contains all the necessary information for the client to work with the iPay.ua API.
 
 ```go
@@ -43,16 +44,17 @@ Merchant account is a structure that contains all the necessary information for 
 ```
 
 ## API examples
+
 See [examples](examples) for more examples.
 
 ## License
-
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
+
 - [GoDoc](https://godoc.org/github.com/stremovskyy/gofondy)
 
 ## Author
@@ -65,5 +67,6 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## TODO
+
 - [ ] Add tests
 - [ ] Add more API methods

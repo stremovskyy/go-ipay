@@ -22,10 +22,14 @@
  * SOFTWARE.
  */
 
-package go_ipay
+package consts
 
-import "errors"
+const (
+	Version    = "1.0.0"
+	ApiVersion = "1.28"
 
-var ErrRequestIsNil = errors.New("request is nil")
-var ErrMerchantIsNil = errors.New("merchant is nil")
-var ErrPersonalDataIsNil = errors.New("personal data is nil")
+	baseUrl = "https://tokly.ipay.ua"
+
+	ApiUrl    = baseUrl + "/api"
+	ApiXMLUrl = baseUrl + "/api302"
+)
