@@ -93,6 +93,16 @@ func CreateCaptureRequest() *RequestWrapper {
 	}
 }
 
+func CreateHoldRequest() *RequestWrapper {
+	return &RequestWrapper{
+		Request: Request{
+			Action: ActionDebiting,
+			Lang:   LangUk,
+			// TODO: add something from the ipay docs
+		},
+	}
+}
+
 func CreateRefundRequest() *RequestWrapper {
 	return &RequestWrapper{
 		Request: Request{
