@@ -37,7 +37,7 @@ type client struct {
 	client *http.Client
 }
 
-func (c *client) SetLogLevel(levelDebug int) {
+func (c *client) SetLogLevel(levelDebug log.Level) {
 	log.SetLevel(log.Level(levelDebug))
 }
 

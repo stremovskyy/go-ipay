@@ -27,6 +27,7 @@ package go_ipay
 import (
 	"net/url"
 
+	"github.com/stremovskyy/go-ipay/internal/log"
 	"github.com/stremovskyy/go-ipay/ipay"
 )
 
@@ -39,5 +40,5 @@ type Ipay interface {
 	Capture(invoiceRequest *Request) (*ipay.Response, error)
 	Refund(invoiceRequest *Request) (*ipay.Response, error)
 	Credit(invoiceRequest *Request) (*ipay.Response, error)
-	SetLogLevel(levelDebug int)
+	SetLogLevel(levelDebug log.Level)
 }

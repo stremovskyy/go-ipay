@@ -70,7 +70,7 @@ func main() {
 		},
 	}
 
-	log.SetLevel(log.LevelDebug)
+	client.SetLogLevel(log.LevelDebug)
 
 	paymentResponse, err := client.Payment(paymentRequest)
 	if err != nil {

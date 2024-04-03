@@ -47,7 +47,7 @@ func main() {
 		},
 	}
 
-	log.SetLevel(log.LevelDebug)
+	client.SetLogLevel(log.LevelDebug)
 
 	status, err := client.Capture(request)
 	if err != nil {

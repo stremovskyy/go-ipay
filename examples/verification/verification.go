@@ -52,7 +52,7 @@ func main() {
 		},
 	}
 
-	log.SetLevel(log.LevelDebug)
+	client.SetLogLevel(log.LevelDebug)
 
 	tokenURL, err := client.VerificationLink(request)
 	if err != nil {
