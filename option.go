@@ -24,12 +24,12 @@
 
 package go_ipay
 
-type PaymentData struct {
-	IpayPaymentID *int64
-	PaymentID     *string
-	Amount        int
-	Currency      string
-	OrderID       string
-	Description   string
-	WebhookURL    *string
+import "github.com/stremovskyy/go-ipay/internal/http"
+
+type Option func(*client)
+
+func WithClient(cl *http.Client) Option {
+	return func(c *client) {
+		c.client = cl
+	}
 }

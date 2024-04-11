@@ -81,6 +81,11 @@ func CreatePaymentRequest() *RequestWrapper {
 		Request: Request{
 			Action: ActionDebiting,
 			Lang:   LangUk,
+			Body: Body{
+				Info: &Info{
+					Preauth: 0,
+				},
+			},
 		},
 	}
 }
@@ -98,7 +103,11 @@ func CreateHoldRequest() *RequestWrapper {
 		Request: Request{
 			Action: ActionDebiting,
 			Lang:   LangUk,
-			// TODO: add something from the ipay docs
+			Body: Body{
+				Info: &Info{
+					Preauth: 1,
+				},
+			},
 		},
 	}
 }
@@ -160,6 +169,18 @@ func (r *RequestWrapper) SetPaymentID(paymentID *string) {
 	}
 }
 
+func (r *RequestWrapper) SetWebhookURL(url *string) {
+	if url == nil {
+		return
+	}
+
+	if r.Request.Body.Info == nil {
+		r.Request.Body.Info = &Info{}
+	}
+
+	r.Request.Body.Info.NotifyUrl = url
+}
+
 // Request represents the main structure of a payment request.
 type Request struct {
 	Auth   Auth   `json:"auth"`           // Authentication details for the payment request.
@@ -205,6 +226,8 @@ type Info struct {
 	Aml         *Aml    `json:"aml,omitempty"`      // Anti-Money Laundering information.
 	MctsVts     bool    `json:"mcts_vts"`           // If set, creates a token of type mcts/vts along with the default tokly token.
 	ExternalCVD *Cvd    `json:"external_cvd"`       // External Card Verification Data.
+	Preauth     int8    `json:"preauth"`            // Preauthorization flag.
+	NotifyUrl   *string `json:"notify_url,omitempty"`
 }
 
 func (i *Info) JsonString() string {

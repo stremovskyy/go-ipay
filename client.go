@@ -46,6 +46,17 @@ func NewDefaultClient() Ipay {
 		client: http.NewClient(http.DefaultOptions()),
 	}
 }
+func NewClient(options ...Option) Ipay {
+	c := &client{
+		client: http.NewClient(http.DefaultOptions()),
+	}
+
+	for _, option := range options {
+		option(c)
+	}
+
+	return c
+}
 
 func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 	if request == nil {
@@ -57,6 +68,7 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 	createTokenRequest.SetRedirects(request.GetRedirects())
 	createTokenRequest.SetPersonalData(request.GetPersonalData())
 	createTokenRequest.SetPaymentID(request.GetPaymentID())
+	createTokenRequest.SetWebhookURL(request.GetWebhookURL())
 
 	apiResponse, err := c.client.Api(createTokenRequest)
 	if err != nil {
@@ -79,6 +91,7 @@ func (c *client) Status(request *Request) (*ipay.Response, error) {
 	statusRequest := ipay.CreateStatusRequest()
 	statusRequest.SetAuth(request.GetAuth())
 	statusRequest.SetIpayPaymentID(request.GetIpayPaymentID())
+	statusRequest.SetWebhookURL(request.GetWebhookURL())
 
 	apiResponse, err := c.client.Api(statusRequest)
 	if err != nil {
@@ -120,6 +133,7 @@ func (c *client) Payment(request *Request) (*ipay.Response, error) {
 	paymentRequest.SetPersonalData(request.GetPersonalData())
 	paymentRequest.AddCardToken(request.GetCardToken())
 	paymentRequest.SetPaymentID(request.GetPaymentID())
+	paymentRequest.SetWebhookURL(request.GetWebhookURL())
 
 	apiResponse, err := c.client.Api(paymentRequest)
 	if err != nil {
@@ -129,10 +143,15 @@ func (c *client) Payment(request *Request) (*ipay.Response, error) {
 	return apiResponse, nil
 }
 
-func (c *client) Hold(invoiceRequest *Request) (*ipay.Response, error) {
+func (c *client) Hold(request *Request) (*ipay.Response, error) {
 	holdRequest := ipay.CreateHoldRequest()
-	holdRequest.SetAuth(invoiceRequest.GetAuth())
-	holdRequest.SetIpayPaymentID(invoiceRequest.GetIpayPaymentID())
+	holdRequest.SetAuth(request.GetAuth())
+	holdRequest.SetRedirects(request.GetRedirects())
+	holdRequest.AddTransaction(request.GetTransaction())
+	holdRequest.SetPersonalData(request.GetPersonalData())
+	holdRequest.AddCardToken(request.GetCardToken())
+	holdRequest.SetPaymentID(request.GetPaymentID())
+	holdRequest.SetWebhookURL(request.GetWebhookURL())
 
 	apiResponse, err := c.client.Api(holdRequest)
 	if err != nil {
@@ -146,6 +165,7 @@ func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
 	captureRequest := ipay.CreateCaptureRequest()
 	captureRequest.SetAuth(invoiceRequest.GetAuth())
 	captureRequest.SetIpayPaymentID(invoiceRequest.GetIpayPaymentID())
+	captureRequest.SetWebhookURL(invoiceRequest.GetWebhookURL())
 
 	apiResponse, err := c.client.Api(captureRequest)
 	if err != nil {
@@ -159,6 +179,7 @@ func (c *client) Refund(invoiceRequest *Request) (*ipay.Response, error) {
 	refundRequest := ipay.CreateRefundRequest()
 	refundRequest.SetAuth(invoiceRequest.GetAuth())
 	refundRequest.SetIpayPaymentID(invoiceRequest.GetIpayPaymentID())
+	invoiceRequest.SetWebhookURL(invoiceRequest.GetWebhookURL())
 
 	apiResponse, err := c.client.Api(refundRequest)
 	if err != nil {

@@ -124,3 +124,19 @@ func (r *Request) SetRedirects(successURL string, failURL string) {
 	r.Merchant.SuccessRedirect = successURL
 	r.Merchant.FailRedirect = failURL
 }
+
+func (r *Request) GetWebhookURL() *string {
+	if r.PaymentData == nil {
+		return nil
+	}
+
+	return r.PaymentData.WebhookURL
+}
+
+func (r *Request) SetWebhookURL(webhookURL *string) {
+	if r.PaymentData == nil {
+		r.PaymentData = &PaymentData{}
+	}
+
+	r.PaymentData.WebhookURL = webhookURL
+}
