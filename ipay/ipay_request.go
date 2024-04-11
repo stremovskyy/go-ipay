@@ -126,6 +126,11 @@ type RequestWrapper struct {
 }
 
 func (r *RequestWrapper) SetPersonalData(info *Info) {
+	if r.Request.Body.Info != nil {
+		info.NotifyUrl = r.Request.Body.Info.NotifyUrl
+		info.Preauth = r.Request.Body.Info.Preauth
+	}
+
 	r.Request.Body.Info = info
 }
 
