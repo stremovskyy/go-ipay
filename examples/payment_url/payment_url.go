@@ -69,6 +69,7 @@ func main() {
 	}
 
 	client.SetLogLevel(log.LevelDebug)
+	paymentRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
 	paymentResponse, err := client.PaymentURL(paymentRequest)
 	if err != nil {

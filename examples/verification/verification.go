@@ -42,7 +42,7 @@ func main() {
 		FailRedirect:    private.FailRedirect,
 	}
 
-	request := &go_ipay.Request{
+	VerificationRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PersonalData: &go_ipay.PersonalData{
 			UserID:    utils.Ref(123),
@@ -53,8 +53,9 @@ func main() {
 	}
 
 	client.SetLogLevel(log.LevelDebug)
+	VerificationRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
-	tokenURL, err := client.VerificationLink(request)
+	tokenURL, err := client.VerificationLink(VerificationRequest)
 	if err != nil {
 		panic(err)
 	}

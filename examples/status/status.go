@@ -40,7 +40,7 @@ func main() {
 		MerchantKey: private.MerchantKey,
 	}
 
-	request := &go_ipay.Request{
+	statusRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
 			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
@@ -48,8 +48,9 @@ func main() {
 	}
 
 	client.SetLogLevel(log.LevelDebug)
+	statusRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
-	status, err := client.Status(request)
+	status, err := client.Status(statusRequest)
 	if err != nil {
 		panic(err)
 	}

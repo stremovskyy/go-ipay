@@ -46,7 +46,7 @@ func main() {
 
 	uuidString := uuid.New().String()
 
-	paymentRequest := &go_ipay.Request{
+	holdRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentMethod: &go_ipay.PaymentMethod{
 			Card: &go_ipay.Card{
@@ -72,9 +72,9 @@ func main() {
 
 	client.SetLogLevel(log.LevelDebug)
 
-	paymentRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	holdRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
-	paymentResponse, err := client.Hold(paymentRequest)
+	paymentResponse, err := client.Hold(holdRequest)
 	if err != nil {
 		panic(err)
 	}
