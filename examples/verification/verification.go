@@ -25,6 +25,8 @@
 package main
 
 import (
+	"github.com/google/uuid"
+
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
@@ -42,8 +44,16 @@ func main() {
 		FailRedirect:    private.FailRedirect,
 	}
 
+	uuidString := uuid.New().String()
+
 	VerificationRequest := &go_ipay.Request{
 		Merchant: merchant,
+		PaymentData: &go_ipay.PaymentData{
+			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
+			PaymentID:     utils.Ref(uuidString),
+			OrderID:       uuidString,
+			Description:   "Verification payment: " + uuidString,
+		},
 		PersonalData: &go_ipay.PersonalData{
 			UserID:    utils.Ref(123),
 			FirstName: utils.Ref("John"),
