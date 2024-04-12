@@ -39,7 +39,7 @@ type Payment struct {
 	Amount        float64       `xml:"amount" json:"amount"`                   // Total payment amount
 	Currency      string        `xml:"currency" json:"currency"`               // Currency code
 	Timestamp     int64         `xml:"timestamp" json:"timestamp"`             // Date of authorization/completion in UNIX-timestamp
-	CardToken     string        `xml:"card_token" json:"card_token"`           // Card token
+	CardToken     *string       `xml:"card_token" json:"card_token"`           // Card token
 	CardIsPrepaid string        `xml:"card_is_prepaid" json:"card_is_prepaid"` // Whether the card is prepaid (1) or not (0), optional
 	ValidTaxID    int           `xml:"valid_tax_id" json:"valid_tax_id"`       // Valid (1) or not (0) tax ID sent in one of the requests: CreateToken, CreateToken3DS, PaymentCreate, optional
 	CardHolder    string        `xml:"card_holder" json:"card_holder"`         // Full name of the cardholder, optional
@@ -47,18 +47,39 @@ type Payment struct {
 	Transactions  Transactions  `xml:"transactions" json:"transactions"`       // Transactions element
 	Salt          string        `xml:"salt"`                                   // Signature salt
 	Sign          string        `xml:"sign"`                                   // Request signature
-	PmtId         int           `json:"pmt_id" json:"pmt_id"`
-	CardMask      string        `json:"card_mask" json:"card_mask"`
-	Invoice       int           `json:"invoice" json:"invoice"`
-	Desc          string        `json:"desc" json:"desc"`
-	BnkErrorGroup interface{}   `json:"bnk_error_group" json:"bnk_error_group"`
-	BnkErrorNote  interface{}   `json:"bnk_error_note" json:"bnk_error_note"`
-	InitDate      string        `json:"init_date" json:"init_date"`
+	PmtId         int           `xml:"pmt_id" json:"pmt_id"`
+	CardMask      *string       `xml:"card_mask" json:"card_mask"`
+	Card          *string       `xml:"card" json:"card"`
+	Invoice       int           `xml:"invoice" json:"invoice"`
+	Desc          string        `xml:"desc" json:"desc"`
+	BnkErrorGroup interface{}   `xml:"bnk_error_group" json:"bnk_error_group"`
+	BnkErrorNote  interface{}   `xml:"bnk_error_note" json:"bnk_error_note"`
+	InitDate      string        `xml:"init_date" json:"init_date"`
 }
 
 // Transactions represents a collection of Transaction.
 type Transactions struct {
 	Transaction []Transaction `xml:"transaction" json:"transaction"` // Transaction element with transaction ID
+}
+
+func (t *Transactions) Len() int {
+	return len(t.Transaction)
+}
+
+func (t *Transactions) First() *Transaction {
+	if t.Len() == 0 {
+		return nil
+	}
+
+	return &t.Transaction[0]
+}
+
+func (t *Transactions) Last() *Transaction {
+	if t.Len() == 0 {
+		return nil
+	}
+
+	return &t.Transaction[t.Len()-1]
 }
 
 // Transaction represents an individual transaction.
