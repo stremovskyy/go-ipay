@@ -31,7 +31,7 @@ import (
 	"encoding/base64"
 	"fmt"
 
-	"github.com/stremovskyy/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/log"
 )
 
 type Cipher interface {

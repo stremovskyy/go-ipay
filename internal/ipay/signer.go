@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/stremovskyy/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/log"
 )
 
 type Signer interface {

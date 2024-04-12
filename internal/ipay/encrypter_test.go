@@ -27,7 +27,7 @@ package ipay
 import (
 	"testing"
 
-	"github.com/stremovskyy/go-ipay/internal/log"
+	"github.com/stremovskyy/go-ipay/log"
 )
 
 func TestNewCipher(t *testing.T) {

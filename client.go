@@ -29,8 +29,8 @@ import (
 	"net/url"
 
 	"github.com/stremovskyy/go-ipay/internal/http"
-	"github.com/stremovskyy/go-ipay/internal/log"
 	"github.com/stremovskyy/go-ipay/ipay"
+	"github.com/stremovskyy/go-ipay/log"
 )
 
 type client struct {

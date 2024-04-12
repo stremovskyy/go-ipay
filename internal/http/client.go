@@ -39,8 +39,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/stremovskyy/go-ipay/consts"
-	"github.com/stremovskyy/go-ipay/internal/log"
 	"github.com/stremovskyy/go-ipay/ipay"
+	"github.com/stremovskyy/go-ipay/log"
 )
 
 type Client struct {
