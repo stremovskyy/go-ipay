@@ -27,6 +27,7 @@ package go_ipay
 import (
 	"strconv"
 
+	"github.com/stremovskyy/go-ipay/currency"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/ipay"
 )
@@ -92,12 +93,12 @@ func (r *Request) GetIpayPaymentID() int64 {
 	return *r.PaymentData.IpayPaymentID
 }
 
-func (r *Request) GetTransaction() (int, string, string, string) {
+func (r *Request) GetTransaction() (int, currency.Code, string) {
 	if r.PaymentData == nil {
-		return 0, "", "", ""
+		return 0, "", ""
 	}
 
-	return r.PaymentData.Amount, r.PaymentData.Currency, r.PaymentData.OrderID, r.PaymentData.Description
+	return r.PaymentData.Amount, r.PaymentData.Currency, r.PaymentData.Description
 }
 
 func (r *Request) GetCardToken() *string {

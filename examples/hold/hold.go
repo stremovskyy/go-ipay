@@ -25,9 +25,12 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/google/uuid"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/currency"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
 	"github.com/stremovskyy/go-ipay/private"
@@ -58,7 +61,7 @@ func main() {
 			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
 			PaymentID:     utils.Ref(uuidString),
 			Amount:        100,
-			Currency:      "UAH",
+			Currency:      currency.UAH,
 			OrderID:       uuidString,
 			Description:   "Test payment: " + uuidString,
 		},
@@ -74,10 +77,14 @@ func main() {
 
 	holdRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
-	paymentResponse, err := client.Hold(holdRequest)
+	holdResponse, err := client.Hold(holdRequest)
 	if err != nil {
 		panic(err)
 	}
 
-	println(paymentResponse)
+	if holdResponse.GetError() != nil {
+		panic(holdResponse.GetError())
+	}
+
+	fmt.Printf("Payment: %s is %s", uuidString, holdResponse.Status.String())
 }

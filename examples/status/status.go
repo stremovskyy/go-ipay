@@ -25,6 +25,8 @@
 package main
 
 import (
+	"fmt"
+
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
@@ -50,10 +52,14 @@ func main() {
 	client.SetLogLevel(log.LevelDebug)
 	statusRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
-	status, err := client.Status(statusRequest)
+	statusResponse, err := client.Status(statusRequest)
 	if err != nil {
 		panic(err)
 	}
 
-	println(status)
+	if statusResponse.GetError() != nil {
+		panic(statusResponse.GetError())
+	}
+
+	fmt.Printf("Payment status: %s\n", statusResponse.Pmt.Status.String())
 }

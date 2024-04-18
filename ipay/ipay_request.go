@@ -26,6 +26,8 @@ package ipay
 
 import (
 	"encoding/json"
+
+	"github.com/stremovskyy/go-ipay/currency"
 )
 
 type Action string
@@ -147,16 +149,20 @@ func (r *RequestWrapper) SetIpayPaymentID(ipayPaymentID int64) {
 	r.Request.Body.PmtId = &ipayPaymentID
 }
 
-func (r *RequestWrapper) AddTransaction(amount int, currency, description, info string) {
+func (r *RequestWrapper) AddTransaction(amount int, currency currency.Code, description string) {
 	if r.Request.Body.Transactions == nil {
 		r.Request.Body.Transactions = make([]RequestTransaction, 0)
 	}
 
 	r.Request.Body.Transactions = append(
 		r.Request.Body.Transactions, RequestTransaction{
-			Amount: amount,
-			Desc:   description,
-			Info:   []string{info, "key"},
+			Amount:   amount,
+			Currency: currency,
+			Desc:     description,
+			Info: Info{
+				NotifyUrl: r.Request.Body.Info.NotifyUrl,
+				Preauth:   r.Request.Body.Info.Preauth,
+			},
 		},
 	)
 }
@@ -172,6 +178,19 @@ func (r *RequestWrapper) SetPaymentID(paymentID *string) {
 		r.Request.Body.Info.OrderId = paymentID
 		r.Request.Body.ExtId = paymentID
 	}
+
+	if r.Request.Body.Transactions != nil && len(r.Request.Body.Transactions) != 0 {
+		for i := range r.Request.Body.Transactions {
+			r.Request.Body.Transactions[i].Info.OrderId = paymentID
+		}
+	}
+
+	if r.Request.Body.Info == nil {
+		r.Request.Body.Info = &Info{
+			OrderId: paymentID,
+			ExtId:   paymentID,
+		}
+	}
 }
 
 func (r *RequestWrapper) SetWebhookURL(url *string) {
@@ -179,11 +198,17 @@ func (r *RequestWrapper) SetWebhookURL(url *string) {
 		return
 	}
 
-	if r.Request.Body.Info == nil {
-		r.Request.Body.Info = &Info{}
+	if r.Request.Body.Transactions != nil && len(r.Request.Body.Transactions) != 0 {
+		for i := range r.Request.Body.Transactions {
+			r.Request.Body.Transactions[i].Info.NotifyUrl = url
+		}
 	}
 
-	r.Request.Body.Info.NotifyUrl = url
+	if r.Request.Body.Info == nil {
+		r.Request.Body.Info = &Info{
+			NotifyUrl: url,
+		}
+	}
 }
 
 // Request represents the main structure of a payment request.
@@ -209,12 +234,13 @@ type Body struct {
 
 // Transaction represents an individual transaction.
 type RequestTransaction struct {
-	MchID   int      `xml:"mch_id" json:"mch_id"`   // Merchant ID
-	SrvID   int      `xml:"srv_id" json:"srv_id"`   // Legal entity for which the operation is carried out
-	Invoice int      `xml:"invoice" json:"invoice"` // Payment amount in kopecks
-	Amount  int      `xml:"amount" json:"amount"`   // Amount to be paid (including commission) in kopecks
-	Desc    string   `xml:"desc" json:"desc"`       // Payment description
-	Info    []string `xml:"info" json:"info"`       // Information for the payment provided by the merchant
+	MchID    int           `xml:"mch_id" json:"mch_id,omitempty"`     // Merchant ID
+	SrvID    int           `xml:"srv_id" json:"srv_id,omitempty"`     // Legal entity for which the operation is carried out
+	Invoice  int           `xml:"invoice" json:"invoice,omitempty"`   // Payment amount in kopecks
+	Amount   int           `xml:"amount" json:"amount,omitempty"`     // Amount to be paid (including commission) in kopecks
+	Desc     string        `xml:"desc" json:"desc,omitempty"`         // Payment description
+	Info     Info          `xml:"info" json:"info,omitempty"`         // Information for the payment provided by the merchant
+	Currency currency.Code `xml:"currency" json:"currency,omitempty"` // Currency code
 }
 
 // Card represents the card data.
@@ -224,14 +250,14 @@ type Card struct {
 
 // Info holds additional information related to the payment, provided by the merchant.
 type Info struct {
-	OrderId     *string     `json:"order_id,omitempty"` // Order ID.
-	ExtId       *string     `json:"ext_id,omitempty"`   // External ID.
-	UserID      *string     `json:"user_id,omitempty"`  // User ID.
-	Cvd         interface{} `json:"cvd,omitempty"`      // Card Verification Data.
-	Aml         *Aml        `json:"aml,omitempty"`      // Anti-Money Laundering information.
-	MctsVts     bool        `json:"mcts_vts"`           // If set, creates a token of type mcts/vts along with the default tokly token.
-	ExternalCVD *Cvd        `json:"external_cvd"`       // External Card Verification Data.
-	Preauth     int8        `json:"preauth"`            // Preauthorization flag.
+	OrderId     *string     `json:"order_id,omitempty"`     // Order ID.
+	ExtId       *string     `json:"ext_id,omitempty"`       // External ID.
+	UserID      *string     `json:"user_id,omitempty"`      // User ID.
+	Cvd         interface{} `json:"cvd,omitempty"`          // Card Verification Data.
+	Aml         *Aml        `json:"aml,omitempty"`          // Anti-Money Laundering information.
+	MctsVts     bool        `json:"mcts_vts,omitempty"`     // If set, creates a token of type mcts/vts along with the default tokly token.
+	ExternalCVD *Cvd        `json:"external_cvd,omitempty"` // External Card Verification Data.
+	Preauth     int8        `json:"preauth"`                // Preauthorization flag.
 	NotifyUrl   *string     `json:"notify_url,omitempty"`
 }
 

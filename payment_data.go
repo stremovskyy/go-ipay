@@ -24,11 +24,13 @@
 
 package go_ipay
 
+import "github.com/stremovskyy/go-ipay/currency"
+
 type PaymentData struct {
 	IpayPaymentID *int64
 	PaymentID     *string
 	Amount        int
-	Currency      string
+	Currency      currency.Code
 	OrderID       string
 	Description   string
 	WebhookURL    *string

@@ -56,7 +56,7 @@ func main() {
 			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
 			PaymentID:     utils.Ref(uuid.New().String()),
 			Amount:        100,
-			Currency:      "UAH",
+			Currency:      currency.UAH,
 			OrderID:       uuid.New().String(),
 			Description:   "Test payment URL",
 		},

@@ -43,17 +43,21 @@ func main() {
 	refundRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
+			IpayPaymentID: utils.Ref(int64(376328021)),
 		},
 	}
 
 	client.SetLogLevel(log.LevelDebug)
 	refundRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
-	status, err := client.Refund(refundRequest)
+	refundResponse, err := client.Refund(refundRequest)
 	if err != nil {
 		panic(err)
 	}
 
-	println(status)
+	if refundResponse.GetError() != nil {
+		panic(refundResponse.GetError())
+	}
+
+	println(refundResponse.Status.String())
 }

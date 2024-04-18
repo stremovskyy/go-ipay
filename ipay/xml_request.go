@@ -27,6 +27,8 @@ package ipay
 import (
 	"encoding/xml"
 	"fmt"
+
+	"github.com/stremovskyy/go-ipay/currency"
 )
 
 // XmlPayment represents the root of the payment request structure.
@@ -62,7 +64,7 @@ type XmlTransactions struct {
 // XmlTransaction represents a single transaction.
 type XmlTransaction struct {
 	Amount           int                  `xml:"amount"`
-	Currency         string               `xml:"currency"`
+	Currency         currency.Code        `xml:"currency"`
 	Desc             string               `xml:"desc"`
 	Info             string               `xml:"info"` // This could be more complex depending on the structure of the info
 	SmchID           *int                 `xml:"smch_id,omitempty"`
@@ -86,12 +88,12 @@ func (p XmlPayment) Marshal() ([]byte, error) {
 }
 
 // AddTransaction is a method to conveniently add a transaction to the XmlPayment.
-func (p *XmlPayment) AddTransaction(amount int, currency, description, info string) {
+func (p *XmlPayment) AddTransaction(amount int, currency currency.Code, description string) {
 	transaction := XmlTransaction{
 		Amount:   amount,
 		Currency: currency,
 		Desc:     description,
-		Info:     info,
+		// Info:     info,
 	}
 	p.Transactions.Transaction = append(p.Transactions.Transaction, transaction)
 }

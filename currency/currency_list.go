@@ -22,43 +22,17 @@
  * SOFTWARE.
  */
 
-package main
+package currency
 
-import (
-	go_ipay "github.com/stremovskyy/go-ipay"
-	"github.com/stremovskyy/go-ipay/internal/utils"
-	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
+type Code string
+
+// Currency codes
+const (
+	UAH Code = "UAH"
+	USD Code = "USD"
+	EUR Code = "EUR"
 )
 
-func main() {
-	client := go_ipay.NewDefaultClient()
-
-	merchant := &go_ipay.Merchant{
-		Name:        private.MerchantName,
-		MerchantID:  private.MerchantID,
-		MerchantKey: private.MerchantKey,
-	}
-
-	captureRequest := &go_ipay.Request{
-		Merchant: merchant,
-		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(376343486)),
-		},
-	}
-
-	client.SetLogLevel(log.LevelDebug)
-
-	captureRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
-
-	captureResponse, err := client.Capture(captureRequest)
-	if err != nil {
-		panic(err)
-	}
-
-	if captureResponse.GetError() != nil {
-		panic(captureResponse.GetError())
-	}
-
-	println(captureResponse.Status.String())
+func (c Code) String() string {
+	return string(c)
 }
