@@ -45,7 +45,7 @@ func main() {
 	statusRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
+			IpayPaymentID: utils.Ref(int64(376470216)),
 		},
 	}
 

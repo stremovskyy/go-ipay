@@ -28,6 +28,7 @@ import (
 	"github.com/google/uuid"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/currency"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
 	"github.com/stremovskyy/go-ipay/private"

@@ -141,3 +141,29 @@ func (r *Request) SetWebhookURL(webhookURL *string) {
 
 	r.PaymentData.WebhookURL = webhookURL
 }
+
+func (r *Request) GetAmount() int {
+	if r.PaymentData == nil {
+		return 0
+	}
+
+	return r.PaymentData.Amount
+
+}
+
+func (r *Request) GetDescription() string {
+	if r.PaymentData == nil {
+		return ""
+	}
+
+	return r.PaymentData.Description
+}
+
+func (r *Request) GetCurrency() currency.Code {
+	if r.PaymentData == nil {
+		return ""
+	}
+
+	return r.PaymentData.Currency
+
+}

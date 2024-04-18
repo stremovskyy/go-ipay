@@ -30,6 +30,6 @@ type Option func(*client)
 
 func WithClient(cl *http.Client) Option {
 	return func(c *client) {
-		c.client = cl
+		c.ipayClient = cl
 	}
 }

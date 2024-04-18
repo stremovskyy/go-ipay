@@ -131,7 +131,7 @@ func (p *XmlPayment) SetPersonalData(personalData *Info) {
 	}
 }
 
-func CreatePaymentCreateRequest() *XmlPayment {
+func CreateXMLPaymentCreateRequest() *XmlPayment {
 	return &XmlPayment{
 		Lang:     LangUk,
 		Lifetime: 24,
