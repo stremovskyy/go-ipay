@@ -37,7 +37,7 @@ type IpayResponseWrapper struct {
 
 type Response struct {
 	Transactions []ResponseTransaction `json:"transactions"`
-	PmtId        int                   `json:"pmt_id"`
+	PmtId        int64                 `json:"pmt_id"`
 	Pmt          *Payment              `json:"pmt"`
 	Url          string                `json:"url"`
 	Salt         string                `json:"salt"`
@@ -59,10 +59,6 @@ func (r Response) GetError() error {
 
 	if r.Status == PaymentStatusSecurityRefusal {
 		return fmt.Errorf("ipay error: security refusal")
-	}
-
-	if r.Status == PaymentStatusCanceled {
-		return fmt.Errorf("ipay error: payment canceled")
 	}
 
 	if r.Error != nil {
