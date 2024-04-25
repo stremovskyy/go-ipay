@@ -232,6 +232,12 @@ func WithAmount(amountString int) func(*RequestWrapper) {
 	}
 }
 
+func WithInvoiceAmount(amount int) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.Invoice = &amount
+	}
+}
+
 func WithCardToken(cardToken *string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.Card.Token = cardToken
@@ -299,6 +305,17 @@ func WithIpayPaymentID(ipayPaymentID int64) func(*RequestWrapper) {
 
 func WithPaymentID(paymentID *string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
+		rw.Request.Body.ExtId = paymentID
+
+		if rw.Request.Body.Info == nil {
+			rw.Request.Body.Info = &Info{
+				OrderId: paymentID,
+				ExtId:   paymentID,
+			}
+
+			return
+		}
+
 		rw.Request.Body.Info.OrderId = paymentID
 		rw.Request.Body.ExtId = paymentID
 

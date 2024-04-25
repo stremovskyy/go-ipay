@@ -40,6 +40,7 @@ const (
 	ActionDebiting         Action = "Debiting"
 	ActionCompletion       Action = "Completion"
 	ActionReversal         Action = "Reversal"
+	ActionCredit           Action = "A2CPay"
 )
 
 type RequestWrapper struct {
@@ -65,6 +66,7 @@ type Body struct {
 	Transactions []RequestTransaction `json:"transactions,omitempty"` // List of transactions.
 	Card         Card                 `json:"card,omitempty"`         // Card data.
 	ExtId        *string              `json:"ext_id,omitempty"`       // External ID.
+	Invoice      *int                 `json:"invoice,omitempty"`      // Payment amount in kopecks.
 }
 
 // Transaction represents an individual transaction.

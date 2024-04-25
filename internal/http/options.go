@@ -36,7 +36,7 @@ type Options struct {
 
 func DefaultOptions() *Options {
 	return &Options{
-		Timeout:         5 * time.Second,
+		Timeout:         15 * time.Second,
 		KeepAlive:       30 * time.Second,
 		MaxIdleConns:    100,
 		IdleConnTimeout: 90 * time.Second,

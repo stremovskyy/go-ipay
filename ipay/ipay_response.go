@@ -44,6 +44,7 @@ type Response struct {
 	Sign         string                `json:"sign"`
 	Status       PaymentStatus         `json:"status"`
 	BnkErrorNote *ipay.StatusCode      `json:"bnk_error_note"`
+	ResAuthCode  int                   `json:"res_auth_code"`
 	Error        *string               `json:"error"`
 	ErrorCode    *string               `json:"error_code"`
 }
@@ -51,14 +52,18 @@ type Response struct {
 func (r Response) GetError() error {
 	if r.BnkErrorNote != nil {
 		if statusCode, found := ipay.GetStatusCode(*r.BnkErrorNote); found {
-			return fmt.Errorf(fmt.Sprintf("ipay error: %s, reason: %s, message: %s", *r.BnkErrorNote, statusCode.Reason, statusCode.Message))
+			return fmt.Errorf(fmt.Sprintf("bank error: %s, reason: %s, message: %s", *r.BnkErrorNote, statusCode.Reason, statusCode.Message))
 		} else {
-			return fmt.Errorf("ipay error: %s", *r.BnkErrorNote)
+			return fmt.Errorf("general error: %s", *r.BnkErrorNote)
 		}
 	}
 
 	if r.Status == PaymentStatusSecurityRefusal {
-		return fmt.Errorf("ipay error: security refusal")
+		return fmt.Errorf("payment status: security refusal")
+	}
+
+	if r.Status == PaymentStatusFailed {
+		return fmt.Errorf("payment status: payment failed")
 	}
 
 	if r.Error != nil {

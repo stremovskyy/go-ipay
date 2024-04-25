@@ -38,7 +38,7 @@ type client struct {
 }
 
 func (c *client) SetLogLevel(levelDebug log.Level) {
-	log.SetLevel(log.Level(levelDebug))
+	log.SetLevel(levelDebug)
 }
 
 func NewDefaultClient() Ipay {
@@ -194,12 +194,12 @@ func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
 	return apiResponse, nil
 }
 
-func (c *client) Refund(invoiceRequest *Request) (*ipay.Response, error) {
+func (c *client) Refund(request *Request) (*ipay.Response, error) {
 	refundRequest := ipay.NewRequest(
 		ipay.ActionReversal, ipay.LangUk,
-		ipay.WithAuth(invoiceRequest.GetAuth()),
-		ipay.WithIpayPaymentID(invoiceRequest.GetIpayPaymentID()),
-		ipay.WithWebhookURL(invoiceRequest.GetWebhookURL()),
+		ipay.WithAuth(request.GetAuth()),
+		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
+		ipay.WithWebhookURL(request.GetWebhookURL()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(refundRequest)
@@ -210,7 +210,20 @@ func (c *client) Refund(invoiceRequest *Request) (*ipay.Response, error) {
 	return apiResponse, nil
 }
 
-func (c *client) Credit(invoiceRequest *Request) (*ipay.Response, error) {
-	// TODO implement me
-	panic("implement me")
+func (c *client) Credit(request *Request) (*ipay.Response, error) {
+	creditRequest := ipay.NewRequest(
+		ipay.ActionCredit, ipay.LangUk,
+		ipay.WithAuth(request.GetAuth()),
+		ipay.WithInvoiceAmount(request.GetAmount()),
+		ipay.WithCardToken(request.GetCardToken()),
+		ipay.WithPaymentID(request.GetPaymentID()),
+		ipay.WithWebhookURL(request.GetWebhookURL()),
+	)
+
+	apiResponse, err := c.ipayClient.Api(creditRequest)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get API response: %v", err)
+	}
+
+	return apiResponse, nil
 }

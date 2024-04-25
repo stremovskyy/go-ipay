@@ -74,11 +74,13 @@ func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
 	req.Header.Set("X-Request-ID", requestID)
 	req.Header.Set("Api-Version", consts.ApiVersion)
 
+	tStart := time.Now()
 	resp, err := c.client.Do(req)
 	if err != nil {
 		c.logger.Error("cannot send request: %v", err)
 		return nil, fmt.Errorf("cannot send request: %v", err)
 	}
+	c.logger.Debug("Request time: %v", time.Since(tStart))
 
 	defer func() {
 		err := resp.Body.Close()
@@ -137,11 +139,13 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 	req.Header.Set("X-Request-ID", requestID)
 	req.Header.Set("Api-Version", consts.ApiVersion)
 
+	tStart := time.Now()
 	resp, err := c.client.Do(req)
 	if err != nil {
 		c.xmlLogger.Error("cannot send request: %v", err)
 		return nil, fmt.Errorf("cannot send request: %v", err)
 	}
+	c.xmlLogger.Debug("Request time: %v", time.Since(tStart))
 
 	defer func() {
 		if err := resp.Body.Close(); err != nil {
