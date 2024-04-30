@@ -60,7 +60,7 @@ func main() {
 		PaymentData: &go_ipay.PaymentData{
 			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
 			PaymentID:     utils.Ref(uuidString),
-			Amount:        100,
+			Amount:        300,
 			Currency:      currency.UAH,
 			OrderID:       uuidString,
 			Description:   "Test payment: " + uuidString,

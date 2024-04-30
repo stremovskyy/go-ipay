@@ -182,6 +182,8 @@ func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
 	captureRequest := ipay.NewRequest(
 		ipay.ActionCompletion, ipay.LangUk,
 		ipay.WithAuth(invoiceRequest.GetAuth()),
+		ipay.WithAmountInTransactions(invoiceRequest.GetAmount(), invoiceRequest.GetSubMerchantID()),
+		ipay.WithDescription(invoiceRequest.GetDescription()),
 		ipay.WithIpayPaymentID(invoiceRequest.GetIpayPaymentID()),
 		ipay.WithWebhookURL(invoiceRequest.GetWebhookURL()),
 	)

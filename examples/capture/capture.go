@@ -35,15 +35,18 @@ func main() {
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:        private.MerchantName,
-		MerchantID:  private.MerchantID,
-		MerchantKey: private.MerchantKey,
+		Name:          private.MerchantName,
+		MerchantID:    private.MerchantID,
+		MerchantKey:   private.MerchantKey,
+		SubMerchantID: private.SubMerchantID, // WARNING: SubMerchantID is required for capture
 	}
 
 	captureRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(376343486)),
+			IpayPaymentID: utils.Ref(int64(384059174)),
+			Amount:        100,
+			Description:   "Capture test",
 		},
 	}
 

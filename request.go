@@ -167,3 +167,11 @@ func (r *Request) GetCurrency() currency.Code {
 	return r.PaymentData.Currency
 
 }
+
+func (r *Request) GetSubMerchantID() *int {
+	if r.Merchant == nil || r.Merchant.SubMerchantID == 0 {
+		return nil
+	}
+
+	return &r.Merchant.SubMerchantID
+}

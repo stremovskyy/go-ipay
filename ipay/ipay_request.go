@@ -64,7 +64,7 @@ type Body struct {
 	VerifyType   *string              `json:"verify_type,omitempty"`  // Verification type.
 	PmtId        *int64               `json:"pmt_id,omitempty"`       // Payment ID.
 	Transactions []RequestTransaction `json:"transactions,omitempty"` // List of transactions.
-	Card         Card                 `json:"card,omitempty"`         // Card data.
+	Card         *Card                `json:"card,omitempty"`         // Card data.
 	ExtId        *string              `json:"ext_id,omitempty"`       // External ID.
 	Invoice      *int                 `json:"invoice,omitempty"`      // Payment amount in kopecks.
 }
@@ -73,10 +73,11 @@ type Body struct {
 type RequestTransaction struct {
 	MchID    int           `xml:"mch_id" json:"mch_id,omitempty"`     // Merchant ID
 	SrvID    int           `xml:"srv_id" json:"srv_id,omitempty"`     // Legal entity for which the operation is carried out
+	SmchId   *int          `xml:"smch_id" json:"smch_id,omitempty"`   // Submerchant ID
 	Invoice  int           `xml:"invoice" json:"invoice,omitempty"`   // Payment amount in kopecks
 	Amount   int           `xml:"amount" json:"amount,omitempty"`     // Amount to be paid (including commission) in kopecks
 	Desc     string        `xml:"desc" json:"desc,omitempty"`         // Payment description
-	Info     Info          `xml:"info" json:"info,omitempty"`         // Information for the payment provided by the merchant
+	Info     *Info         `xml:"info" json:"info"`                   // Information for the payment provided by the merchant
 	Currency currency.Code `xml:"currency" json:"currency,omitempty"` // Currency code
 }
 

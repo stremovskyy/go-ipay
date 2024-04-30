@@ -28,176 +28,6 @@ import (
 	"github.com/stremovskyy/go-ipay/currency"
 )
 
-//
-// func CreateCreateToken3DSRequest(withAmount bool) *RequestWrapper {
-// 	amountString := "no_amount"
-//
-// 	if withAmount {
-// 		amountString = "with_amount"
-// 	}
-//
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Auth:   Auth{},
-// 			Action: ActionCreateToken3DS,
-// 			Body: Body{
-// 				VerifyType: &amountString,
-// 			},
-// 			Lang: LangUk,
-// 		},
-// 	}
-// }
-//
-// func CreateCreateTokenRequest() *RequestWrapper {
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Action: ActionCreateToken,
-// 			Lang:   LangUk,
-// 		},
-// 	}
-// }
-//
-// func CreateStatusRequest() *RequestWrapper {
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Action: ActionGetPaymentStatus,
-// 			Lang:   LangUk,
-// 		},
-// 	}
-// }
-// func CreatePaymentRequest() *RequestWrapper {
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Action: ActionDebiting,
-// 			Lang:   LangUk,
-// 			Body: Body{
-// 				Info: &Info{
-// 					Preauth: utils.Ref(0),
-// 				},
-// 			},
-// 		},
-// 	}
-// }
-// func CreateCaptureRequest() *RequestWrapper {
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Action: ActionCompletion,
-// 			Lang:   LangUk,
-// 		},
-// 	}
-// }
-//
-// func CreateHoldRequest() *RequestWrapper {
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Action: ActionDebiting,
-// 			Lang:   LangUk,
-// 			Body: Body{
-// 				Info: &Info{
-// 					Preauth: utils.Ref(1),
-// 				},
-// 			},
-// 		},
-// 	}
-// }
-//
-// func CreateRefundRequest() *RequestWrapper {
-// 	return &RequestWrapper{
-// 		Request: Request{
-// 			Action: ActionReversal,
-// 			Lang:   LangUk,
-// 		},
-// 	}
-// }
-
-//
-// func (r *RequestWrapper) SetPersonalData(info *Info) {
-// 	if r.Request.Body.Info != nil {
-// 		info.NotifyUrl = r.Request.Body.Info.NotifyUrl
-// 		info.Preauth = r.Request.Body.Info.Preauth
-// 	}
-//
-// 	r.Request.Body.Info = info
-// }
-//
-// func (r *RequestWrapper) SetAuth(auth Auth) {
-// 	r.Request.Auth = auth
-// }
-//
-// func (r *RequestWrapper) SetRedirects(success string, fail string) {
-// 	r.Request.Body.UrlGood = &success
-// 	r.Request.Body.UrlBad = &fail
-// }
-//
-// func (r *RequestWrapper) SetIpayPaymentID(ipayPaymentID int64) {
-// 	r.Request.Body.PmtId = &ipayPaymentID
-// }
-//
-// func (r *RequestWrapper) AddTransaction(amount int, currency currency.Code, description string) {
-// 	if r.Request.Body.Transactions == nil {
-// 		r.Request.Body.Transactions = make([]RequestTransaction, 0)
-// 	}
-//
-// 	r.Request.Body.Transactions = append(
-// 		r.Request.Body.Transactions, RequestTransaction{
-// 			Amount:   amount,
-// 			Currency: currency,
-// 			Desc:     description,
-// 			Info: Info{
-// 				NotifyUrl: r.Request.Body.Info.NotifyUrl,
-// 				Preauth:   r.Request.Body.Info.Preauth,
-// 			},
-// 		},
-// 	)
-//
-// 	r.Request.Body.Info.Preauth = nil
-// 	r.Request.Body.Info.NotifyUrl = nil
-// }
-//
-// func (r *RequestWrapper) AddCardToken(cardToken *string) {
-// 	if cardToken != nil {
-// 		r.Request.Body.Card.Token = cardToken
-// 	}
-// }
-//
-// func (r *RequestWrapper) SetPaymentID(paymentID *string) {
-// 	if paymentID != nil {
-// 		r.Request.Body.Info.OrderId = paymentID
-// 		r.Request.Body.ExtId = paymentID
-// 	}
-//
-// 	if r.Request.Body.Transactions != nil && len(r.Request.Body.Transactions) != 0 {
-// 		for i := range r.Request.Body.Transactions {
-// 			r.Request.Body.Transactions[i].Info.OrderId = paymentID
-// 		}
-// 	}
-//
-// 	if r.Request.Body.Info == nil {
-// 		r.Request.Body.Info = &Info{
-// 			OrderId: paymentID,
-// 			ExtId:   paymentID,
-// 		}
-// 	}
-// }
-//
-// func (r *RequestWrapper) SetWebhookURL(url *string) {
-// 	if url == nil {
-// 		return
-// 	}
-//
-// 	if r.Request.Body.Transactions != nil && len(r.Request.Body.Transactions) != 0 {
-// 		for i := range r.Request.Body.Transactions {
-// 			r.Request.Body.Transactions[i].Info.NotifyUrl = url
-// 		}
-// 	}
-//
-// 	if r.Request.Body.Info == nil {
-// 		r.Request.Body.Info = &Info{
-// 			NotifyUrl: url,
-// 		}
-// 	}
-// }
-
 func NewRequest(action Action, lang Lang, options ...func(*RequestWrapper)) *RequestWrapper {
 	rw := &RequestWrapper{
 		Request: Request{
@@ -232,6 +62,26 @@ func WithAmount(amountString int) func(*RequestWrapper) {
 	}
 }
 
+func WithAmountInTransactions(amountString int, subMerchantId *int) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		if rw.Request.Body.Transactions == nil {
+			rw.Request.Body.Transactions = []RequestTransaction{
+				{
+					Amount: amountString,
+					SmchId: subMerchantId,
+				},
+			}
+
+			return
+		}
+
+		for i := range rw.Request.Body.Transactions {
+			rw.Request.Body.Transactions[i].Amount = amountString
+			rw.Request.Body.Transactions[i].SmchId = subMerchantId
+		}
+	}
+}
+
 func WithInvoiceAmount(amount int) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.Invoice = &amount
@@ -240,6 +90,14 @@ func WithInvoiceAmount(amount int) func(*RequestWrapper) {
 
 func WithCardToken(cardToken *string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
+		if rw.Request.Body.Card == nil {
+			rw.Request.Body.Card = &Card{
+				Token: cardToken,
+			}
+
+			return
+		}
+
 		rw.Request.Body.Card.Token = cardToken
 	}
 }
@@ -255,7 +113,7 @@ func WithPreauth(preauth bool) func(*RequestWrapper) {
 		if rw.Request.Body.Transactions == nil {
 			rw.Request.Body.Transactions = []RequestTransaction{
 				{
-					Info: Info{
+					Info: &Info{
 						Preauth: &preauthInt,
 					},
 				},
@@ -265,6 +123,10 @@ func WithPreauth(preauth bool) func(*RequestWrapper) {
 		}
 
 		for i := range rw.Request.Body.Transactions {
+			if rw.Request.Body.Transactions[i].Info == nil {
+				rw.Request.Body.Transactions[i].Info = &Info{}
+			}
+
 			rw.Request.Body.Transactions[i].Info.Preauth = &preauthInt
 		}
 	}
@@ -275,7 +137,7 @@ func WithNotifyURL(url *string) func(*RequestWrapper) {
 		if rw.Request.Body.Transactions == nil {
 			rw.Request.Body.Transactions = []RequestTransaction{
 				{
-					Info: Info{
+					Info: &Info{
 						NotifyUrl: url,
 					},
 				},
@@ -285,6 +147,10 @@ func WithNotifyURL(url *string) func(*RequestWrapper) {
 		}
 
 		for i := range rw.Request.Body.Transactions {
+			if rw.Request.Body.Transactions[i].Info == nil {
+				rw.Request.Body.Transactions[i].Info = &Info{}
+			}
+
 			rw.Request.Body.Transactions[i].Info.NotifyUrl = url
 		}
 	}
@@ -321,6 +187,10 @@ func WithPaymentID(paymentID *string) func(*RequestWrapper) {
 
 		if rw.Request.Body.Transactions != nil && len(rw.Request.Body.Transactions) != 0 {
 			for i := range rw.Request.Body.Transactions {
+				if rw.Request.Body.Transactions[i].Info == nil {
+					rw.Request.Body.Transactions[i].Info = &Info{}
+				}
+
 				rw.Request.Body.Transactions[i].Info.OrderId = paymentID
 			}
 
@@ -349,7 +219,7 @@ func WithWebhookURL(url *string) func(*RequestWrapper) {
 			if rw.Request.Body.Transactions == nil {
 				rw.Request.Body.Transactions = []RequestTransaction{
 					{
-						Info: Info{
+						Info: &Info{
 							NotifyUrl: url,
 						},
 					},
@@ -359,6 +229,10 @@ func WithWebhookURL(url *string) func(*RequestWrapper) {
 			}
 
 			for i := range rw.Request.Body.Transactions {
+				if rw.Request.Body.Transactions[i].Info == nil {
+					rw.Request.Body.Transactions[i].Info = &Info{}
+				}
+
 				rw.Request.Body.Transactions[i].Info.NotifyUrl = url
 			}
 

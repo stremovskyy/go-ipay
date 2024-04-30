@@ -39,6 +39,8 @@ type Merchant struct {
 	MerchantKey string
 	// System Key
 	SystemKey string
+	// Sub Merchant ID
+	SubMerchantID int
 
 	// SuccessRedirect
 	SuccessRedirect string
