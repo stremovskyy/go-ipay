@@ -164,6 +164,11 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 
 	return ipay.UnmarshalXmlResponse(raw)
 }
+
+func (c *Client) SetClient(cl *http.Client) {
+	c.client = cl
+}
+
 func NewClient(options *Options) *Client {
 	dialer := &net.Dialer{
 		Timeout:   30 * time.Second,

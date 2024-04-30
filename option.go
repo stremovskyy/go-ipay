@@ -24,12 +24,12 @@
 
 package go_ipay
 
-import "github.com/stremovskyy/go-ipay/internal/http"
+import "net/http"
 
 type Option func(*client)
 
 func WithClient(cl *http.Client) Option {
 	return func(c *client) {
-		c.ipayClient = cl
+		c.ipayClient.SetClient(cl)
 	}
 }
