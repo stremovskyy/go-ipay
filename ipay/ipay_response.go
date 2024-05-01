@@ -50,6 +50,14 @@ type Response struct {
 }
 
 func (r Response) GetError() error {
+	if r.Error != nil {
+		if r.ErrorCode != nil {
+			return fmt.Errorf("ipay general error: %s, code: %s", *r.Error, *r.ErrorCode)
+		} else {
+			return fmt.Errorf("ipay general error: %s", *r.Error)
+		}
+	}
+
 	if r.BnkErrorNote != nil {
 		if statusCode, found := ipay.GetStatusCode(*r.BnkErrorNote); found {
 			return fmt.Errorf(fmt.Sprintf("bank error: %s, reason: %s, message: %s", *r.BnkErrorNote, statusCode.Reason, statusCode.Message))
@@ -64,14 +72,6 @@ func (r Response) GetError() error {
 
 	if r.Status == PaymentStatusFailed {
 		return fmt.Errorf("payment status: payment failed")
-	}
-
-	if r.Error != nil {
-		if r.ErrorCode != nil {
-			return fmt.Errorf("ipay general error: %s, code: %s", *r.Error, *r.ErrorCode)
-		} else {
-			return fmt.Errorf("ipay general error: %s", *r.Error)
-		}
 	}
 
 	return nil
