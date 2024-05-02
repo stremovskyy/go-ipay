@@ -26,7 +26,9 @@ package ipay
 
 // Auth holds the authentication details required for a payment request.
 type Auth struct {
-	MchID int64  `json:"mch_id" xml:"mch_id"` // Merchant ID.
-	Salt  string `json:"salt" xml:"salt"`     // Salt for signature.
-	Sign  string `json:"sign" xml:"sign"`     // Request signature.
+	MchID *int64  `json:"mch_id,omitempty" xml:"mch_id"` // Merchant ID.
+	Salt  *string `json:"salt,omitempty" xml:"salt"`     // Salt for signature.
+	Sign  string  `json:"sign" xml:"sign"`               // Request signature.
+	Login *string `json:"login,omitempty" xml:"login"`   // Login for signature.
+	Time  *string `json:"time,omitempty" xml:"time"`     // Time for signature.
 }

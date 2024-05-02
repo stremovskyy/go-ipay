@@ -44,64 +44,65 @@ import (
 )
 
 type Client struct {
-	client    *http.Client
-	options   *Options
-	logger    *log.Logger
-	xmlLogger *log.Logger
+	client         *http.Client
+	options        *Options
+	logger         *log.Logger
+	xmlLogger      *log.Logger
+	applePayLogger *log.Logger
 }
 
 func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
-	requestID := uuid.New().String()
+	return c.sendRequest(consts.ApiUrl, apiRequest, c.logger)
+}
 
-	c.logger.Debug("Request ID: %v", requestID)
+func (c *Client) ApplePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
+	return c.sendRequest(consts.ApplePayUrl, apiRequest, c.applePayLogger)
+}
+
+func (c *Client) GooglePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
+	return c.sendRequest(consts.GooglePayUrl, apiRequest, c.applePayLogger)
+}
+
+func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, logger *log.Logger) (*ipay.Response, error) {
+	requestID := uuid.New().String()
+	logger.Debug("Request ID: %v", requestID)
 
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
+		logger.Error("cannot marshal request: %v", err)
 		return nil, fmt.Errorf("cannot marshal request: %v", err)
 	}
 
-	c.logger.Debug("Request: %v", string(jsonBody))
+	logger.Debug("Request: %v", string(jsonBody))
 
-	req, err := http.NewRequest("POST", consts.ApiUrl, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		c.logger.Error("cannot create request: %v", err)
-		return nil, fmt.Errorf("cannot create request: %v", err)
+		logger.Error("cannot create request: %v", err)
+		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "GO IPAY/"+consts.Version)
-	req.Header.Set("X-Request-ID", requestID)
-	req.Header.Set("Api-Version", consts.ApiVersion)
+	c.setHeaders(req, requestID)
 
-	tStart := time.Now()
 	resp, err := c.client.Do(req)
 	if err != nil {
-		c.logger.Error("cannot send request: %v", err)
-		return nil, fmt.Errorf("cannot send request: %v", err)
+		logger.Error("cannot send request: %v", err)
+		return nil, err
 	}
-	c.logger.Debug("Request time: %v", time.Since(tStart))
-
-	defer func() {
-		err := resp.Body.Close()
-		if err != nil {
-			c.logger.Error("cannot close response body: %v", err)
-		}
-
-	}()
+	defer resp.Body.Close()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		c.logger.Error("cannot read response: %v", err)
-		return nil, fmt.Errorf("cannot read response: %v", err)
+		logger.Error("cannot read response: %v", err)
+		return nil, err
 	}
 
-	c.logger.Debug("Response: %v", string(raw))
-	c.logger.Debug("Response status: %v", resp.StatusCode)
+	logger.Debug("Response: %v", string(raw))
+	logger.Debug("Response status: %v", resp.StatusCode)
 
 	response, err := ipay.UnmarshalJSONResponse(raw)
 	if err != nil {
-		return nil, fmt.Errorf("cannot unmarshal response: %v", err)
+		logger.Error("cannot unmarshal response: %v", err)
+		return nil, err
 	}
 
 	if response.GetError() != nil {
@@ -109,6 +110,14 @@ func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
 	}
 
 	return response, nil
+}
+
+func (c *Client) setHeaders(req *http.Request, requestID string) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("User-Agent", "GO IPAY/"+consts.Version)
+	req.Header.Set("X-Request-ID", requestID)
+	req.Header.Set("Api-Version", consts.ApiVersion)
 }
 
 func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse, error) {
@@ -127,7 +136,7 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 	formData := url.Values{}
 	formData.Set("data", string(xmlBody))
 
-	req, err := http.NewRequest("POST", "https://tokly.ipay.ua/api302", strings.NewReader(formData.Encode()))
+	req, err := http.NewRequest("POST", consts.ApiXMLUrl, strings.NewReader(formData.Encode()))
 	if err != nil {
 		c.xmlLogger.Error("cannot create request: %v", err)
 		return nil, fmt.Errorf("cannot create request: %v", err)
@@ -190,9 +199,10 @@ func NewClient(options *Options) *Client {
 	}
 
 	return &Client{
-		client:    cl,
-		options:   options,
-		logger:    log.NewLogger("iPay HTTP:"),
-		xmlLogger: log.NewLogger("iPay HTTP XML:"),
+		client:         cl,
+		options:        options,
+		logger:         log.NewLogger("iPay HTTP:"),
+		applePayLogger: log.NewLogger("iPay HTTP:"),
+		xmlLogger:      log.NewLogger("iPay HTTP XML:"),
 	}
 }

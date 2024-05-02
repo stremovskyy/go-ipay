@@ -42,6 +42,9 @@ type Merchant struct {
 	// Sub Merchant ID
 	SubMerchantID int
 
+	// Login
+	Login string
+
 	// SuccessRedirect
 	SuccessRedirect string
 
@@ -51,14 +54,14 @@ type Merchant struct {
 	signer ipay.Signer
 }
 
-func (m *Merchant) GetMerchantID() int64 {
+func (m *Merchant) GetMerchantID() *int64 {
 	id, err := strconv.ParseInt(m.MerchantID, 10, 64)
 
 	if err != nil {
-		return 0
+		return nil
 	}
 
-	return id
+	return &id
 }
 
 func (m *Merchant) GetSign() ipay.Sign {
@@ -67,4 +70,20 @@ func (m *Merchant) GetSign() ipay.Sign {
 	}
 
 	return *m.signer.Sign(m.MerchantKey)
+}
+
+func (m *Merchant) GetMobileSign() ipay.MobileSign {
+	if m.signer == nil {
+		m.signer = ipay.NewSigner(m.SystemKey)
+	}
+
+	return *m.signer.MobileSign(m.MerchantKey)
+}
+
+func (m *Merchant) GetMobileLogin() *string {
+	if m.Login == "" {
+		return nil
+	}
+
+	return &m.Login
 }

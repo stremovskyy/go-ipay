@@ -82,6 +82,26 @@ func WithAmountInTransactions(amountString int, subMerchantId *int) func(*Reques
 	}
 }
 
+func WithInvoiceInTransactions(amountString int, subMerchantId *int) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		if rw.Request.Body.Transactions == nil {
+			rw.Request.Body.Transactions = []RequestTransaction{
+				{
+					Invoice: amountString,
+					SmchId:  subMerchantId,
+				},
+			}
+
+			return
+		}
+
+		for i := range rw.Request.Body.Transactions {
+			rw.Request.Body.Transactions[i].Invoice = amountString
+			rw.Request.Body.Transactions[i].SmchId = subMerchantId
+		}
+	}
+}
+
 func WithInvoiceAmount(amount int) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.Invoice = &amount
@@ -270,7 +290,7 @@ func WithDescription(description string) func(*RequestWrapper) {
 	}
 }
 
-func WIthCurrency(currency currency.Code) func(*RequestWrapper) {
+func WithCurrency(currency currency.Code) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		if rw.Request.Body.Transactions == nil {
 			rw.Request.Body.Transactions = []RequestTransaction{
@@ -297,5 +317,17 @@ func WithOutAmount(withAmount bool) func(*RequestWrapper) {
 
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.VerifyType = &amountString
+	}
+}
+
+func WithAppleContainer(base64Object *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.AppleData = base64Object
+	}
+}
+
+func WithGoogleContainer(token *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.Token = token
 	}
 }

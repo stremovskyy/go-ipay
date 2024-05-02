@@ -30,6 +30,8 @@ const (
 
 	baseUrl = "https://tokly.ipay.ua"
 
-	ApiUrl    = baseUrl + "/api"
-	ApiXMLUrl = baseUrl + "/api302"
+	ApiUrl       = baseUrl + "/api"
+	ApplePayUrl  = "https://api-applepay.ipay.ua"
+	GooglePayUrl = "https://api-googlepay.ipay.ua"
+	ApiXMLUrl    = baseUrl + "/api302"
 )

@@ -42,9 +42,7 @@ type Request struct {
 func (r *Request) GetAuth() ipay.Auth {
 	if r.Merchant == nil {
 		return ipay.Auth{
-			MchID: 0,
-			Salt:  "EMPTY",
-			Sign:  "",
+			Sign: "",
 		}
 	}
 
@@ -54,6 +52,22 @@ func (r *Request) GetAuth() ipay.Auth {
 		MchID: r.Merchant.GetMerchantID(),
 		Salt:  sign.Salt,
 		Sign:  sign.Sign,
+	}
+}
+
+func (r *Request) GetMobileAuth() ipay.Auth {
+	if r.Merchant == nil {
+		return ipay.Auth{
+			Sign: "",
+		}
+	}
+
+	sign := r.Merchant.GetMobileSign()
+
+	return ipay.Auth{
+		Login: r.Merchant.GetMobileLogin(),
+		Sign:  sign.Sign,
+		Time:  sign.Time,
 	}
 }
 
@@ -174,4 +188,32 @@ func (r *Request) GetSubMerchantID() *int {
 	}
 
 	return &r.Merchant.SubMerchantID
+}
+
+func (r *Request) IsMobile() bool {
+	if r.PaymentData == nil {
+		return false
+	}
+
+	return r.PaymentData.IsMobile || r.PaymentMethod.AppleContainer != nil
+}
+
+func (r *Request) GetAppleContainer() *string {
+	if r.PaymentMethod == nil || r.PaymentMethod.AppleContainer == nil {
+		return nil
+	}
+
+	return r.PaymentMethod.AppleContainer
+}
+
+func (r *Request) IsApplePay() bool {
+	return r.PaymentMethod != nil && r.PaymentMethod.AppleContainer != nil
+}
+
+func (r *Request) GetGoogleToken() *string {
+	if r.PaymentMethod == nil || r.PaymentMethod.GoogleToken == nil {
+		return nil
+	}
+
+	return r.PaymentMethod.GoogleToken
 }

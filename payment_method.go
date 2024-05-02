@@ -25,7 +25,9 @@
 package go_ipay
 
 type PaymentMethod struct {
-	Card *Card
+	Card           *Card
+	AppleContainer *string
+	GoogleToken    *string
 }
 
 type Card struct {

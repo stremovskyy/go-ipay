@@ -31,15 +31,31 @@ import (
 	"fmt"
 	"time"
 
+	"golang.org/x/crypto/sha3"
+
 	"github.com/stremovskyy/go-ipay/log"
 )
 
 type Signer interface {
 	Sign(key string) *Sign
+	MobileSign(key string) *MobileSign
 }
 
 type signer struct {
 	logger *log.Logger
+}
+
+func (s *signer) MobileSign(key string) *MobileSign {
+	timeNow := time.Now().Format("2006-01-02 15:04:05")
+
+	dataString := fmt.Sprintf("%s%s", timeNow, key)
+
+	sign := sha3512(dataString)
+
+	return &MobileSign{
+		Time: &timeNow,
+		Sign: sign,
+	}
 }
 
 func (s *signer) Sign(key string) *Sign {
@@ -51,7 +67,7 @@ func (s *signer) Sign(key string) *Sign {
 	sign := hashHmacSha512(salt, key)
 
 	return &Sign{
-		Salt: salt,
+		Salt: &salt,
 		Sign: sign,
 	}
 }
@@ -65,6 +81,15 @@ func hashHmacSha512(data string, key string) string {
 	mac.Write([]byte(data))
 
 	return fmt.Sprintf("%x", mac.Sum(nil))
+}
+
+func sha3512(data string) string {
+	//
+
+	hasher := sha3.New512()
+	hasher.Write([]byte(data))
+
+	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
 func sha1string(data int64) string {

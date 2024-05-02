@@ -41,6 +41,7 @@ const (
 	ActionCompletion       Action = "Completion"
 	ActionReversal         Action = "Reversal"
 	ActionCredit           Action = "A2CPay"
+	MobilePaymentCreate    Action = "PaymentCreate"
 )
 
 type RequestWrapper struct {
@@ -67,6 +68,9 @@ type Body struct {
 	Card         *Card                `json:"card,omitempty"`         // Card data.
 	ExtId        *string              `json:"ext_id,omitempty"`       // External ID.
 	Invoice      *int                 `json:"invoice,omitempty"`      // Payment amount in kopecks.
+	AppleData    *string              `json:"apple_data,omitempty"`   // Apple Pay data.
+	PmtDesc      *string              `json:"pmt_desc,omitempty"`     // Payment description.
+	Token        *string              `json:"token,omitempty"`        // Token for Google Pay
 }
 
 // Transaction represents an individual transaction.

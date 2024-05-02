@@ -25,6 +25,11 @@
 package ipay
 
 type Sign struct {
-	Salt string `json:"salt"`
-	Sign string `json:"sign"`
+	Salt *string `json:"salt"`
+	Sign string  `json:"sign"`
+}
+
+type MobileSign struct {
+	Time *string `json:"time"`
+	Sign string  `json:"sign"`
 }

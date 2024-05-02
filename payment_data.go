@@ -34,4 +34,5 @@ type PaymentData struct {
 	OrderID       string
 	Description   string
 	WebhookURL    *string
+	IsMobile      bool
 }

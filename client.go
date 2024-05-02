@@ -133,42 +133,81 @@ func (c *client) Payment(request *Request) (*ipay.Response, error) {
 		return nil, ErrRequestIsNil
 	}
 
-	paymentRequest := ipay.NewRequest(
-		ipay.ActionDebiting, ipay.LangUk,
-		ipay.WithPreauth(false),
-		ipay.WithAmount(request.GetAmount()),
-		ipay.WIthCurrency(request.GetCurrency()),
-		ipay.WithAuth(request.GetAuth()),
-		ipay.WithRedirects(request.GetRedirects()),
-		ipay.WithPersonalData(request.GetPersonalData()),
-		ipay.WithCardToken(request.GetCardToken()),
-		ipay.WithPaymentID(request.GetPaymentID()),
-		ipay.WithDescription(request.GetDescription()),
-		ipay.WithWebhookURL(request.GetWebhookURL()),
-	)
-
-	apiResponse, err := c.ipayClient.Api(paymentRequest)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
+	if request.IsMobile() {
+		return c.handleMobilePayment(request, false)
 	}
 
-	return apiResponse, nil
+	return c.handleStandardPayment(request, false)
 }
 
 func (c *client) Hold(request *Request) (*ipay.Response, error) {
-	holdRequest := ipay.NewRequest(
-		ipay.ActionDebiting, ipay.LangUk,
-		ipay.WithPreauth(true),
+	if request == nil {
+		return nil, ErrRequestIsNil
+	}
+
+	if request.IsMobile() {
+		return c.handleMobilePayment(request, true)
+	}
+
+	return c.handleStandardPayment(request, true)
+}
+
+func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Response, error) {
+	var paymentRequest *ipay.RequestWrapper
+	var apiFunc func(*ipay.RequestWrapper) (*ipay.Response, error)
+
+	common := []func(*ipay.RequestWrapper){
+		ipay.WithAuth(request.GetMobileAuth()),
+		ipay.WithInvoiceAmount(request.GetAmount()),
+		ipay.WithInvoiceInTransactions(request.GetAmount(), request.GetSubMerchantID()),
+		ipay.WithWebhookURL(request.GetWebhookURL()),
+		ipay.WithDescription(request.GetDescription()),
+		ipay.WithPaymentID(request.GetPaymentID()),
+		ipay.WithPersonalData(request.GetPersonalData()),
+	}
+
+	if isPreauth {
+		common = append(common, ipay.WithPreauth(true))
+	}
+
+	if request.IsApplePay() {
+		paymentRequest = ipay.NewRequest(
+			ipay.MobilePaymentCreate, ipay.LangUk,
+			append(common, ipay.WithAppleContainer(request.GetAppleContainer()))...,
+		)
+		apiFunc = c.ipayClient.ApplePayApi
+	} else {
+		paymentRequest = ipay.NewRequest(
+			ipay.MobilePaymentCreate, ipay.LangUk,
+			append(common, ipay.WithGoogleContainer(request.GetGoogleToken()))...,
+		)
+		apiFunc = c.ipayClient.GooglePayApi
+	}
+
+	apiResponse, err := apiFunc(paymentRequest)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get API response: %v", err)
+	}
+	return apiResponse, nil
+}
+
+func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Response, error) {
+	options := []func(*ipay.RequestWrapper){
 		ipay.WithAmount(request.GetAmount()),
-		ipay.WIthCurrency(request.GetCurrency()),
+		ipay.WithCurrency(request.GetCurrency()),
 		ipay.WithAuth(request.GetAuth()),
-		ipay.WithRedirects(request.GetRedirects()),
 		ipay.WithPersonalData(request.GetPersonalData()),
 		ipay.WithCardToken(request.GetCardToken()),
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
-	)
+	}
+
+	if preauth {
+		options = append(options, ipay.WithPreauth(true))
+	}
+
+	holdRequest := ipay.NewRequest(ipay.ActionDebiting, ipay.LangUk, options...)
 
 	apiResponse, err := c.ipayClient.Api(holdRequest)
 	if err != nil {
