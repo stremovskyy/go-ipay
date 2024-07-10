@@ -171,15 +171,24 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 	}
 
 	if request.IsApplePay() {
+		container, err := request.GetAppleContainer()
+		if err != nil {
+			return nil, fmt.Errorf("cannot get Apple Container: %v", err)
+		}
 		paymentRequest = ipay.NewRequest(
 			ipay.MobilePaymentCreate, ipay.LangUk,
-			append(common, ipay.WithAppleContainer(request.GetAppleContainer()))...,
+			append(common, ipay.WithAppleContainer(container))...,
 		)
 		apiFunc = c.ipayClient.ApplePayApi
 	} else {
+		token, err := request.GetGoogleToken()
+		if err != nil {
+			return nil, fmt.Errorf("cannot get Google Token: %v", err)
+		}
+
 		paymentRequest = ipay.NewRequest(
 			ipay.MobilePaymentCreate, ipay.LangUk,
-			append(common, ipay.WithGoogleContainer(request.GetGoogleToken()))...,
+			append(common, ipay.WithGoogleContainer(token))...,
 		)
 		apiFunc = c.ipayClient.GooglePayApi
 	}

@@ -25,6 +25,9 @@
 package go_ipay
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/stremovskyy/go-ipay/currency"
@@ -195,25 +198,41 @@ func (r *Request) IsMobile() bool {
 		return false
 	}
 
-	return r.PaymentData.IsMobile || r.PaymentMethod.AppleContainer != nil
+	return r.PaymentData.IsMobile || r.PaymentMethod.AppleContainer != nil || r.PaymentMethod.GoogleToken != nil
 }
 
-func (r *Request) GetAppleContainer() *string {
+func (r *Request) GetAppleContainer() (*string, error) {
 	if r.PaymentMethod == nil || r.PaymentMethod.AppleContainer == nil {
-		return nil
+		return nil, fmt.Errorf("Apple Container is not set")
 	}
 
-	return r.PaymentMethod.AppleContainer
+	decoded, err := base64.StdEncoding.DecodeString(*r.PaymentMethod.AppleContainer)
+	if err != nil {
+		return nil, fmt.Errorf("cannot decode Apple Container: %v", err)
+	}
+
+	var token map[string]interface{}
+	if err := json.Unmarshal(decoded, &token); err != nil {
+		return nil, fmt.Errorf("json unmarshal error: %v", err)
+	}
+
+	outputJSON, err := json.Marshal(token["token"])
+	if err != nil {
+		return nil, fmt.Errorf("json marshal error: %v", err)
+	}
+
+	outputBase64 := base64.StdEncoding.EncodeToString(outputJSON)
+	return &outputBase64, nil
 }
 
 func (r *Request) IsApplePay() bool {
 	return r.PaymentMethod != nil && r.PaymentMethod.AppleContainer != nil
 }
 
-func (r *Request) GetGoogleToken() *string {
+func (r *Request) GetGoogleToken() (*string, error) {
 	if r.PaymentMethod == nil || r.PaymentMethod.GoogleToken == nil {
-		return nil
+		return nil, fmt.Errorf("Google Token is not set")
 	}
 
-	return r.PaymentMethod.GoogleToken
+	return r.PaymentMethod.GoogleToken, nil
 }

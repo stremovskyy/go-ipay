@@ -113,3 +113,26 @@ func ParsePaymentXML(data []byte) (*Payment, error) {
 
 	return &payment, nil
 }
+
+// String returns a string representation of the Payment struct.
+func (p *Payment) String() string {
+	return fmt.Sprintf(
+		"Payment[ID=%d, Ident=%s, Status=%d, Amount=%.2f, Currency=%s, Timestamp=%d, Transactions=%d]",
+		p.ID, p.Ident, p.Status, p.Amount, p.Currency, p.Timestamp, len(p.Transactions.Transaction),
+	)
+}
+
+// IsValid returns true if the Payment struct contains valid data.
+func (p *Payment) IsValid() bool {
+	return p.ID > 0 && p.Amount >= 0 && p.Currency != "" && len(p.Transactions.Transaction) > 0
+}
+
+// GetTransactionByID returns a transaction by its ID.
+func (p *Payment) GetTransactionByID(id int64) *Transaction {
+	for _, transaction := range p.Transactions.Transaction {
+		if transaction.ID == id {
+			return &transaction
+		}
+	}
+	return nil
+}

@@ -66,7 +66,7 @@ func (m *Merchant) GetMerchantID() *int64 {
 
 func (m *Merchant) GetSign() ipay.Sign {
 	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.SystemKey)
+		m.signer = ipay.NewSigner(m.MerchantKey)
 	}
 
 	return *m.signer.Sign(m.MerchantKey)
@@ -77,7 +77,7 @@ func (m *Merchant) GetMobileSign() ipay.MobileSign {
 		m.signer = ipay.NewSigner(m.SystemKey)
 	}
 
-	return *m.signer.MobileSign(m.MerchantKey)
+	return *m.signer.MobileSign(m.SystemKey)
 }
 
 func (m *Merchant) GetMobileLogin() *string {

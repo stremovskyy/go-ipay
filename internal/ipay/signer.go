@@ -28,6 +28,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -47,7 +48,6 @@ type signer struct {
 
 func (s *signer) MobileSign(key string) *MobileSign {
 	timeNow := time.Now().Format("2006-01-02 15:04:05")
-
 	dataString := fmt.Sprintf("%s%s", timeNow, key)
 
 	sign := sha3512(dataString)
@@ -56,6 +56,12 @@ func (s *signer) MobileSign(key string) *MobileSign {
 		Time: &timeNow,
 		Sign: sign,
 	}
+}
+
+func sha3512(data string) string {
+	hasher := sha3.New512()
+	hasher.Write([]byte(data))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func (s *signer) Sign(key string) *Sign {
@@ -81,15 +87,6 @@ func hashHmacSha512(data string, key string) string {
 	mac.Write([]byte(data))
 
 	return fmt.Sprintf("%x", mac.Sum(nil))
-}
-
-func sha3512(data string) string {
-	//
-
-	hasher := sha3.New512()
-	hasher.Write([]byte(data))
-
-	return fmt.Sprintf("%x", hasher.Sum(nil))
 }
 
 func sha1string(data int64) string {
