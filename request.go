@@ -234,5 +234,28 @@ func (r *Request) GetGoogleToken() (*string, error) {
 		return nil, fmt.Errorf("Google Token is not set")
 	}
 
-	return r.PaymentMethod.GoogleToken, nil
+	decoded, err := base64.StdEncoding.DecodeString(*r.PaymentMethod.GoogleToken)
+	if err != nil {
+		return nil, fmt.Errorf("cannot decode Google Token: %v", err)
+	}
+
+	var data struct {
+		PaymentMethodData struct {
+			TokenizationData struct {
+				Token string `json:"token"`
+			} `json:"tokenizationData"`
+		} `json:"paymentMethodData"`
+	}
+
+	if err := json.Unmarshal(decoded, &data); err != nil {
+		return nil, fmt.Errorf("json unmarshal error: %v", err)
+	}
+
+	unescapedToken, err := strconv.Unquote(fmt.Sprintf("%q", data.PaymentMethodData.TokenizationData.Token))
+	if err != nil {
+		return nil, fmt.Errorf("unquote error: %v", err)
+	}
+
+	outputBase64 := base64.StdEncoding.EncodeToString([]byte(unescapedToken))
+	return &outputBase64, nil
 }

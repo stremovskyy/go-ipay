@@ -41,6 +41,7 @@ import (
 	"github.com/stremovskyy/go-ipay/consts"
 	"github.com/stremovskyy/go-ipay/ipay"
 	"github.com/stremovskyy/go-ipay/log"
+	"github.com/stremovskyy/recorder"
 )
 
 type Client struct {
@@ -49,6 +50,7 @@ type Client struct {
 	logger         *log.Logger
 	xmlLogger      *log.Logger
 	applePayLogger *log.Logger
+	recorder       recorder.Recorder
 }
 
 func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
@@ -59,6 +61,12 @@ func (c *Client) ApplePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, e
 	return c.sendRequest(consts.ApplePayUrl, apiRequest, c.applePayLogger)
 }
 
+func (c *Client) WithRecorder(rec recorder.Recorder) *Client {
+	c.recorder = rec
+
+	return c
+}
+
 func (c *Client) GooglePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
 	return c.sendRequest(consts.GooglePayUrl, apiRequest, c.applePayLogger)
 }
@@ -67,42 +75,58 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
+	needToRecord := c.recorder != nil
+
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
-		logger.Error("cannot marshal request: %v", err)
-		return nil, fmt.Errorf("cannot marshal request: %v", err)
+		return c.logAndReturnError("cannot marshal request", err, logger, needToRecord, context.Background(), requestID, nil)
 	}
 
-	logger.Debug("Request: %v", string(jsonBody))
+	if jsonBody != nil {
+		logger.Debug("Request: %v", string(jsonBody))
+	}
+
+	ctx := context.WithValue(context.Background(), "request_id", requestID)
+	tags := tagsRetriever(apiRequest)
 
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		logger.Error("cannot create request: %v", err)
-		return nil, err
+		return c.logAndReturnError("cannot create request", err, logger, needToRecord, ctx, requestID, tags)
 	}
 
 	c.setHeaders(req, requestID)
 
+	if needToRecord {
+		err = c.recorder.RecordRequest(ctx, nil, requestID, jsonBody, tags)
+		if err != nil {
+			logger.Error("cannot record request", "error", err)
+		}
+	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
-		logger.Error("cannot send request: %v", err)
-		return nil, err
+		return c.logAndReturnError("cannot send request", err, logger, needToRecord, ctx, requestID, tags)
 	}
 	defer resp.Body.Close()
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Error("cannot read response: %v", err)
-		return nil, err
+		return c.logAndReturnError("cannot read response", err, logger, needToRecord, ctx, requestID, tags)
 	}
 
 	logger.Debug("Response: %v", string(raw))
 	logger.Debug("Response status: %v", resp.StatusCode)
 
+	if needToRecord {
+		err = c.recorder.RecordResponse(ctx, nil, requestID, raw, tags)
+		if err != nil {
+			logger.Error("cannot record response", "error", err)
+		}
+	}
+
 	response, err := ipay.UnmarshalJSONResponse(raw)
 	if err != nil {
-		logger.Error("cannot unmarshal response: %v", err)
-		return nil, err
+		return c.logAndReturnError("cannot unmarshal response", err, logger, needToRecord, ctx, requestID, tags)
 	}
 
 	if response.GetError() != nil {
@@ -112,12 +136,34 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	return response, nil
 }
 
+func (c *Client) logAndReturnError(msg string, err error, logger *log.Logger, needToRecord bool, ctx context.Context, requestID string, tags map[string]string) (*ipay.Response, error) {
+	logger.Error(msg, "error", err)
+	if needToRecord && c.recorder != nil {
+		recordErr := c.recorder.RecordError(ctx, nil, requestID, err, tags)
+		if recordErr != nil {
+			logger.Error("cannot record error", "error", recordErr)
+		}
+	}
+
+	return nil, err
+}
+
 func (c *Client) setHeaders(req *http.Request, requestID string) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "GO IPAY/"+consts.Version)
 	req.Header.Set("X-Request-ID", requestID)
 	req.Header.Set("Api-Version", consts.ApiVersion)
+}
+
+func tagsRetriever(request *ipay.RequestWrapper) map[string]string {
+	tags := make(map[string]string)
+
+	if request.Request.Body.PmtId != nil {
+		tags["payment_id"] = fmt.Sprintf("%v", *request.Request.Body.PmtId)
+	}
+
+	return tags
 }
 
 func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse, error) {

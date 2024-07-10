@@ -87,5 +87,5 @@ func main() {
 		panic(holdResponse.GetError())
 	}
 
-	fmt.Printf("Payment: %s is %s", uuidString, holdResponse.Status.String())
+	fmt.Printf("Payment: %s is %s", uuidString, holdResponse.GetPaymentStatus().String())
 }

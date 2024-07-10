@@ -31,10 +31,12 @@ import (
 	"github.com/stremovskyy/go-ipay/internal/http"
 	"github.com/stremovskyy/go-ipay/ipay"
 	"github.com/stremovskyy/go-ipay/log"
+	"github.com/stremovskyy/recorder"
 )
 
 type client struct {
 	ipayClient *http.Client
+	recorder   recorder.Recorder
 }
 
 func (c *client) SetLogLevel(levelDebug log.Level) {
@@ -46,6 +48,13 @@ func NewDefaultClient() Ipay {
 		ipayClient: http.NewClient(http.DefaultOptions()),
 	}
 }
+
+func NewClientWithRecorder(rec recorder.Recorder) Ipay {
+	return &client{
+		ipayClient: http.NewClient(http.DefaultOptions()).WithRecorder(rec),
+	}
+}
+
 func NewClient(options ...Option) Ipay {
 	c := &client{
 		ipayClient: http.NewClient(http.DefaultOptions()),

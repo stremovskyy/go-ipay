@@ -27,6 +27,7 @@ package ipay
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/stremovskyy/go-ipay/internal/ipay"
 )
@@ -36,17 +37,71 @@ type IpayResponseWrapper struct {
 }
 
 type Response struct {
-	Transactions []ResponseTransaction `json:"transactions"`
-	PmtId        int64                 `json:"pmt_id"`
-	Pmt          *Payment              `json:"pmt"`
-	Url          string                `json:"url"`
-	Salt         string                `json:"salt"`
-	Sign         string                `json:"sign"`
-	Status       PaymentStatus         `json:"status"`
-	BnkErrorNote *ipay.StatusCode      `json:"bnk_error_note"`
-	ResAuthCode  int                   `json:"res_auth_code"`
-	Error        *string               `json:"error"`
-	ErrorCode    *string               `json:"error_code"`
+	Transactions     []ResponseTransaction `json:"transactions"`
+	PmtId            interface{}           `json:"pmt_id"`
+	Pmt              *Payment              `json:"pmt"`
+	Url              string                `json:"url"`
+	Salt             string                `json:"salt"`
+	Sign             string                `json:"sign"`
+	Status           *PaymentStatus        `json:"status"`
+	BnkErrorNote     *ipay.StatusCode      `json:"bnk_error_note"`
+	ResAuthCode      int                   `json:"res_auth_code"`
+	Error            *string               `json:"error"`
+	ErrorCode        *string               `json:"error_code"`
+	Invoice          *string               `json:"invoice"`
+	Amount           *string               `json:"amount"`
+	PmtStatus        *string               `json:"pmt_status"`
+	CardMask         *string               `json:"card_mask"`
+	BankResponse     *BankResponse         `json:"bank_response"`
+	BankAcquirerName *string               `json:"bank_acquirer_name"`
+}
+
+type BankResponse struct {
+	ErrorGroup int `json:"error_group"`
+}
+
+func (r Response) GetPaymentStatus() PaymentStatus {
+	if r.Status != nil {
+		return *r.Status
+	}
+
+	if r.PmtStatus != nil {
+		return r.mobilePaymentStatus()
+	}
+
+	return PaymentStatusUnknown
+}
+
+func (r Response) mobilePaymentStatus() PaymentStatus {
+	if r.PmtStatus == nil {
+		return PaymentStatusUnknown
+	}
+
+	parsedIntStatus, err := strconv.Atoi(*r.PmtStatus)
+	if err != nil {
+		return PaymentStatusUnknown
+	}
+
+	return PaymentStatus(parsedIntStatus)
+}
+func (r Response) PmtIdInt64() int64 {
+	if r.PmtId == nil {
+		return 0
+	}
+
+	switch v := r.PmtId.(type) {
+	case int:
+		return int64(v)
+	case int64:
+		return v
+	case float64:
+		return int64(v)
+	case string:
+		i, _ := strconv.ParseInt(v, 10, 64)
+		return i
+	default:
+		return 0
+	}
 }
 
 func (r Response) GetError() error {
@@ -66,11 +121,17 @@ func (r Response) GetError() error {
 		}
 	}
 
-	if r.Status == PaymentStatusSecurityRefusal {
+	if r.GetPaymentStatus() == PaymentStatusSecurityRefusal {
 		return fmt.Errorf("payment status: security refusal")
 	}
 
-	if r.Status == PaymentStatusFailed {
+	if r.GetPaymentStatus() == PaymentStatusFailed {
+		if r.BankResponse != nil {
+			if r.BankResponse.ErrorGroup != 0 {
+				return fmt.Errorf("bank error: %d, %v", r.BankResponse.ErrorGroup, r.BankAcquirerName)
+			}
+		}
+
 		return fmt.Errorf("payment status: payment failed")
 	}
 

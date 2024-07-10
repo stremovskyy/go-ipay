@@ -58,19 +58,41 @@ type Request struct {
 
 // Body encompasses the main content of the payment request.
 type Body struct {
-	Cdata        *string              `json:"cdata,omitempty"`        // Encoded card PAN.
-	UrlGood      *string              `json:"url_good,omitempty"`     // Merchant's success URL.
-	UrlBad       *string              `json:"url_bad,omitempty"`      // Merchant's failure URL.
-	Info         *Info                `json:"info,omitempty"`         // Additional payment information.
-	VerifyType   *string              `json:"verify_type,omitempty"`  // Verification type.
-	PmtId        *int64               `json:"pmt_id,omitempty"`       // Payment ID.
-	Transactions []RequestTransaction `json:"transactions,omitempty"` // List of transactions.
-	Card         *Card                `json:"card,omitempty"`         // Card data.
-	ExtId        *string              `json:"ext_id,omitempty"`       // External ID.
-	Invoice      *int                 `json:"invoice,omitempty"`      // Payment amount in kopecks.
-	AppleData    *string              `json:"apple_data,omitempty"`   // Apple Pay data.
-	PmtDesc      *string              `json:"pmt_desc,omitempty"`     // Payment description.
-	Token        *string              `json:"token,omitempty"`        // Token for Google Pay
+	Cdata        *string             `json:"cdata,omitempty"`        // Encoded card PAN.
+	UrlGood      *string             `json:"url_good,omitempty"`     // Merchant's success URL.
+	UrlBad       *string             `json:"url_bad,omitempty"`      // Merchant's failure URL.
+	Info         *Info               `json:"info,omitempty"`         // Additional payment information.
+	VerifyType   *string             `json:"verify_type,omitempty"`  // Verification type.
+	PmtId        *int64              `json:"pmt_id,omitempty"`       // Payment ID.
+	Transactions RequestTransactions `json:"transactions,omitempty"` // List of transactions.
+	Card         *Card               `json:"card,omitempty"`         // Card data.
+	ExtId        *string             `json:"ext_id,omitempty"`       // External ID.
+	Invoice      *int                `json:"invoice,omitempty"`      // Payment amount in kopecks.
+	AppleData    *string             `json:"apple_data,omitempty"`   // Apple Pay data.
+	PmtDesc      *string             `json:"pmt_desc,omitempty"`     // Payment description.
+	Token        *string             `json:"token,omitempty"`        // Token for Google Pay
+}
+
+type RequestTransactions []RequestTransaction
+
+func (r RequestTransactions) Len() int {
+	return len(r)
+}
+
+func (r RequestTransactions) First() *RequestTransaction {
+	if r.Len() == 0 {
+		return nil
+	}
+
+	return &r[0]
+}
+
+func (r RequestTransactions) Last() *RequestTransaction {
+	if r.Len() == 0 {
+		return nil
+	}
+
+	return &r[r.Len()-1]
 }
 
 // Transaction represents an individual transaction.
