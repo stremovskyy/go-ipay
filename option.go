@@ -24,12 +24,22 @@
 
 package go_ipay
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/stremovskyy/recorder"
+)
 
 type Option func(*client)
 
 func WithClient(cl *http.Client) Option {
 	return func(c *client) {
 		c.ipayClient.SetClient(cl)
+	}
+}
+
+func WithRecorder(r recorder.Recorder) Option {
+	return func(c *client) {
+		c.ipayClient.SetRecorder(r)
 	}
 }

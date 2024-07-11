@@ -224,6 +224,10 @@ func (c *Client) SetClient(cl *http.Client) {
 	c.client = cl
 }
 
+func (c *Client) SetRecorder(r recorder.Recorder) {
+	c.recorder = r
+}
+
 func NewClient(options *Options) *Client {
 	dialer := &net.Dialer{
 		Timeout:   30 * time.Second,
