@@ -49,7 +49,7 @@ type Response struct {
 	Error            *string               `json:"error"`
 	ErrorCode        *string               `json:"error_code"`
 	Invoice          *string               `json:"invoice"`
-	Amount           *string               `json:"amount"`
+	Amount           interface{}           `json:"amount"`
 	PmtStatus        *string               `json:"pmt_status"`
 	CardMask         *string               `json:"card_mask"`
 	BankResponse     *BankResponse         `json:"bank_response"`
@@ -90,6 +90,25 @@ func (r Response) PmtIdInt64() int64 {
 	}
 
 	switch v := r.PmtId.(type) {
+	case int:
+		return int64(v)
+	case int64:
+		return v
+	case float64:
+		return int64(v)
+	case string:
+		i, _ := strconv.ParseInt(v, 10, 64)
+		return i
+	default:
+		return 0
+	}
+}
+func (r Response) AmountInt64() int64 {
+	if r.Amount == nil {
+		return 0
+	}
+
+	switch v := r.Amount.(type) {
 	case int:
 		return int64(v)
 	case int64:
@@ -158,8 +177,10 @@ func (ctr *IpayResponseWrapper) Debug() string {
 
 func UnmarshalJSONResponse(data []byte) (*Response, error) {
 	var resp IpayResponseWrapper
+
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, fmt.Errorf("error unmarshalling JSON response: %w", err)
 	}
+
 	return &resp.Response, nil
 }
