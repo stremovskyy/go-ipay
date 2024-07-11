@@ -243,6 +243,8 @@ func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
 		ipay.WithDescription(invoiceRequest.GetDescription()),
 		ipay.WithIpayPaymentID(invoiceRequest.GetIpayPaymentID()),
 		ipay.WithWebhookURL(invoiceRequest.GetWebhookURL()),
+		ipay.WithReceiverTIN(invoiceRequest.GetReceiverTIN()),
+		ipay.WithTrackingToken(invoiceRequest.GetTrackingToken()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(captureRequest)
@@ -277,6 +279,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithCardToken(request.GetCardToken()),
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
+		ipay.WithTrackingData(request.GetTrackingData()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(creditRequest)

@@ -35,4 +35,5 @@ type PaymentData struct {
 	Description   string
 	WebhookURL    *string
 	IsMobile      bool
+	TrackingToken *string
 }

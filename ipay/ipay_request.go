@@ -114,15 +114,17 @@ type Card struct {
 
 // Info holds additional information related to the payment, provided by the merchant.
 type Info struct {
-	OrderId     *string     `json:"order_id,omitempty"`     // Order ID.
-	ExtId       *string     `json:"ext_id,omitempty"`       // External ID.
-	UserID      *string     `json:"user_id,omitempty"`      // User ID.
-	Cvd         interface{} `json:"cvd,omitempty"`          // Card Verification Data.
-	Aml         *Aml        `json:"aml,omitempty"`          // Anti-Money Laundering information.
-	MctsVts     bool        `json:"mcts_vts,omitempty"`     // If set, creates a token of type mcts/vts along with the default tokly token.
-	ExternalCVD *Cvd        `json:"external_cvd,omitempty"` // External Card Verification Data.
-	Preauth     *int        `json:"preauth,omitempty"`      // Preauthorization flag.
-	NotifyUrl   *string     `json:"notify_url,omitempty"`
+	OrderId               *string     `json:"order_id,omitempty"`     // Order ID.
+	ExtId                 *string     `json:"ext_id,omitempty"`       // External ID.
+	UserID                *string     `json:"user_id,omitempty"`      // User ID.
+	Cvd                   interface{} `json:"cvd,omitempty"`          // Card Verification Data.
+	Aml                   *Aml        `json:"aml,omitempty"`          // Anti-Money Laundering information.
+	MctsVts               bool        `json:"mcts_vts,omitempty"`     // If set, creates a token of type mcts/vts along with the default tokly token.
+	ExternalCVD           *Cvd        `json:"external_cvd,omitempty"` // External Card Verification Data.
+	Preauth               *int        `json:"preauth,omitempty"`      // Preauthorization flag.
+	NotifyUrl             *string     `json:"notify_url,omitempty"`
+	PmtIdIn               *int64      `json:"pmt_id_in,omitempty"`
+	ReceiverAccountNumber *string     `json:"receiver_account_number,omitempty"`
 }
 
 func (i *Info) JsonString() string {

@@ -259,3 +259,27 @@ func (r *Request) GetGoogleToken() (*string, error) {
 	outputBase64 := base64.StdEncoding.EncodeToString([]byte(unescapedToken))
 	return &outputBase64, nil
 }
+
+func (r *Request) GetTrackingData() *int64 {
+	if r.PaymentData == nil {
+		return nil
+	}
+
+	return r.PaymentData.IpayPaymentID
+}
+
+func (r *Request) GetReceiverTIN() *string {
+	if r.PersonalData == nil {
+		return nil
+	}
+
+	return r.PersonalData.TaxID
+}
+
+func (r *Request) GetTrackingToken() *string {
+	if r.PaymentData == nil {
+		return nil
+	}
+
+	return r.PaymentData.TrackingToken
+}

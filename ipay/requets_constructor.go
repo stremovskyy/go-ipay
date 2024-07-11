@@ -331,3 +331,25 @@ func WithGoogleContainer(token *string) func(*RequestWrapper) {
 		rw.Request.Body.Token = token
 	}
 }
+
+func WithTrackingData(data *int64) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.Info.PmtIdIn = data
+	}
+}
+
+func WithReceiverTIN(tin *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		var c = Cvd{
+			TaxID: tin,
+		}
+
+		rw.Request.Body.Info.Cvd = c
+	}
+}
+
+func WithTrackingToken(token *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.Info.ReceiverAccountNumber = token
+	}
+}
