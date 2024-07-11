@@ -48,7 +48,7 @@ type Response struct {
 	ResAuthCode      int                   `json:"res_auth_code"`
 	Error            *string               `json:"error"`
 	ErrorCode        *string               `json:"error_code"`
-	Invoice          *string               `json:"invoice"`
+	Invoice          interface{}           `json:"invoice"`
 	Amount           interface{}           `json:"amount"`
 	PmtStatus        *string               `json:"pmt_status"`
 	CardMask         *string               `json:"card_mask"`
@@ -84,43 +84,32 @@ func (r Response) mobilePaymentStatus() PaymentStatus {
 
 	return PaymentStatus(parsedIntStatus)
 }
-func (r Response) PmtIdInt64() int64 {
-	if r.PmtId == nil {
+func (r Response) getInt64FromInterface(value interface{}) int64 {
+	if value == nil {
 		return 0
 	}
 
-	switch v := r.PmtId.(type) {
-	case int:
-		return int64(v)
-	case int64:
-		return v
-	case float64:
-		return int64(v)
+	switch v := value.(type) {
+	case int, int64, float64:
+		return int64(v.(float64))
 	case string:
-		i, _ := strconv.ParseInt(v, 10, 64)
-		return i
-	default:
-		return 0
+		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return i
+		}
 	}
+	return 0
 }
-func (r Response) AmountInt64() int64 {
-	if r.Amount == nil {
-		return 0
-	}
 
-	switch v := r.Amount.(type) {
-	case int:
-		return int64(v)
-	case int64:
-		return v
-	case float64:
-		return int64(v)
-	case string:
-		i, _ := strconv.ParseInt(v, 10, 64)
-		return i
-	default:
-		return 0
-	}
+func (r Response) PmtIdInt64() int64 {
+	return r.getInt64FromInterface(r.PmtId)
+}
+
+func (r Response) AmountInt64() int64 {
+	return r.getInt64FromInterface(r.Amount)
+}
+
+func (r Response) InvoiceAmountInt64() int64 {
+	return r.getInt64FromInterface(r.Invoice)
 }
 
 func (r Response) GetError() error {
