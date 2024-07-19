@@ -40,9 +40,9 @@ func main() {
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:            private.MerchantName,
-		MerchantID:      private.MerchantID,
-		MerchantKey:     private.MerchantKey,
+		Name:            private.MerchantNameWithdraw,
+		MerchantID:      private.MerchantIDWithdraw,
+		MerchantKey:     private.MerchantKeyWithdraw,
 		SuccessRedirect: private.SuccessRedirect,
 		FailRedirect:    private.FailRedirect,
 	}
@@ -53,8 +53,9 @@ func main() {
 		Merchant: merchant,
 		PaymentMethod: &go_ipay.PaymentMethod{
 			Card: &go_ipay.Card{
-				Name:  "Test Card",
-				Token: utils.Ref(private.CardToken),
+				Name: "Test Card",
+				// Token: utils.Ref(private.CardToken),
+				Pan: utils.Ref(private.CardPan),
 			},
 		},
 		PaymentData: &go_ipay.PaymentData{

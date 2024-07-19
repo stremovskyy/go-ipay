@@ -36,4 +36,5 @@ type PaymentMethod struct {
 type Card struct {
 	Name  string
 	Token *string
+	Pan   *string
 }

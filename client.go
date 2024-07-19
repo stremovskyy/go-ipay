@@ -272,14 +272,25 @@ func (c *client) Refund(request *Request) (*ipay.Response, error) {
 }
 
 func (c *client) Credit(request *Request) (*ipay.Response, error) {
-	creditRequest := ipay.NewRequest(
-		ipay.ActionCredit, ipay.LangUk,
+	options := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithInvoiceAmount(request.GetAmount()),
-		ipay.WithCardToken(request.GetCardToken()),
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithTrackingData(request.GetTrackingData()),
+	}
+
+	if request.GetCardToken() != nil {
+		options = append(options, ipay.WithCardToken(request.GetCardToken()))
+	} else if request.GetCardPan() != nil {
+		options = append(options, ipay.WithCardPan(request.GetCardPan()))
+	} else {
+		return nil, fmt.Errorf("cannot get API response: %v", "CardToken or Card pan is required")
+	}
+
+	creditRequest := ipay.NewRequest(
+		ipay.ActionCredit, ipay.LangUk,
+		options...,
 	)
 
 	apiResponse, err := c.ipayClient.Api(creditRequest)

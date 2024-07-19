@@ -353,3 +353,17 @@ func WithTrackingToken(token *string) func(*RequestWrapper) {
 		rw.Request.Body.Info.ReceiverAccountNumber = token
 	}
 }
+
+func WithCardPan(pan *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		if rw.Request.Body.Card == nil {
+			rw.Request.Body.Card = &Card{
+				Pan: pan,
+			}
+
+			return
+		}
+
+		rw.Request.Body.Card.Pan = pan
+	}
+}

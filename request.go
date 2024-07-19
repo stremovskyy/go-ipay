@@ -126,6 +126,14 @@ func (r *Request) GetCardToken() *string {
 	return r.PaymentMethod.Card.Token
 }
 
+func (r *Request) GetCardPan() *string {
+	if r.PaymentMethod == nil || r.PaymentMethod.Card == nil {
+		return nil
+	}
+
+	return r.PaymentMethod.Card.Pan
+}
+
 func (r *Request) GetPaymentID() *string {
 	if r.PaymentData == nil {
 		return nil

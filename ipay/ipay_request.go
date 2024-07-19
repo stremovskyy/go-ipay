@@ -110,6 +110,7 @@ type RequestTransaction struct {
 // Card represents the card data.
 type Card struct {
 	Token *string `json:"token,omitempty"` // Card token.
+	Pan   *string `json:"pan,omitempty"`   // Card PAN.
 }
 
 // Info holds additional information related to the payment, provided by the merchant.
