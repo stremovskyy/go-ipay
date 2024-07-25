@@ -32,7 +32,7 @@ import (
 	"github.com/stremovskyy/go-ipay/internal/ipay"
 )
 
-type IpayResponseWrapper struct {
+type ResponseWrapper struct {
 	Response Response `json:"response"`
 }
 
@@ -113,36 +113,56 @@ func (r Response) InvoiceAmountInt64() int64 {
 }
 
 func (r Response) GetError() error {
+	// Check if there's a general error message
 	if r.Error != nil {
 		if r.ErrorCode != nil {
-			return fmt.Errorf("ipay general error: %s, code: %s", *r.Error, *r.ErrorCode)
-		} else {
-			return fmt.Errorf("ipay general error: %s", *r.Error)
+			return createIpayError(
+				900,
+				fmt.Sprintf("ipay general error: %s", *r.Error),
+				fmt.Sprintf("code: %s", *r.ErrorCode),
+			)
 		}
+		return createIpayError(900, *r.Error, "")
 	}
 
+	// Check if there's a bank error note
 	if r.BnkErrorNote != nil {
 		if statusCode, found := ipay.GetStatusCode(*r.BnkErrorNote); found {
-			return fmt.Errorf(fmt.Sprintf("bank error: %s, reason: %s, message: %s", *r.BnkErrorNote, statusCode.Reason, statusCode.Message))
-		} else {
-			return fmt.Errorf("general error: %s", *r.BnkErrorNote)
+			return createIpayError(
+				statusCode.ExtCode,
+				fmt.Sprintf("bank error: %s", *r.BnkErrorNote),
+				fmt.Sprintf("reason: %s, message: %s", statusCode.Reason, statusCode.Message),
+			)
 		}
+		return createIpayError(900, string(*r.BnkErrorNote), "")
 	}
 
+	// Check if there's a specific authorization code error
+	if r.ResAuthCode != 0 {
+		message := getErrorMessageA2CPay(r.ResAuthCode)
+		return createIpayError(r.ResAuthCode, message, "")
+	}
+
+	// Check for payment status errors
 	if r.GetPaymentStatus() == PaymentStatusSecurityRefusal {
-		return fmt.Errorf("payment status: security refusal")
+		return createIpayError(900, "payment status: security refusal", "")
 	}
 
 	if r.GetPaymentStatus() == PaymentStatusFailed {
 		if r.BankResponse != nil {
 			if r.BankResponse.ErrorGroup != 0 {
-				return fmt.Errorf("bank error: %d, %v", r.BankResponse.ErrorGroup, r.BankAcquirerName)
+				return createIpayError(
+					r.BankResponse.ErrorGroup,
+					"payment status: payment failed",
+					fmt.Sprintf("bank acquirer name: %v", r.BankAcquirerName),
+				)
 			}
 		}
 
-		return fmt.Errorf("payment status: payment failed")
+		return createIpayError(900, "payment status: payment failed", "")
 	}
 
+	// No errors found
 	return nil
 }
 
@@ -154,7 +174,7 @@ type ResponseTransaction struct {
 	SmchBank *string `json:"smch_bank"`
 }
 
-func (ctr *IpayResponseWrapper) Debug() string {
+func (ctr *ResponseWrapper) Debug() string {
 	return fmt.Sprintf(
 		"Debug Info:\nPayment ID: %d\nValidation URL: %s\nSalt: %s\nSignature: %s\n",
 		ctr.Response.PmtId,
@@ -165,7 +185,7 @@ func (ctr *IpayResponseWrapper) Debug() string {
 }
 
 func UnmarshalJSONResponse(data []byte) (*Response, error) {
-	var resp IpayResponseWrapper
+	var resp ResponseWrapper
 
 	if err := json.Unmarshal(data, &resp); err != nil {
 		return nil, fmt.Errorf("error unmarshalling JSON response: %w", err)
