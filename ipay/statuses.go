@@ -60,3 +60,11 @@ func (s PaymentStatus) String() string {
 		return "Unknown"
 	}
 }
+
+func (s *PaymentStatus) Is(paymentStatus PaymentStatus) bool {
+	if s == nil {
+		return false
+	}
+
+	return *s == paymentStatus
+}

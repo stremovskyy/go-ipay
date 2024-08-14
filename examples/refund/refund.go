@@ -59,7 +59,7 @@ func main() {
 		panic(err)
 	}
 
-	if refundResponse.Status != ipay.PaymentStatusCanceled {
+	if refundResponse.Status.Is(ipay.PaymentStatusCanceled) {
 		panic(refundResponse.GetError())
 	}
 
