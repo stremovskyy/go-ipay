@@ -53,80 +53,79 @@ type Client struct {
 	recorder       recorder.Recorder
 }
 
+// Api handles the standard iPay API request.
 func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
 	return c.sendRequest(consts.ApiUrl, apiRequest, c.logger)
 }
 
+// ApplePayApi handles the Apple Pay-specific API request.
 func (c *Client) ApplePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
 	return c.sendRequest(consts.ApplePayUrl, apiRequest, c.applePayLogger)
 }
 
+// GooglePayApi handles the Google Pay-specific API request.
+func (c *Client) GooglePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
+	return c.sendRequest(consts.GooglePayUrl, apiRequest, c.applePayLogger)
+}
+
+// WithRecorder attaches a recorder to the client.
 func (c *Client) WithRecorder(rec recorder.Recorder) *Client {
 	c.recorder = rec
 
 	return c
 }
 
-func (c *Client) GooglePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
-	return c.sendRequest(consts.GooglePayUrl, apiRequest, c.applePayLogger)
-}
-
+// sendRequest handles sending an HTTP request and processing the response.
 func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, logger *log.Logger) (*ipay.Response, error) {
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
-	needToRecord := c.recorder != nil
-
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
-		return c.logAndReturnError("cannot marshal request", err, logger, needToRecord, context.Background(), requestID, nil)
+		return nil, c.logAndReturnError("cannot marshal request", err, logger, requestID, nil)
 	}
 
-	if jsonBody != nil {
-		logger.Debug("Request: %v", string(jsonBody))
-	}
+	logger.Debug("Request: %v", string(jsonBody))
 
 	ctx := context.WithValue(context.Background(), "request_id", requestID)
 	tags := tagsRetriever(apiRequest)
 
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
-		return c.logAndReturnError("cannot create request", err, logger, needToRecord, ctx, requestID, tags)
+		return nil, c.logAndReturnError("cannot create request", err, logger, requestID, tags)
 	}
 
 	c.setHeaders(req, requestID)
 
-	if needToRecord {
-		err = c.recorder.RecordRequest(ctx, nil, requestID, jsonBody, tags)
-		if err != nil {
+	if c.recorder != nil {
+		if err := c.recorder.RecordRequest(ctx, nil, requestID, jsonBody, tags); err != nil {
 			logger.Error("cannot record request", "error", err)
 		}
 	}
 
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return c.logAndReturnError("cannot send request", err, logger, needToRecord, ctx, requestID, tags)
+		return nil, c.logAndReturnError("cannot send request", err, logger, requestID, tags)
 	}
-	defer resp.Body.Close()
+	defer c.safeClose(resp.Body, logger)
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return c.logAndReturnError("cannot read response", err, logger, needToRecord, ctx, requestID, tags)
+		return nil, c.logAndReturnError("cannot read response", err, logger, requestID, tags)
 	}
 
 	logger.Debug("Response: %v", string(raw))
 	logger.Debug("Response status: %v", resp.StatusCode)
 
-	if needToRecord {
-		err = c.recorder.RecordResponse(ctx, nil, requestID, raw, tags)
-		if err != nil {
+	if c.recorder != nil {
+		if err := c.recorder.RecordResponse(ctx, nil, requestID, raw, tags); err != nil {
 			logger.Error("cannot record response", "error", err)
 		}
 	}
 
 	response, err := ipay.UnmarshalJSONResponse(raw)
 	if err != nil {
-		return c.logAndReturnError("cannot unmarshal response", err, logger, needToRecord, ctx, requestID, tags)
+		return nil, c.logAndReturnError("cannot unmarshal response", err, logger, requestID, tags)
 	}
 
 	if response.GetError() != nil {
@@ -136,18 +135,20 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	return response, nil
 }
 
-func (c *Client) logAndReturnError(msg string, err error, logger *log.Logger, needToRecord bool, ctx context.Context, requestID string, tags map[string]string) (*ipay.Response, error) {
+// logAndReturnError logs an error and optionally records it.
+func (c *Client) logAndReturnError(msg string, err error, logger *log.Logger, requestID string, tags map[string]string) error {
 	logger.Error(msg, "error", err)
-	if needToRecord && c.recorder != nil {
-		recordErr := c.recorder.RecordError(ctx, nil, requestID, err, tags)
-		if recordErr != nil {
+	if c.recorder != nil {
+		ctx := context.WithValue(context.Background(), "request_id", requestID)
+		if recordErr := c.recorder.RecordError(ctx, nil, requestID, err, tags); recordErr != nil {
 			logger.Error("cannot record error", "error", recordErr)
 		}
 	}
 
-	return nil, err
+	return err
 }
 
+// setHeaders sets common headers for all requests.
 func (c *Client) setHeaders(req *http.Request, requestID string) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -156,6 +157,14 @@ func (c *Client) setHeaders(req *http.Request, requestID string) {
 	req.Header.Set("Api-Version", consts.ApiVersion)
 }
 
+// safeClose ensures the body is closed properly and logs any error.
+func (c *Client) safeClose(body io.ReadCloser, logger *log.Logger) {
+	if err := body.Close(); err != nil {
+		logger.Error("cannot close response body", "error", err)
+	}
+}
+
+// tagsRetriever extracts tags from the request for logging or recording purposes.
 func tagsRetriever(request *ipay.RequestWrapper) map[string]string {
 	tags := make(map[string]string)
 
@@ -170,6 +179,7 @@ func tagsRetriever(request *ipay.RequestWrapper) map[string]string {
 	return tags
 }
 
+// ApiXML handles XML API requests.
 func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse, error) {
 	requestID := uuid.New().String()
 
@@ -182,14 +192,12 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 
 	c.xmlLogger.Debug("Request: %v", string(xmlBody))
 
-	// Form-encode the XML data
 	formData := url.Values{}
 	formData.Set("data", string(xmlBody))
 
 	req, err := http.NewRequest("POST", consts.ApiXMLUrl, strings.NewReader(formData.Encode()))
 	if err != nil {
-		c.xmlLogger.Error("cannot create request: %v", err)
-		return nil, fmt.Errorf("cannot create request: %v", err)
+		return nil, c.logAndReturnError("cannot create XML request", err, c.xmlLogger, requestID, nil)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -201,21 +209,15 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 	tStart := time.Now()
 	resp, err := c.client.Do(req)
 	if err != nil {
-		c.xmlLogger.Error("cannot send request: %v", err)
-		return nil, fmt.Errorf("cannot send request: %v", err)
+		return nil, c.logAndReturnError("cannot send XML request", err, c.xmlLogger, requestID, nil)
 	}
 	c.xmlLogger.Debug("Request time: %v", time.Since(tStart))
 
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			c.xmlLogger.Error("cannot close response body: %v", err)
-		}
-	}()
+	defer c.safeClose(resp.Body, c.xmlLogger)
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		c.xmlLogger.Error("cannot read response: %v", err)
-		return nil, fmt.Errorf("cannot read response: %v", err)
+		return nil, c.logAndReturnError("cannot read XML response", err, c.xmlLogger, requestID, nil)
 	}
 
 	c.xmlLogger.Debug("Response: %v", string(raw))
@@ -224,14 +226,17 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 	return ipay.UnmarshalXmlResponse(raw)
 }
 
+// SetClient allows for replacing the default HTTP client.
 func (c *Client) SetClient(cl *http.Client) {
 	c.client = cl
 }
 
+// SetRecorder allows for attaching a new recorder.
 func (c *Client) SetRecorder(r recorder.Recorder) {
 	c.recorder = r
 }
 
+// NewClient initializes a new HTTP client with options.
 func NewClient(options *Options) *Client {
 	dialer := &net.Dialer{
 		Timeout:   30 * time.Second,
@@ -242,9 +247,7 @@ func NewClient(options *Options) *Client {
 		MaxIdleConns:       options.MaxIdleConns,
 		IdleConnTimeout:    options.IdleConnTimeout,
 		DisableCompression: true,
-		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return dialer.DialContext(ctx, network, addr)
-		},
+		DialContext:        dialer.DialContext,
 	}
 
 	cl := &http.Client{
@@ -256,7 +259,7 @@ func NewClient(options *Options) *Client {
 		client:         cl,
 		options:        options,
 		logger:         log.NewLogger("iPay HTTP:"),
-		applePayLogger: log.NewLogger("iPay HTTP:"),
+		applePayLogger: log.NewLogger("iPay ApplePay:"),
 		xmlLogger:      log.NewLogger("iPay HTTP XML:"),
 	}
 }

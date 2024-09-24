@@ -41,6 +41,7 @@ func main() {
 
 	merchant := &go_ipay.Merchant{
 		Name:            private.MerchantName,
+		SubMerchantID:   private.SubMerchantID,
 		MerchantID:      private.MerchantID,
 		MerchantKey:     private.MerchantKey,
 		SuccessRedirect: private.SuccessRedirect,
@@ -60,7 +61,7 @@ func main() {
 		PaymentData: &go_ipay.PaymentData{
 			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
 			PaymentID:     utils.Ref(uuidString),
-			Amount:        300,
+			Amount:        100,
 			Currency:      currency.UAH,
 			OrderID:       uuidString,
 			Description:   "Test payment: " + uuidString,

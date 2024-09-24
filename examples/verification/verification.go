@@ -39,6 +39,7 @@ func main() {
 	merchant := &go_ipay.Merchant{
 		Name:            private.MerchantName,
 		MerchantID:      private.MerchantID,
+		SubMerchantID:   private.SubMerchantID,
 		MerchantKey:     private.MerchantKey,
 		SuccessRedirect: private.SuccessRedirect,
 		FailRedirect:    private.FailRedirect,

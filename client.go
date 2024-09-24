@@ -75,6 +75,7 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 	createTokenRequest := ipay.NewRequest(
 		ipay.ActionCreateToken3DS, ipay.LangUk,
 		ipay.WithAuth(request.GetAuth()),
+		ipay.WithInvoiceInTransactions(request.GetAmount(), request.GetSubMerchantID()),
 		ipay.WithRedirects(request.GetRedirects()),
 		ipay.WithPersonalData(request.GetPersonalData()),
 		ipay.WithPaymentID(request.GetPaymentID()),
@@ -215,6 +216,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 		ipay.WithCurrency(request.GetCurrency()),
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithPersonalData(request.GetPersonalData()),
+		ipay.WithInvoiceInTransactions(request.GetAmount(), request.GetSubMerchantID()),
 		ipay.WithCardToken(request.GetCardToken()),
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithDescription(request.GetDescription()),

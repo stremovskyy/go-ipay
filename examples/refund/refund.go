@@ -46,7 +46,7 @@ func main() {
 	refundRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
+			IpayPaymentID: utils.Ref(int64(518677122)),
 			Amount:        100,
 		},
 	}

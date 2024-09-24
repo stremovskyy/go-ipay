@@ -26,6 +26,7 @@ package http
 
 import "time"
 
+// Options for http client
 type Options struct {
 	Timeout         time.Duration
 	KeepAlive       time.Duration

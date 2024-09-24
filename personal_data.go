@@ -24,9 +24,14 @@
 
 package go_ipay
 
+// PersonalData represents the personal information of a user.
 type PersonalData struct {
-	UserID    *int
+	// UserID is the unique identifier for the user.
+	UserID *int
+	// FirstName is the first name of the user.
 	FirstName *string
-	LastName  *string
-	TaxID     *string
+	// LastName is the last name of the user.
+	LastName *string
+	// TaxID is the tax identification number of the user.
+	TaxID *string
 }

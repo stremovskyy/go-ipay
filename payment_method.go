@@ -33,8 +33,12 @@ type PaymentMethod struct {
 	GoogleToken *string
 }
 
+// Card represents a payment card with its details.
 type Card struct {
-	Name  string
+	// Name is the name of the cardholder.
+	Name string
+	// Token is the tokenized representation of the card.
 	Token *string
-	Pan   *string
+	// Pan is the primary account number of the card.
+	Pan *string
 }

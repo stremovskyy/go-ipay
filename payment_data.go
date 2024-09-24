@@ -26,14 +26,24 @@ package go_ipay
 
 import "github.com/stremovskyy/go-ipay/currency"
 
+// PaymentData represents the data related to a payment transaction.
 type PaymentData struct {
+	// IpayPaymentID is the unique identifier for the iPay payment.
 	IpayPaymentID *int64
-	PaymentID     *string
-	Amount        int
-	Currency      currency.Code
-	OrderID       string
-	Description   string
-	WebhookURL    *string
-	IsMobile      bool
+	// PaymentID is the unique identifier for the payment.
+	PaymentID *string
+	// Amount is the amount of the payment in the smallest unit of the currency.
+	Amount int
+	// Currency is the currency code of the payment.
+	Currency currency.Code
+	// OrderID is the unique identifier for the order.
+	OrderID string
+	// Description is a brief description of the payment.
+	Description string
+	// WebhookURL is the URL to which payment notifications will be sent.
+	WebhookURL *string
+	// IsMobile indicates whether the payment was made from a mobile device.
+	IsMobile bool
+	// TrackingToken is a token used for tracking the payment.
 	TrackingToken *string
 }

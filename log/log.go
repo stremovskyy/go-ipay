@@ -67,21 +67,24 @@ func SetLevel(level Level) {
 }
 
 func (l *Logger) log(level Level, format string, a ...interface{}) {
-	if level <= logLevel() {
-		prefix := "iPay: "
-		if l != nil && l.prefix != "" {
-			prefix = l.prefix
-		}
-
-		msg := fmt.Sprintf("%s %s %s", time.Now().Format(time.RFC3339), labels[level], prefix)
-		msg += fmt.Sprintf(format, a...)
-		fmt.Fprintln(os.Stderr, msg)
+	if level > getLogLevel() {
+		return
 	}
+
+	prefix := "iPay: "
+	if l != nil && l.prefix != "" {
+		prefix = l.prefix
+	}
+
+	msg := fmt.Sprintf("%s %s %s", time.Now().Format(time.RFC3339), labels[level], prefix)
+	msg += fmt.Sprintf(format, a...)
+	fmt.Fprintln(os.Stderr, msg)
 }
 
-func logLevel() Level {
+func getLogLevel() Level {
 	logMutex.Lock()
 	defer logMutex.Unlock()
+
 	return globalLogLevel
 }
 
