@@ -32,6 +32,10 @@ type PersonalData struct {
 	FirstName *string
 	// LastName is the last name of the user.
 	LastName *string
+	// MiddleName is the middle name of the user.
+	MiddleName *string
 	// TaxID is the tax identification number of the user.
 	TaxID *string
+	// TrackingCardToken is the token of the tracking card.
+	TrackingCardToken *string
 }

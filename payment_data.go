@@ -44,6 +44,4 @@ type PaymentData struct {
 	WebhookURL *string
 	// IsMobile indicates whether the payment was made from a mobile device.
 	IsMobile bool
-	// TrackingToken is a token used for tracking the payment.
-	TrackingToken *string
 }

@@ -67,10 +67,11 @@ func main() {
 			Description:   "Test payment: " + uuidString,
 		},
 		PersonalData: &go_ipay.PersonalData{
-			UserID:    utils.Ref(123),
-			FirstName: utils.Ref("John"),
-			LastName:  utils.Ref("Doe"),
-			TaxID:     utils.Ref("1234567890"),
+			UserID:     utils.Ref(123),
+			FirstName:  utils.Ref("John"),
+			LastName:   utils.Ref("Doe"),
+			MiddleName: utils.Ref("Middle"),
+			TaxID:      utils.Ref("1234567890"),
 		},
 	}
 

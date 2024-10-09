@@ -58,19 +58,22 @@ type Request struct {
 
 // Body encompasses the main content of the payment request.
 type Body struct {
-	Cdata        *string             `json:"cdata,omitempty"`        // Encoded card PAN.
-	UrlGood      *string             `json:"url_good,omitempty"`     // Merchant's success URL.
-	UrlBad       *string             `json:"url_bad,omitempty"`      // Merchant's failure URL.
-	Info         *Info               `json:"info,omitempty"`         // Additional payment information.
-	VerifyType   *string             `json:"verify_type,omitempty"`  // Verification type.
-	PmtId        *int64              `json:"pmt_id,omitempty"`       // Payment ID.
-	Transactions RequestTransactions `json:"transactions,omitempty"` // List of transactions.
-	Card         *Card               `json:"card,omitempty"`         // Card data.
-	ExtId        *string             `json:"ext_id,omitempty"`       // External ID.
-	Invoice      *int                `json:"invoice,omitempty"`      // Payment amount in kopecks.
-	AppleData    *string             `json:"apple_data,omitempty"`   // Apple Pay data.
-	PmtDesc      *string             `json:"pmt_desc,omitempty"`     // Payment description.
-	Token        *string             `json:"token,omitempty"`        // Token for Google Pay
+	Cdata          *string             `json:"cdata,omitempty"`           // Encoded card PAN.
+	UrlGood        *string             `json:"url_good,omitempty"`        // Merchant's success URL.
+	UrlBad         *string             `json:"url_bad,omitempty"`         // Merchant's failure URL.
+	Info           *Info               `json:"info,omitempty"`            // Additional payment information.
+	VerifyType     *string             `json:"verify_type,omitempty"`     // Verification type.
+	PmtId          *int64              `json:"pmt_id,omitempty"`          // Payment ID.
+	Transactions   RequestTransactions `json:"transactions,omitempty"`    // List of transactions.
+	Card           *Card               `json:"card,omitempty"`            // Card data.
+	ExtId          *string             `json:"ext_id,omitempty"`          // External ID.
+	Invoice        *int                `json:"invoice,omitempty"`         // Payment amount in kopecks.
+	AppleData      *string             `json:"apple_data,omitempty"`      // Apple Pay data.
+	PmtDesc        *string             `json:"pmt_desc,omitempty"`        // Payment description.
+	Token          *string             `json:"token,omitempty"`           // Token for Google Pay.
+	Recurrent      *string             `json:"recurrent,omitempty"`       // Recurrent payment (true or false).
+	RecurrentToken *string             `json:"recurrent_token,omitempty"` // Recurrent payment token.
+	Aml            *Aml                `json:"aml,omitempty"`             // Anti-Money Laundering information.
 }
 
 type RequestTransactions []RequestTransaction
@@ -109,23 +112,24 @@ type RequestTransaction struct {
 
 // Card represents the card data.
 type Card struct {
-	Token *string `json:"token,omitempty"` // Card token.
-	Pan   *string `json:"pan,omitempty"`   // Card PAN.
+	Token     *string `json:"token,omitempty"`      // Card token.
+	Pan       *string `json:"pan,omitempty"`        // Card PAN.
+	TokenType *string `json:"token_type,omitempty"` // Token type.
 }
 
 // Info holds additional information related to the payment, provided by the merchant.
 type Info struct {
-	OrderId               *string     `json:"order_id,omitempty"`     // Order ID.
-	ExtId                 *string     `json:"ext_id,omitempty"`       // External ID.
-	UserID                *string     `json:"user_id,omitempty"`      // User ID.
-	Cvd                   interface{} `json:"cvd,omitempty"`          // Card Verification Data.
-	Aml                   *Aml        `json:"aml,omitempty"`          // Anti-Money Laundering information.
-	MctsVts               bool        `json:"mcts_vts,omitempty"`     // If set, creates a token of type mcts/vts along with the default tokly token.
-	ExternalCVD           *Cvd        `json:"external_cvd,omitempty"` // External Card Verification Data.
-	Preauth               *int        `json:"preauth,omitempty"`      // Preauthorization flag.
-	NotifyUrl             *string     `json:"notify_url,omitempty"`
-	PmtIdIn               *int64      `json:"pmt_id_in,omitempty"`
-	ReceiverAccountNumber *string     `json:"receiver_account_number,omitempty"`
+	OrderId               *string     `json:"order_id,omitempty"`                // Order ID.
+	ExtId                 *string     `json:"ext_id,omitempty"`                  // External ID.
+	UserID                *string     `json:"user_id,omitempty"`                 // User ID.
+	Cvd                   interface{} `json:"cvd,omitempty"`                     // Card Verification Data.
+	Aml                   *Aml        `json:"aml,omitempty"`                     // Anti-Money Laundering information.
+	MctsVts               bool        `json:"mcts_vts,omitempty"`                // If set, creates a token of type mcts/vts along with the default tokly token.
+	ExternalCVD           *Cvd        `json:"external_cvd,omitempty"`            // External Card Verification Data.
+	Preauth               *int        `json:"preauth,omitempty"`                 // Preauthorization flag.
+	NotifyUrl             *string     `json:"notify_url,omitempty"`              // Notification URL.
+	PmtIdIn               *int64      `json:"pmt_id_in,omitempty"`               // Payment ID in.
+	ReceiverAccountNumber *string     `json:"receiver_account_number,omitempty"` // Receiver's account number.
 }
 
 func (i *Info) JsonString() string {
@@ -144,11 +148,19 @@ type Cvd struct {
 
 // Aml contains Anti-Money Laundering information for financial monitoring.
 type Aml struct {
-	SenderFirstname            *string `json:"sender_firstname,omitempty"`             // Sender's first name.
-	SenderMiddlename           *string `json:"sender_middlename,omitempty"`            // Sender's middle name.
-	SenderLastname             *string `json:"sender_lastname,omitempty"`              // Sender's last name.
-	SenderIdentificationNumber *string `json:"sender_identification_number,omitempty"` // Sender's Identification Number.
-	SenderDocument             *string `json:"sender_document,omitempty"`              // Sender's document number.
-	SenderAddress              *string `json:"sender_address,omitempty"`               // Sender's address.
-	SenderAccountNumber        *string `json:"sender_account_number,omitempty"`        // Sender's account number.
+	SenderFirstname              *string `json:"sender_firstname,omitempty"`               // Sender's first name.
+	SenderMiddlename             *string `json:"sender_middlename,omitempty"`              // Sender's middle name.
+	SenderLastname               *string `json:"sender_lastname,omitempty"`                // Sender's last name.
+	SenderIdentificationNumber   *string `json:"sender_identification_number,omitempty"`   // Sender's Identification Number.
+	SenderDocument               *string `json:"sender_document,omitempty"`                // Sender's document number.
+	SenderAddress                *string `json:"sender_address,omitempty"`                 // Sender's address.
+	SenderAccountNumber          *string `json:"sender_account_number,omitempty"`          // Sender's account number.
+	ReceiverFirstname            *string `json:"receiver_firstname,omitempty"`             // Receiver's first name.
+	ReceiverMiddlename           *string `json:"receiver_middlename,omitempty"`            // Receiver's middle name.
+	ReceiverLastname             *string `json:"receiver_lastname,omitempty"`              // Receiver's last name.
+	ReceiverIdentificationNumber *string `json:"receiver_identification_number,omitempty"` // Receiver's Identification Number.
+	ReceiverDocument             *string `json:"receiver_document,omitempty"`              // Receiver's document number.
+	ReceiverAddress              *string `json:"receiver_address,omitempty"`               // Receiver's address.
+	ReceiverAccountNumber        *string `json:"receiver_account_number,omitempty"`        // Receiver's account number.
+	ReceiverToklyToken           *string `json:"receiver_tokly_token,omitempty"`           // Tokly token associated with the receiver's card number.
 }

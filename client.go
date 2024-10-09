@@ -83,6 +83,7 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithOutAmount(true),
+		ipay.WithAML(request.GetAML()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(createTokenRequest)
@@ -246,7 +247,7 @@ func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
 		ipay.WithIpayPaymentID(invoiceRequest.GetIpayPaymentID()),
 		ipay.WithWebhookURL(invoiceRequest.GetWebhookURL()),
 		ipay.WithReceiverTIN(invoiceRequest.GetReceiverTIN()),
-		ipay.WithTrackingToken(invoiceRequest.GetTrackingToken()),
+		ipay.WithAML(invoiceRequest.GetAML()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(captureRequest)
@@ -280,6 +281,8 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithTrackingData(request.GetTrackingData()),
+		ipay.WithDescription(request.GetDescription()),
+		ipay.WithAML(request.GetAML()),
 	}
 
 	if request.GetCardToken() != nil {

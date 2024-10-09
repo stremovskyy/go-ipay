@@ -345,12 +345,24 @@ func WithReceiverTIN(tin *string) func(*RequestWrapper) {
 		}
 
 		rw.Request.Body.Info.Cvd = c
+
+		if rw.Request.Body.Aml == nil {
+			rw.Request.Body.Aml = &Aml{}
+		}
+
+		rw.Request.Body.Aml.ReceiverIdentificationNumber = tin
 	}
 }
 
 func WithTrackingToken(token *string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.Info.ReceiverAccountNumber = token
+
+		if rw.Request.Body.Aml == nil {
+			rw.Request.Body.Aml = &Aml{}
+		}
+
+		rw.Request.Body.Aml.ReceiverAccountNumber = token
 	}
 }
 
@@ -365,5 +377,11 @@ func WithCardPan(pan *string) func(*RequestWrapper) {
 		}
 
 		rw.Request.Body.Card.Pan = pan
+	}
+}
+
+func WithAML(aml *Aml) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.Aml = aml
 	}
 }

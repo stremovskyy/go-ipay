@@ -53,17 +53,18 @@ func main() {
 		Merchant: merchant,
 		PaymentMethod: &go_ipay.PaymentMethod{
 			Card: &go_ipay.Card{
-				Name: "Test Card",
-				// Token: utils.Ref(private.CardToken),
-				Pan: utils.Ref(private.CardPan),
+				Name:  "Test Card",
+				Token: utils.Ref(private.CardToken),
+				// Pan: utils.Ref(private.CardPan),
 			},
 		},
 		PaymentData: &go_ipay.PaymentData{
-			PaymentID:   utils.Ref(uuidString),
-			Amount:      100,
-			Currency:    currency.UAH,
-			OrderID:     uuidString,
-			Description: "Test payment: " + uuidString,
+			PaymentID:     utils.Ref(uuidString),
+			Amount:        100,
+			Currency:      currency.UAH,
+			OrderID:       uuidString,
+			Description:   "Test payment: " + uuidString,
+			IpayPaymentID: utils.Ref(int64(532940622)),
 		},
 		PersonalData: &go_ipay.PersonalData{
 			UserID:    utils.Ref(123),

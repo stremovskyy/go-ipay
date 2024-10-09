@@ -44,9 +44,17 @@ func main() {
 	captureRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(384059174)),
+			IpayPaymentID: utils.Ref(int64(532940622)),
 			Amount:        100,
 			Description:   "Capture test",
+		},
+		PersonalData: &go_ipay.PersonalData{
+			UserID:            utils.Ref(123),
+			FirstName:         utils.Ref("John"),
+			LastName:          utils.Ref("Doe"),
+			MiddleName:        utils.Ref("Middle"),
+			TaxID:             utils.Ref("1234567890"),
+			TrackingCardToken: utils.Ref(private.CardToken),
 		},
 	}
 

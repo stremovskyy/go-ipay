@@ -94,9 +94,26 @@ func (r *Request) GetPersonalData() *ipay.Info {
 	}
 
 	info.Cvd = &ipay.Cvd{
-		Firstname: r.PersonalData.FirstName,
-		Lastname:  r.PersonalData.LastName,
-		TaxID:     r.PersonalData.TaxID,
+		Firstname:  r.PersonalData.FirstName,
+		Lastname:   r.PersonalData.LastName,
+		Middlename: r.PersonalData.MiddleName,
+		TaxID:      r.PersonalData.TaxID,
+	}
+
+	return info
+}
+
+func (r *Request) GetAML() *ipay.Aml {
+	if r.PersonalData == nil {
+		return &ipay.Aml{}
+	}
+
+	info := &ipay.Aml{
+		ReceiverFirstname:            r.PersonalData.FirstName,
+		ReceiverMiddlename:           r.PersonalData.MiddleName,
+		ReceiverLastname:             r.PersonalData.LastName,
+		ReceiverIdentificationNumber: r.PersonalData.TaxID,
+		ReceiverToklyToken:           r.PersonalData.TrackingCardToken,
 	}
 
 	return info
@@ -282,12 +299,4 @@ func (r *Request) GetReceiverTIN() *string {
 	}
 
 	return r.PersonalData.TaxID
-}
-
-func (r *Request) GetTrackingToken() *string {
-	if r.PaymentData == nil {
-		return nil
-	}
-
-	return r.PaymentData.TrackingToken
 }
