@@ -74,6 +74,8 @@ type Body struct {
 	Recurrent      *string             `json:"recurrent,omitempty"`       // Recurrent payment (true or false).
 	RecurrentToken *string             `json:"recurrent_token,omitempty"` // Recurrent payment token.
 	Aml            *Aml                `json:"aml,omitempty"`             // Anti-Money Laundering information.
+	Sender         *Sender             `json:"sender,omitempty"`          // Sender details.
+	Receiver       *Receiver           `json:"receiver,omitempty"`
 }
 
 type RequestTransactions []RequestTransaction
@@ -163,4 +165,26 @@ type Aml struct {
 	ReceiverAddress              *string `json:"receiver_address,omitempty"`               // Receiver's address.
 	ReceiverAccountNumber        *string `json:"receiver_account_number,omitempty"`        // Receiver's account number.
 	ReceiverToklyToken           *string `json:"receiver_tokly_token,omitempty"`           // Tokly token associated with the receiver's card number.
+}
+
+// Sender represents the sender's details.
+type Sender struct {
+	Lastname             *string `json:"lastname,omitempty"`             // Sender's last name.
+	Firstname            *string `json:"firstname,omitempty"`            // Sender's first name.
+	Middlename           *string `json:"middlename,omitempty"`           // Sender's middle name.
+	Document             *string `json:"document,omitempty"`             // Sender's document number.
+	Address              *string `json:"address,omitempty"`              // Sender's address.
+	IdentificationNumber *string `json:"identificationNumber,omitempty"` // Sender's tax identification number (optional).
+	AccountNumber        *string `json:"accountNumber,omitempty"`        // Sender's account number (optional).
+}
+
+// Receiver represents the receiver's details.
+type Receiver struct {
+	Lastname             *string `json:"lastname,omitempty"`             // Receiver's last name.
+	Firstname            *string `json:"firstname,omitempty"`            // Receiver's first name.
+	Middlename           *string `json:"middlename,omitempty"`           // Receiver's middle name.
+	Document             *string `json:"document,omitempty"`             // Receiver's document number (optional).
+	Address              *string `json:"address,omitempty"`              // Receiver's address.
+	IdentificationNumber *string `json:"identificationNumber,omitempty"` // Receiver's tax identification number (optional).
+	AccountNumber        *string `json:"accountNumber,omitempty"`        // Receiver's account number (optional).
 }

@@ -247,7 +247,7 @@ func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
 		ipay.WithIpayPaymentID(invoiceRequest.GetIpayPaymentID()),
 		ipay.WithWebhookURL(invoiceRequest.GetWebhookURL()),
 		ipay.WithReceiverTIN(invoiceRequest.GetReceiverTIN()),
-		ipay.WithAML(invoiceRequest.GetAML()),
+		ipay.WithReceiver(invoiceRequest.GetReceiver()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(captureRequest)

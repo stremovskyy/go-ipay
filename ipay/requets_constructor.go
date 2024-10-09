@@ -385,3 +385,13 @@ func WithAML(aml *Aml) func(*RequestWrapper) {
 		rw.Request.Body.Aml = aml
 	}
 }
+
+func WithReceiver(receiver *Receiver) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		if rw.Request.Body.Info == nil {
+			rw.Request.Body.Info = &Info{}
+		}
+
+		rw.Request.Body.Receiver = receiver
+	}
+}

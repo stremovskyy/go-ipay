@@ -119,6 +119,36 @@ func (r *Request) GetAML() *ipay.Aml {
 	return info
 }
 
+func (r *Request) GetReceiver() *ipay.Receiver {
+	if r.PersonalData == nil {
+		return &ipay.Receiver{}
+	}
+
+	info := &ipay.Receiver{
+		Lastname:             r.PersonalData.LastName,
+		Firstname:            r.PersonalData.FirstName,
+		Middlename:           r.PersonalData.MiddleName,
+		IdentificationNumber: r.PersonalData.TaxID,
+	}
+
+	return info
+}
+
+func (r *Request) GetSender() *ipay.Sender {
+	if r.PersonalData == nil {
+		return &ipay.Sender{}
+	}
+
+	info := &ipay.Sender{
+		Lastname:             r.PersonalData.LastName,
+		Firstname:            r.PersonalData.FirstName,
+		Middlename:           r.PersonalData.MiddleName,
+		IdentificationNumber: r.PersonalData.TaxID,
+	}
+
+	return info
+}
+
 func (r *Request) GetIpayPaymentID() int64 {
 	if r.PaymentData == nil || r.PaymentData.IpayPaymentID == nil {
 		return 0
