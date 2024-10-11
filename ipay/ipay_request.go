@@ -108,7 +108,7 @@ type RequestTransaction struct {
 	Invoice  int           `xml:"invoice" json:"invoice,omitempty"`   // Payment amount in kopecks
 	Amount   int           `xml:"amount" json:"amount,omitempty"`     // Amount to be paid (including commission) in kopecks
 	Desc     string        `xml:"desc" json:"desc,omitempty"`         // Payment description
-	Info     *Info         `xml:"info" json:"info"`                   // Information for the payment provided by the merchant
+	Info     *Info         `xml:"info" json:"info,omitempty"`         // Information for the payment provided by the merchant
 	Currency currency.Code `xml:"currency" json:"currency,omitempty"` // Currency code
 }
 

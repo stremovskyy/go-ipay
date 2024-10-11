@@ -39,7 +39,7 @@ type Payment struct {
 	Amount        float64       `xml:"amount" json:"amount"`                   // Total payment amount
 	Currency      string        `xml:"currency" json:"currency"`               // Currency code
 	Timestamp     int64         `xml:"timestamp" json:"timestamp"`             // Date of authorization/completion in UNIX-timestamp
-	CardToken     *string       `xml:"card_token" json:"card_token"`           // Card token
+	CardToken     *string       `xml:"card_token,omitempty" json:"card_token"` // Card token
 	CardIsPrepaid string        `xml:"card_is_prepaid" json:"card_is_prepaid"` // Whether the card is prepaid (1) or not (0), optional
 	ValidTaxID    int           `xml:"valid_tax_id" json:"valid_tax_id"`       // Valid (1) or not (0) tax ID sent in one of the requests: CreateToken, CreateToken3DS, PaymentCreate, optional
 	CardHolder    string        `xml:"card_holder" json:"card_holder"`         // Full name of the cardholder, optional
@@ -50,8 +50,8 @@ type Payment struct {
 	PmtId         int           `xml:"pmt_id" json:"pmt_id"`
 	CardMask      *string       `xml:"card_mask" json:"card_mask"`
 	Card          *string       `xml:"card" json:"card"`
-	Invoice       int           `xml:"invoice" json:"invoice"`
-	Desc          string        `xml:"desc" json:"desc"`
+	Invoice       int           `xml:"invoice" json:"invoice,omitempty"`
+	Desc          string        `xml:"desc" json:"desc,omitempty"`
 	BnkErrorGroup interface{}   `xml:"bnk_error_group" json:"bnk_error_group"`
 	BnkErrorNote  interface{}   `xml:"bnk_error_note" json:"bnk_error_note"`
 	InitDate      string        `xml:"init_date" json:"init_date"`
@@ -84,14 +84,14 @@ func (t *Transactions) Last() *Transaction {
 
 // Transaction represents an individual transaction.
 type Transaction struct {
-	ID       int64  `xml:"id,attr" json:"id"`      // Transaction ID in the iPay system
-	MchID    int    `xml:"mch_id" json:"mch_id"`   // Merchant ID
-	SrvID    int    `xml:"srv_id" json:"srv_id"`   // Legal entity for which the operation is carried out
-	Invoice  int    `xml:"invoice" json:"invoice"` // Payment amount in kopecks
-	Amount   int    `xml:"amount" json:"amount"`   // Amount to be paid (including commission) in kopecks
-	Desc     string `xml:"desc" json:"desc"`       // Payment description
-	Info     string `xml:"info" json:"info"`       // Information for the payment provided by the merchant
-	InfoData *Info  `xml:"-"`                      // Parsed JSON object from transaction info
+	ID       int64   `xml:"id,attr" json:"id"`          // Transaction ID in the iPay system
+	MchID    int     `xml:"mch_id" json:"mch_id"`       // Merchant ID
+	SrvID    int     `xml:"srv_id" json:"srv_id"`       // Legal entity for which the operation is carried out
+	Invoice  int     `xml:"invoice" json:"invoice"`     // Payment amount in kopecks
+	Amount   int     `xml:"amount" json:"amount"`       // Amount to be paid (including commission) in kopecks
+	Desc     string  `xml:"desc" json:"desc"`           // Payment description
+	Info     *string `xml:"info" json:"info,omitempty"` // Information for the payment provided by the merchant
+	InfoData *Info   `xml:"-"`                          // Parsed JSON object from transaction info
 }
 
 func ParsePaymentXML(data []byte) (*Payment, error) {
@@ -103,8 +103,12 @@ func ParsePaymentXML(data []byte) (*Payment, error) {
 
 	// Parse JSON content in the "info" field of each transaction
 	for i, transaction := range payment.Transactions.Transaction {
+		if transaction.Info == nil {
+			continue
+		}
+
 		var infoData Info
-		err := json.Unmarshal([]byte(transaction.Info), &infoData)
+		err := json.Unmarshal([]byte(*transaction.Info), &infoData)
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling transaction info JSON: %w", err)
 		}
