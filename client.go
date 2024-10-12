@@ -281,7 +281,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithTrackingData(request.GetTrackingData()),
 		ipay.WithDescription(request.GetDescription()),
-		ipay.WithAML(request.GetAML()),
+		ipay.WithReceiver(request.GetReceiver()),
 	}
 
 	if request.GetCardToken() != nil {

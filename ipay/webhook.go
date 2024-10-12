@@ -84,14 +84,14 @@ func (t *Transactions) Last() *Transaction {
 
 // Transaction represents an individual transaction.
 type Transaction struct {
-	ID       int64  `xml:"id,attr" json:"id"`      // Transaction ID in the iPay system
-	MchID    int    `xml:"mch_id" json:"mch_id"`   // Merchant ID
-	SrvID    int    `xml:"srv_id" json:"srv_id"`   // Legal entity for which the operation is carried out
-	Invoice  int    `xml:"invoice" json:"invoice"` // Payment amount in kopecks
-	Amount   int    `xml:"amount" json:"amount"`   // Amount to be paid (including commission) in kopecks
-	Desc     string `xml:"desc" json:"desc"`       // Payment description
-	Info     string `xml:"info" json:"info"`       // Information for the payment provided by the merchant
-	InfoData *Info  `xml:"-"`                      // Parsed JSON object from transaction info
+	ID       int64   `xml:"id,attr" json:"id"`          // Transaction ID in the iPay system
+	MchID    int     `xml:"mch_id" json:"mch_id"`       // Merchant ID
+	SrvID    int     `xml:"srv_id" json:"srv_id"`       // Legal entity for which the operation is carried out
+	Invoice  int     `xml:"invoice" json:"invoice"`     // Payment amount in kopecks
+	Amount   int     `xml:"amount" json:"amount"`       // Amount to be paid (including commission) in kopecks
+	Desc     string  `xml:"desc" json:"desc"`           // Payment description
+	Info     *string `xml:"info" json:"info,omitempty"` // Information for the payment provided by the merchant
+	InfoData *Info   `xml:"-"`                          // Parsed JSON object from transaction info
 }
 
 func ParsePaymentXML(data []byte) (*Payment, error) {
@@ -103,8 +103,12 @@ func ParsePaymentXML(data []byte) (*Payment, error) {
 
 	// Parse JSON content in the "info" field of each transaction
 	for i, transaction := range payment.Transactions.Transaction {
+		if transaction.Info == nil {
+			continue
+		}
+
 		var infoData Info
-		err := json.Unmarshal([]byte(transaction.Info), &infoData)
+		err := json.Unmarshal([]byte(*transaction.Info), &infoData)
 		if err != nil {
 			return nil, fmt.Errorf("error unmarshalling transaction info JSON: %w", err)
 		}
