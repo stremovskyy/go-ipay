@@ -330,3 +330,11 @@ func (r *Request) GetReceiverTIN() *string {
 
 	return r.PersonalData.TaxID
 }
+
+func (r *Request) GetRelatedIDs() []int64 {
+	if r.PaymentData == nil || r.PaymentData.RelatedIds == nil {
+		return nil
+	}
+
+	return r.PaymentData.RelatedIds
+}

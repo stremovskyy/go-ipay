@@ -395,3 +395,9 @@ func WithReceiver(receiver *Receiver) func(*RequestWrapper) {
 		rw.Request.Body.Receiver = receiver
 	}
 }
+
+func WithRelatedIDs(relatedIDs []int64) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		// rw.Request.Body.RelatedIDs = relatedIDs
+	}
+}
