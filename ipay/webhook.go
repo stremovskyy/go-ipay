@@ -51,10 +51,11 @@ type Payment struct {
 	CardMask      *string       `xml:"card_mask" json:"card_mask"`
 	Card          *string       `xml:"card" json:"card"`
 	Invoice       int           `xml:"invoice" json:"invoice"`
-	Desc          string        `xml:"desc" json:"desc"`
+	Desc          *string       `xml:"desc" json:"desc"`
 	BnkErrorGroup interface{}   `xml:"bnk_error_group" json:"bnk_error_group"`
 	BnkErrorNote  interface{}   `xml:"bnk_error_note" json:"bnk_error_note"`
 	InitDate      string        `xml:"init_date" json:"init_date"`
+	ExtID         *string       `xml:"ext_id" json:"ext_id"`
 }
 
 // Transactions represents a collection of Transaction.

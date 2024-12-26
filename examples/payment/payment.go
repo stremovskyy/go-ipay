@@ -26,6 +26,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 
@@ -78,12 +79,9 @@ func main() {
 
 	paymentResponse, err := client.Payment(paymentRequest)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	if paymentResponse.GetError() != nil {
-		panic(paymentResponse.GetError())
-	}
-
-	fmt.Printf("Payment: %s is %s", uuidString, paymentResponse.Status.String())
+	paymentResponse.PrettyPrint()
 }

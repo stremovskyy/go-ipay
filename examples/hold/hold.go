@@ -81,12 +81,9 @@ func main() {
 
 	holdResponse, err := client.Hold(holdRequest)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		return
 	}
 
-	if holdResponse.GetError() != nil {
-		panic(holdResponse.GetError())
-	}
-
-	fmt.Printf("Payment: %s is %s", uuidString, holdResponse.Status.String())
+	holdResponse.PrettyPrint()
 }

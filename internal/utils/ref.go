@@ -24,6 +24,44 @@
 
 package utils
 
+import "fmt"
+
 func Ref[T any](value T) *T {
 	return &value
+}
+
+func FormatAmount(amount float64) string {
+	return fmt.Sprintf("%.2f", amount/100)
+}
+
+func SafeString(s *string) string {
+	if s == nil {
+		return "N/A"
+	}
+
+	return *s
+}
+
+func SafeInterface(i interface{}) string {
+	if i == nil {
+		return "N/A"
+	}
+
+	return fmt.Sprintf("%v", i)
+}
+
+func SafeInt(i *int) int {
+	if i == nil {
+		return 0
+	}
+
+	return *i
+}
+
+func SafeFloat64(i *float64) float64 {
+	if i == nil {
+		return 0
+	}
+
+	return *i
 }

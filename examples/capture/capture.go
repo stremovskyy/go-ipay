@@ -25,6 +25,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
@@ -44,7 +47,7 @@ func main() {
 	captureRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(532940622)),
+			IpayPaymentID: utils.Ref(int64(606773534)),
 			Amount:        100,
 			Description:   "Capture test",
 		},
@@ -64,12 +67,9 @@ func main() {
 
 	captureResponse, err := client.Capture(captureRequest)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	if captureResponse.GetError() != nil {
-		panic(captureResponse.GetError())
-	}
-
-	println(captureResponse.Status.String())
+	captureResponse.PrettyPrint()
 }

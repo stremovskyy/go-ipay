@@ -26,10 +26,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/internal/utils"
-	"github.com/stremovskyy/go-ipay/ipay"
 	"github.com/stremovskyy/go-ipay/log"
 	"github.com/stremovskyy/go-ipay/private"
 )
@@ -46,7 +46,7 @@ func main() {
 	refundRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(518677122)),
+			IpayPaymentID: utils.Ref(int64(606763373)),
 			Amount:        100,
 		},
 	}
@@ -56,12 +56,9 @@ func main() {
 
 	refundResponse, err := client.Refund(refundRequest)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	if refundResponse.Status.Is(ipay.PaymentStatusCanceled) {
-		panic(refundResponse.GetError())
-	}
-
-	fmt.Printf("Refund success: %s\n", refundResponse.Status)
+	refundResponse.PrettyPrint()
 }
