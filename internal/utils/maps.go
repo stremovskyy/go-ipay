@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Anton Stremovskyy
+ * Copyright (c) 2025 Anton Stremovskyy
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,31 +22,13 @@
  * SOFTWARE.
  */
 
-package http
+package utils
 
-import "time"
-
-// Options for http client
-type Options struct {
-	Timeout         time.Duration
-	KeepAlive       time.Duration
-	MaxIdleConns    int
-	IdleConnTimeout time.Duration
-	IsDebug         bool
-}
-
-func DefaultOptions() *Options {
-	return &Options{
-		Timeout:         15 * time.Second,
-		KeepAlive:       30 * time.Second,
-		MaxIdleConns:    100,
-		IdleConnTimeout: 90 * time.Second,
-		IsDebug:         false,
+func MapToStringSlice(metadata map[string]string) []string {
+	var result []string
+	for key, value := range metadata {
+		result = append(result, key+":"+value)
 	}
+
+	return result
 }
-
-type CtxKey string
-
-const (
-	CtxKeyRequestID CtxKey = "request_id"
-)

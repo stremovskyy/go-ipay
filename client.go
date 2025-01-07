@@ -36,7 +36,6 @@ import (
 
 type client struct {
 	ipayClient *http.Client
-	recorder   recorder.Recorder
 }
 
 func (c *client) SetLogLevel(levelDebug log.Level) {
@@ -84,6 +83,7 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithOutAmount(true),
 		ipay.WithAML(request.GetAML()),
+		ipay.WithMetadata(request.GetMetadata()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(createTokenRequest)
@@ -175,6 +175,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithPersonalData(request.GetPersonalData()),
+		ipay.WithMetadata(request.GetMetadata()),
 	}
 
 	if isPreauth {
@@ -222,6 +223,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
+		ipay.WithMetadata(request.GetMetadata()),
 	}
 
 	if preauth {
@@ -238,16 +240,17 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 	return apiResponse, nil
 }
 
-func (c *client) Capture(invoiceRequest *Request) (*ipay.Response, error) {
+func (c *client) Capture(request *Request) (*ipay.Response, error) {
 	captureRequest := ipay.NewRequest(
 		ipay.ActionCompletion, ipay.LangUk,
-		ipay.WithAuth(invoiceRequest.GetAuth()),
-		ipay.WithAmountInTransactions(invoiceRequest.GetAmount(), invoiceRequest.GetSubMerchantID()),
-		ipay.WithDescription(invoiceRequest.GetDescription()),
-		ipay.WithIpayPaymentID(invoiceRequest.GetIpayPaymentID()),
-		ipay.WithWebhookURL(invoiceRequest.GetWebhookURL()),
-		ipay.WithReceiver(invoiceRequest.GetReceiver()),
-		ipay.WithRelatedIDs(invoiceRequest.GetRelatedIDs()),
+		ipay.WithAuth(request.GetAuth()),
+		ipay.WithAmountInTransactions(request.GetAmount(), request.GetSubMerchantID()),
+		ipay.WithDescription(request.GetDescription()),
+		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
+		ipay.WithWebhookURL(request.GetWebhookURL()),
+		ipay.WithReceiver(request.GetReceiver()),
+		ipay.WithRelatedIDs(request.GetRelatedIDs()),
+		ipay.WithMetadata(request.GetMetadata()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(captureRequest)
@@ -264,6 +267,7 @@ func (c *client) Refund(request *Request) (*ipay.Response, error) {
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
+		ipay.WithMetadata(request.GetMetadata()),
 	)
 
 	apiResponse, err := c.ipayClient.Api(refundRequest)
@@ -283,6 +287,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithTrackingData(request.GetTrackingData()),
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithReceiver(request.GetReceiver()),
+		ipay.WithMetadata(request.GetMetadata()),
 	}
 
 	if request.GetCardToken() != nil {

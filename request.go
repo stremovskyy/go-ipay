@@ -338,3 +338,11 @@ func (r *Request) GetRelatedIDs() []int64 {
 
 	return r.PaymentData.RelatedIds
 }
+
+func (r *Request) GetMetadata() map[string]string {
+	if r.PaymentData == nil {
+		return map[string]string{}
+	}
+
+	return r.PaymentData.Metadata
+}

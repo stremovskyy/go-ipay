@@ -87,7 +87,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 
 	logger.Debug("Request: %v", string(jsonBody))
 
-	ctx := context.WithValue(context.Background(), "request_id", requestID)
+	ctx := context.WithValue(context.Background(), CtxKeyRequestID, requestID)
 	tags := tagsRetriever(apiRequest)
 
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
@@ -99,7 +99,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 
 	if c.recorder != nil {
 		if err := c.recorder.RecordRequest(ctx, nil, requestID, jsonBody, tags); err != nil {
-			logger.Error("cannot record request", "error", err)
+			logger.Error("%s: cannot record request: %v", "error", err)
 		}
 	}
 
@@ -119,7 +119,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 
 	if c.recorder != nil {
 		if err := c.recorder.RecordResponse(ctx, nil, requestID, raw, tags); err != nil {
-			logger.Error("cannot record response", "error", err)
+			logger.Error("%s: cannot record response %v", "error", err)
 		}
 	}
 
@@ -139,9 +139,9 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 func (c *Client) logAndReturnError(msg string, err error, logger *log.Logger, requestID string, tags map[string]string) error {
 	logger.Error(msg, "error", err)
 	if c.recorder != nil {
-		ctx := context.WithValue(context.Background(), "request_id", requestID)
+		ctx := context.WithValue(context.Background(), CtxKeyRequestID, requestID)
 		if recordErr := c.recorder.RecordError(ctx, nil, requestID, err, tags); recordErr != nil {
-			logger.Error("cannot record error", "error", recordErr)
+			logger.Error("%s: cannot record error %v", "error", recordErr)
 		}
 	}
 
@@ -160,7 +160,7 @@ func (c *Client) setHeaders(req *http.Request, requestID string) {
 // safeClose ensures the body is closed properly and logs any error.
 func (c *Client) safeClose(body io.ReadCloser, logger *log.Logger) {
 	if err := body.Close(); err != nil {
-		logger.Error("cannot close response body", "error", err)
+		logger.Error("%s: cannot close response body, %v", "error", err)
 	}
 }
 

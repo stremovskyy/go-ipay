@@ -132,6 +132,7 @@ type Info struct {
 	NotifyUrl             *string     `json:"notify_url,omitempty"`              // Notification URL.
 	PmtIdIn               *int64      `json:"pmt_id_in,omitempty"`               // Payment ID in.
 	ReceiverAccountNumber *string     `json:"receiver_account_number,omitempty"` // Receiver's account number.
+	Metadata              *string     `json:"metadata,omitempty"`                // Metadata.
 }
 
 func (i *Info) JsonString() string {

@@ -25,7 +25,10 @@
 package ipay
 
 import (
+	"strings"
+
 	"github.com/stremovskyy/go-ipay/currency"
+	"github.com/stremovskyy/go-ipay/internal/utils"
 )
 
 func NewRequest(action Action, lang Lang, options ...func(*RequestWrapper)) *RequestWrapper {
@@ -205,7 +208,7 @@ func WithPaymentID(paymentID *string) func(*RequestWrapper) {
 		rw.Request.Body.Info.OrderId = paymentID
 		rw.Request.Body.ExtId = paymentID
 
-		if rw.Request.Body.Transactions != nil && len(rw.Request.Body.Transactions) != 0 {
+		if len(rw.Request.Body.Transactions) > 0 {
 			for i := range rw.Request.Body.Transactions {
 				if rw.Request.Body.Transactions[i].Info == nil {
 					rw.Request.Body.Transactions[i].Info = &Info{}
@@ -399,5 +402,31 @@ func WithReceiver(receiver *Receiver) func(*RequestWrapper) {
 func WithRelatedIDs(relatedIDs []int64) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		// rw.Request.Body.RelatedIDs = relatedIDs
+	}
+}
+
+func WithMetadata(metadata map[string]string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		if len(metadata) == 0 {
+			return
+		}
+
+		metaData := strings.Join(utils.MapToStringSlice(metadata), ";")
+
+		if rw.Request.Body.Info == nil {
+			rw.Request.Body.Info = &Info{}
+		}
+
+		rw.Request.Body.Info.Metadata = &metaData
+
+		if len(rw.Request.Body.Transactions) > 0 {
+			for i := range rw.Request.Body.Transactions {
+				if rw.Request.Body.Transactions[i].Info == nil {
+					rw.Request.Body.Transactions[i].Info = &Info{}
+				}
+
+				rw.Request.Body.Transactions[i].Info.Metadata = &metaData
+			}
+		}
 	}
 }

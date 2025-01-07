@@ -46,4 +46,6 @@ type PaymentData struct {
 	IsMobile bool
 	// RelatedIds is a list of related payment IDs.
 	RelatedIds []int64
+	// Metadata is a map of additional data.
+	Metadata map[string]string
 }

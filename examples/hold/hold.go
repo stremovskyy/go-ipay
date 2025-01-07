@@ -49,6 +49,9 @@ func main() {
 	}
 
 	uuidString := uuid.New().String()
+	metaData := map[string]string{
+		"key1": "value1",
+	}
 
 	holdRequest := &go_ipay.Request{
 		Merchant: merchant,
@@ -65,6 +68,7 @@ func main() {
 			Currency:      currency.UAH,
 			OrderID:       uuidString,
 			Description:   "Test payment: " + uuidString,
+			Metadata:      metaData,
 		},
 		PersonalData: &go_ipay.PersonalData{
 			UserID:     utils.Ref(123),

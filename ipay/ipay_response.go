@@ -145,7 +145,9 @@ func (p *Response) PrettyPrint() {
 		fmt.Println("\n💳 Transactions:")
 		for i, tx := range p.Transactions {
 			fmt.Printf("\nTransaction #%d:\n", i+1)
-			fmt.Printf("  Transaction ID: %s\n", tx.TrnId)
+			if tx.TrnId != nil {
+				fmt.Printf("  Transaction ID: %d\n", *tx.TrnId)
+			}
 		}
 	}
 
@@ -268,21 +270,21 @@ func (r Response) GetError() error {
 	}
 
 	if r.GetPaymentStatus() == PaymentStatusFailed {
-		if r.BankResponse != nil {
-			if r.BankResponse.ErrorGroup != 0 {
-				return createIpayError(
-					r.BankResponse.ErrorGroup,
-					"payment status: payment failed",
-					fmt.Sprintf("bank acquirer name: %v", r.BankAcquirerName),
-				)
-			}
-		}
-
 		if r.Pmt != nil && r.Pmt.BnkErrorGroup != nil && r.Pmt.BnkErrorNote != nil {
 			return GetBankErrorInfo(r.Pmt)
 		}
 
-		return createIpayError(900, "payment status: payment failed", "")
+		if r.BankResponse != nil {
+			if r.BankResponse.ErrorGroup != 0 {
+				return createIpayError(
+					r.BankResponse.ErrorGroup,
+					"payment failed",
+					fmt.Sprintf("bank acquirer name: %s", utils.SafeString(r.BankAcquirerName)),
+				)
+			}
+		}
+
+		return createIpayError(900, "operation failed", "unknown reason")
 	}
 
 	// No errors found
