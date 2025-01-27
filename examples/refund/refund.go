@@ -46,7 +46,7 @@ func main() {
 	refundRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(606763373)),
+			IpayPaymentID: utils.Ref(int64(632508054)),
 			Amount:        100,
 		},
 	}
@@ -57,6 +57,11 @@ func main() {
 	refundResponse, err := client.Refund(refundRequest)
 	if err != nil {
 		fmt.Println(err)
+
+		if refundResponse != nil {
+			refundResponse.PrettyPrint()
+		}
+
 		os.Exit(1)
 	}
 

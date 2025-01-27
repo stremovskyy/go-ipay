@@ -26,7 +26,6 @@ package main
 
 import (
 	"fmt"
-	"os"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/internal/utils"
@@ -46,7 +45,7 @@ func main() {
 	statusRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(606781265)),
+			IpayPaymentID: utils.Ref(int64(632508054)),
 		},
 	}
 
@@ -55,8 +54,14 @@ func main() {
 
 	statusResponse, err := client.Status(statusRequest)
 	if err != nil {
+		if statusResponse != nil {
+			statusResponse.PrettyPrint()
+
+			return
+		}
+
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 
 	statusResponse.PrettyPrint()

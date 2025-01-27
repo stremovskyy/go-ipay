@@ -233,64 +233,6 @@ func (r Response) InvoiceAmountInt64() int64 {
 	return r.getInt64FromInterface(r.Invoice)
 }
 
-func (r Response) GetError() error {
-	// Check if there's a general error message
-	if r.Error != nil {
-		if r.ErrorCode != nil {
-			return createIpayError(
-				900,
-				fmt.Sprintf("ipay general error: %s", *r.Error),
-				fmt.Sprintf("code: %s", *r.ErrorCode),
-			)
-		}
-		return createIpayError(900, *r.Error, "")
-	}
-
-	// Check if there's a bank error note
-	if r.BnkErrorNote != nil {
-		if statusCode, found := ipay.GetStatusCode(*r.BnkErrorNote); found {
-			return createIpayError(
-				statusCode.ExtCode,
-				fmt.Sprintf("bank error: %s", *r.BnkErrorNote),
-				fmt.Sprintf("reason: %s, message: %s", statusCode.Reason, statusCode.Message),
-			)
-		}
-		return createIpayError(900, string(*r.BnkErrorNote), "")
-	}
-
-	// Check if there's a specific authorization code error
-	if r.ResAuthCode != 0 {
-		message := getErrorMessageA2CPay(r.ResAuthCode)
-		return createIpayError(r.ResAuthCode, message, "")
-	}
-
-	// Check for payment status errors
-	if r.GetPaymentStatus() == PaymentStatusSecurityRefusal {
-		return createIpayError(900, "payment status: security refusal", "")
-	}
-
-	if r.GetPaymentStatus() == PaymentStatusFailed {
-		if r.Pmt != nil && r.Pmt.BnkErrorGroup != nil && r.Pmt.BnkErrorNote != nil {
-			return GetBankErrorInfo(r.Pmt)
-		}
-
-		if r.BankResponse != nil {
-			if r.BankResponse.ErrorGroup != 0 {
-				return createIpayError(
-					r.BankResponse.ErrorGroup,
-					"payment failed",
-					fmt.Sprintf("bank acquirer name: %s", utils.SafeString(r.BankAcquirerName)),
-				)
-			}
-		}
-
-		return createIpayError(900, "operation failed", "unknown reason")
-	}
-
-	// No errors found
-	return nil
-}
-
 type ResponseTransaction struct {
 	TrnId    *int    `json:"trn_id"`
 	SmchRr   *int    `json:"smch_rr"`

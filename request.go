@@ -263,17 +263,17 @@ func (r *Request) GetAppleContainer() (*string, error) {
 
 	decoded, err := base64.StdEncoding.DecodeString(*r.PaymentMethod.AppleContainer)
 	if err != nil {
-		return nil, fmt.Errorf("cannot decode Apple Container: %v", err)
+		return nil, fmt.Errorf("cannot decode Apple Container: %w", err)
 	}
 
 	var token map[string]interface{}
-	if err := json.Unmarshal(decoded, &token); err != nil {
-		return nil, fmt.Errorf("json unmarshal error: %v", err)
+	if errr := json.Unmarshal(decoded, &token); errr != nil {
+		return nil, fmt.Errorf("json unmarshal error: %w", errr)
 	}
 
 	outputJSON, err := json.Marshal(token["token"])
 	if err != nil {
-		return nil, fmt.Errorf("json marshal error: %v", err)
+		return nil, fmt.Errorf("json marshal error: %w", err)
 	}
 
 	outputBase64 := base64.StdEncoding.EncodeToString(outputJSON)
@@ -291,7 +291,7 @@ func (r *Request) GetGoogleToken() (*string, error) {
 
 	decoded, err := base64.StdEncoding.DecodeString(*r.PaymentMethod.GoogleToken)
 	if err != nil {
-		return nil, fmt.Errorf("cannot decode Google Token: %v", err)
+		return nil, fmt.Errorf("cannot decode Google Token: %w", err)
 	}
 
 	var data struct {
@@ -302,13 +302,13 @@ func (r *Request) GetGoogleToken() (*string, error) {
 		} `json:"paymentMethodData"`
 	}
 
-	if err := json.Unmarshal(decoded, &data); err != nil {
-		return nil, fmt.Errorf("json unmarshal error: %v", err)
+	if errr := json.Unmarshal(decoded, &data); errr != nil {
+		return nil, fmt.Errorf("json unmarshal error: %w", errr)
 	}
 
 	unescapedToken, err := strconv.Unquote(fmt.Sprintf("%q", data.PaymentMethodData.TokenizationData.Token))
 	if err != nil {
-		return nil, fmt.Errorf("unquote error: %v", err)
+		return nil, fmt.Errorf("unquote error: %w", err)
 	}
 
 	outputBase64 := base64.StdEncoding.EncodeToString([]byte(unescapedToken))

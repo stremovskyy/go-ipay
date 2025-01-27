@@ -26,7 +26,6 @@ package ipay
 
 import "fmt"
 
-// Define the IpayError type
 type Error struct {
 	Code    int
 	Message string
@@ -40,15 +39,6 @@ func (e *Error) Error() string {
 	}
 
 	return fmt.Sprintf("IpayError: code %d, message: %s", e.Code, e.Message)
-}
-
-// Function to create an IpayError
-func createIpayError(code int, message, details string) *Error {
-	return &Error{
-		Code:    code,
-		Message: message,
-		Details: details,
-	}
 }
 
 func getErrorMessageA2CPay(code int) string {

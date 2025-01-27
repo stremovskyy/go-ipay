@@ -98,8 +98,8 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	c.setHeaders(req, requestID)
 
 	if c.recorder != nil {
-		if err := c.recorder.RecordRequest(ctx, nil, requestID, jsonBody, tags); err != nil {
-			logger.Error("%s: cannot record request: %v", "error", err)
+		if errr := c.recorder.RecordRequest(ctx, nil, requestID, jsonBody, tags); errr != nil {
+			logger.Error("%s: cannot record request: %v", "error", errr)
 		}
 	}
 
@@ -118,8 +118,8 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	logger.Debug("Response status: %v", resp.StatusCode)
 
 	if c.recorder != nil {
-		if err := c.recorder.RecordResponse(ctx, nil, requestID, raw, tags); err != nil {
-			logger.Error("%s: cannot record response %v", "error", err)
+		if errr := c.recorder.RecordResponse(ctx, nil, requestID, raw, tags); errr != nil {
+			logger.Error("%s: cannot record response %v", "error", errr)
 		}
 	}
 
@@ -128,11 +128,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 		return nil, c.logAndReturnError("cannot unmarshal response", err, logger, requestID, tags)
 	}
 
-	if response.GetError() != nil {
-		return nil, fmt.Errorf("ipay error: %v", response.GetError())
-	}
-
-	return response, nil
+	return response, response.GetError()
 }
 
 // logAndReturnError logs an error and optionally records it.
@@ -187,7 +183,7 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 
 	xmlBody, err := ipayXMLPayment.Marshal()
 	if err != nil {
-		return nil, fmt.Errorf("cannot marshal request: %v", err)
+		return nil, fmt.Errorf("cannot marshal request: %w", err)
 	}
 
 	c.xmlLogger.Debug("Request: %v", string(xmlBody))

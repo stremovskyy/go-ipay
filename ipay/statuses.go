@@ -24,7 +24,7 @@
 
 package ipay
 
-type PaymentStatus int8
+type PaymentStatus int
 
 const (
 	PaymentStatusUnknown             PaymentStatus = 0
@@ -38,8 +38,12 @@ const (
 	PaymentStatusSecurityRefusal     PaymentStatus = 14
 )
 
-func (s PaymentStatus) String() string {
-	switch s {
+func (s *PaymentStatus) String() string {
+	if s == nil {
+		return "Unknown"
+	}
+
+	switch *s {
 	case PaymentStatusRegistered:
 		return "Registered"
 	case PaymentStatusPreAuthorized:

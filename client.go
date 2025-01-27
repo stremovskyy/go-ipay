@@ -88,12 +88,16 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 
 	apiResponse, err := c.ipayClient.Api(createTokenRequest)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
+		return nil, fmt.Errorf("verification link API call: %w", err)
+	}
+
+	if apiResponse == nil || apiResponse.Url == "" {
+		return nil, fmt.Errorf("verification link: empty URL in API response")
 	}
 
 	u, err := url.Parse(apiResponse.Url)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse URL: %v", err)
+		return nil, fmt.Errorf("verification link URL parsing: %w", err)
 	}
 
 	return u, nil
@@ -111,12 +115,7 @@ func (c *client) Status(request *Request) (*ipay.Response, error) {
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 	)
 
-	apiResponse, err := c.ipayClient.Api(statusRequest)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
-	}
-
-	return apiResponse, nil
+	return c.ipayClient.Api(statusRequest)
 }
 
 func (c *client) PaymentURL(request *Request) (*ipay.PaymentResponse, error) {
@@ -133,7 +132,7 @@ func (c *client) PaymentURL(request *Request) (*ipay.PaymentResponse, error) {
 
 	apiResponse, err := c.ipayClient.ApiXML(XMLPaymentURLRequest)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
+		return nil, fmt.Errorf("payment URL API call: %w", err)
 	}
 
 	return apiResponse, nil
@@ -185,7 +184,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 	if request.IsApplePay() {
 		container, err := request.GetAppleContainer()
 		if err != nil {
-			return nil, fmt.Errorf("cannot get Apple Container: %v", err)
+			return nil, fmt.Errorf("cannot get Apple Container: %w", err)
 		}
 		paymentRequest = ipay.NewRequest(
 			ipay.MobilePaymentCreate, ipay.LangUk,
@@ -195,7 +194,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 	} else {
 		token, err := request.GetGoogleToken()
 		if err != nil {
-			return nil, fmt.Errorf("cannot get Google Token: %v", err)
+			return nil, fmt.Errorf("cannot get Google Token: %w", err)
 		}
 
 		paymentRequest = ipay.NewRequest(
@@ -207,12 +206,16 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 
 	apiResponse, err := apiFunc(paymentRequest)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
+		return nil, fmt.Errorf("mobile payment API call: %w", err)
 	}
 	return apiResponse, nil
 }
 
 func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Response, error) {
+	if request == nil {
+		return nil, fmt.Errorf("standard payment: %w", ErrRequestIsNil)
+	}
+
 	options := []func(*ipay.RequestWrapper){
 		ipay.WithAmount(request.GetAmount()),
 		ipay.WithCurrency(request.GetCurrency()),
@@ -232,15 +235,14 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 
 	holdRequest := ipay.NewRequest(ipay.ActionDebiting, ipay.LangUk, options...)
 
-	apiResponse, err := c.ipayClient.Api(holdRequest)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
-	}
-
-	return apiResponse, nil
+	return c.ipayClient.Api(holdRequest)
 }
 
 func (c *client) Capture(request *Request) (*ipay.Response, error) {
+	if request == nil {
+		return nil, fmt.Errorf("capture: %w", ErrRequestIsNil)
+	}
+
 	captureRequest := ipay.NewRequest(
 		ipay.ActionCompletion, ipay.LangUk,
 		ipay.WithAuth(request.GetAuth()),
@@ -253,15 +255,14 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 		ipay.WithMetadata(request.GetMetadata()),
 	)
 
-	apiResponse, err := c.ipayClient.Api(captureRequest)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
-	}
-
-	return apiResponse, nil
+	return c.ipayClient.Api(captureRequest)
 }
 
 func (c *client) Refund(request *Request) (*ipay.Response, error) {
+	if request == nil {
+		return nil, fmt.Errorf("refund: %w", ErrRequestIsNil)
+	}
+
 	refundRequest := ipay.NewRequest(
 		ipay.ActionReversal, ipay.LangUk,
 		ipay.WithAuth(request.GetAuth()),
@@ -270,15 +271,14 @@ func (c *client) Refund(request *Request) (*ipay.Response, error) {
 		ipay.WithMetadata(request.GetMetadata()),
 	)
 
-	apiResponse, err := c.ipayClient.Api(refundRequest)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
-	}
-
-	return apiResponse, nil
+	return c.ipayClient.Api(refundRequest)
 }
 
 func (c *client) Credit(request *Request) (*ipay.Response, error) {
+	if request == nil {
+		return nil, fmt.Errorf("credit: %w", ErrRequestIsNil)
+	}
+
 	options := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithInvoiceAmount(request.GetAmount()),
@@ -295,7 +295,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 	} else if request.GetCardPan() != nil {
 		options = append(options, ipay.WithCardPan(request.GetCardPan()))
 	} else {
-		return nil, fmt.Errorf("cannot get API response: %v", "CardToken or Card pan is required")
+		return nil, fmt.Errorf("credit: neither CardToken nor CardPan provided")
 	}
 
 	creditRequest := ipay.NewRequest(
@@ -303,10 +303,14 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		options...,
 	)
 
-	apiResponse, err := c.ipayClient.Api(creditRequest)
+	response, err := c.ipayClient.Api(creditRequest)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get API response: %v", err)
+		return nil, fmt.Errorf("credit API call: %w", err)
 	}
 
-	return apiResponse, nil
+	if response == nil {
+		return nil, fmt.Errorf("credit: empty response from API")
+	}
+
+	return response, nil
 }
