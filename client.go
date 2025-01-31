@@ -253,6 +253,7 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 		ipay.WithReceiver(request.GetReceiver()),
 		ipay.WithRelatedIDs(request.GetRelatedIDs()),
 		ipay.WithMetadata(request.GetMetadata()),
+		ipay.WithAML(request.GetAML()),
 	)
 
 	return c.ipayClient.Api(captureRequest)
