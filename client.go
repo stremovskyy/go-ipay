@@ -227,6 +227,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithMetadata(request.GetMetadata()),
+		ipay.WithAML(request.GetAML()),
 	}
 
 	if preauth {
@@ -250,7 +251,6 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
-		ipay.WithReceiver(request.GetReceiver()),
 		ipay.WithRelatedIDs(request.GetRelatedIDs()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithAML(request.GetAML()),
