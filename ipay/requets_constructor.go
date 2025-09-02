@@ -224,6 +224,12 @@ func WithPaymentID(paymentID *string) func(*RequestWrapper) {
 	}
 }
 
+func WithExtID(paymentID *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.ExtId = paymentID
+	}
+}
+
 func WithAuth(auth Auth) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Auth = auth

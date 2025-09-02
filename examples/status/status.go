@@ -45,12 +45,12 @@ func main() {
 	statusRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(632508054)),
+			IpayPaymentID: utils.Ref(int64(65465465)),
 		},
 	}
 
 	client.SetLogLevel(log.LevelDebug)
-	statusRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	// statusRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
 	statusResponse, err := client.Status(statusRequest)
 	if err != nil {

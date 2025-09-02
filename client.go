@@ -315,3 +315,36 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 
 	return response, nil
 }
+
+func (c *client) A2CPaymentStatus(request *Request) (*ipay.Response, error) {
+	if request == nil {
+		return nil, ErrRequestIsNil
+	}
+
+	extID := request.GetPaymentID()
+	pmtID := request.GetIpayPaymentID()
+
+	if (extID == nil || *extID == "") && pmtID == 0 {
+		return nil, fmt.Errorf("A2CPaymentStatus: either ext_id or pmt_id must be provided")
+	}
+	if extID != nil && *extID != "" && pmtID != 0 {
+		return nil, fmt.Errorf("A2CPaymentStatus: only one of ext_id or pmt_id must be provided")
+	}
+
+	opts := []func(*ipay.RequestWrapper){
+		ipay.WithAuth(request.GetAuth()),
+	}
+
+	if extID != nil && *extID != "" {
+		opts = append(opts, ipay.WithExtID(extID))
+	} else if pmtID != 0 {
+		opts = append(opts, ipay.WithIpayPaymentID(pmtID))
+	}
+
+	statusRequest := ipay.NewRequest(
+		ipay.ActionA2CPaymentStatus, ipay.LangUk,
+		opts...,
+	)
+
+	return c.ipayClient.Api(statusRequest)
+}

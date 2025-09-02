@@ -42,6 +42,7 @@ const (
 	ActionReversal         Action = "Reversal"
 	ActionCredit           Action = "A2CPay"
 	MobilePaymentCreate    Action = "PaymentCreate"
+	ActionA2CPaymentStatus Action = "A2CPaymenStatus"
 )
 
 type RequestWrapper struct {
@@ -61,7 +62,7 @@ type Body struct {
 	Cdata          *string             `json:"cdata,omitempty"`           // Encoded card PAN.
 	UrlGood        *string             `json:"url_good,omitempty"`        // Merchant's success URL.
 	UrlBad         *string             `json:"url_bad,omitempty"`         // Merchant's failure URL.
-	Info           *Info               `json:"info"`                      // Additional payment information.
+	Info           *Info               `json:"info,omitempty"`            // Additional payment information.
 	VerifyType     *string             `json:"verify_type,omitempty"`     // Verification type.
 	PmtId          *int64              `json:"pmt_id,omitempty"`          // Payment ID.
 	Transactions   RequestTransactions `json:"transactions,omitempty"`    // List of transactions.

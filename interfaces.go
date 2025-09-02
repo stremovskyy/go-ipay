@@ -34,6 +34,7 @@ import (
 type Ipay interface {
 	VerificationLink(request *Request) (*url.URL, error)
 	Status(request *Request) (*ipay.Response, error)
+	A2CPaymentStatus(request *Request) (*ipay.Response, error)
 	PaymentURL(invoiceRequest *Request) (*ipay.PaymentResponse, error)
 	Payment(invoiceRequest *Request) (*ipay.Response, error)
 	Hold(invoiceRequest *Request) (*ipay.Response, error)
