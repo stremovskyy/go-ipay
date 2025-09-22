@@ -436,3 +436,7 @@ func WithMetadata(metadata map[string]string) func(*RequestWrapper) {
 		}
 	}
 }
+
+func WithOperationOperation(op string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) { rw.Operation = op }
+}

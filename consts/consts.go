@@ -35,3 +35,16 @@ const (
 	GooglePayUrl = "https://api-googlepay.ipay.ua"
 	ApiXMLUrl    = baseUrl + "/api302"
 )
+
+const (
+	VerificationLink = "VerificationLink"
+	Status           = "Status"
+	Payment          = "Payment"
+	Hold             = "Hold"
+	Capture          = "Capture"
+	Refund           = "Refund"
+	Credit           = "Credit"
+	ApplePaySuffix   = "ApplePay"
+	GooglePaySuffix  = "GooglePay"
+	A2CPaymentStatus = "A2CPaymentStatus"
+)

@@ -47,6 +47,8 @@ const (
 
 type RequestWrapper struct {
 	Request Request `json:"request"`
+
+	Operation string `json:"-"`
 }
 
 // Request represents the main structure of a payment request.

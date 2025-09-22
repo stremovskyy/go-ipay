@@ -28,6 +28,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/stremovskyy/go-ipay/consts"
 	"github.com/stremovskyy/go-ipay/internal/http"
 	"github.com/stremovskyy/go-ipay/ipay"
 	"github.com/stremovskyy/go-ipay/log"
@@ -84,6 +85,7 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 		ipay.WithOutAmount(true),
 		ipay.WithAML(request.GetAML()),
 		ipay.WithMetadata(request.GetMetadata()),
+		ipay.WithOperationOperation(consts.VerificationLink),
 	)
 
 	apiResponse, err := c.ipayClient.Api(createTokenRequest)
@@ -113,6 +115,7 @@ func (c *client) Status(request *Request) (*ipay.Response, error) {
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
+		ipay.WithOperationOperation(consts.Status),
 	)
 
 	return c.ipayClient.Api(statusRequest)
@@ -166,6 +169,12 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 	var paymentRequest *ipay.RequestWrapper
 	var apiFunc func(*ipay.RequestWrapper) (*ipay.Response, error)
 
+	operationKind := consts.Payment
+
+	if isPreauth {
+		operationKind = consts.Hold
+	}
+
 	common := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetMobileAuth()),
 		ipay.WithInvoiceAmount(request.GetAmount()),
@@ -186,9 +195,14 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 		if err != nil {
 			return nil, fmt.Errorf("cannot get Apple Container: %w", err)
 		}
+
+		operationKind += consts.ApplePaySuffix
+
+		common = append(common, ipay.WithAppleContainer(container))
+		common = append(common, ipay.WithOperationOperation(operationKind))
+
 		paymentRequest = ipay.NewRequest(
-			ipay.MobilePaymentCreate, ipay.LangUk,
-			append(common, ipay.WithAppleContainer(container))...,
+			ipay.MobilePaymentCreate, ipay.LangUk, common...,
 		)
 		apiFunc = c.ipayClient.ApplePayApi
 	} else {
@@ -197,9 +211,13 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 			return nil, fmt.Errorf("cannot get Google Token: %w", err)
 		}
 
+		operationKind += consts.GooglePaySuffix
+
+		common = append(common, ipay.WithGoogleContainer(token))
+		common = append(common, ipay.WithOperationOperation(operationKind))
+
 		paymentRequest = ipay.NewRequest(
-			ipay.MobilePaymentCreate, ipay.LangUk,
-			append(common, ipay.WithGoogleContainer(token))...,
+			ipay.MobilePaymentCreate, ipay.LangUk, common...,
 		)
 		apiFunc = c.ipayClient.GooglePayApi
 	}
@@ -228,6 +246,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithAML(request.GetAML()),
+		ipay.WithOperationOperation(consts.Payment),
 	}
 
 	if preauth {
@@ -254,6 +273,7 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 		ipay.WithRelatedIDs(request.GetRelatedIDs()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithAML(request.GetAML()),
+		ipay.WithOperationOperation(consts.Capture),
 	)
 
 	return c.ipayClient.Api(captureRequest)
@@ -270,6 +290,7 @@ func (c *client) Refund(request *Request) (*ipay.Response, error) {
 		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithMetadata(request.GetMetadata()),
+		ipay.WithOperationOperation(consts.Refund),
 	)
 
 	return c.ipayClient.Api(refundRequest)
@@ -289,6 +310,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithReceiver(request.GetReceiver()),
 		ipay.WithMetadata(request.GetMetadata()),
+		ipay.WithOperationOperation(consts.Credit),
 	}
 
 	if request.GetCardToken() != nil {
@@ -333,6 +355,7 @@ func (c *client) A2CPaymentStatus(request *Request) (*ipay.Response, error) {
 
 	opts := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetAuth()),
+		ipay.WithOperationOperation(consts.A2CPaymentStatus),
 	}
 
 	if extID != nil && *extID != "" {

@@ -172,6 +172,10 @@ func tagsRetriever(request *ipay.RequestWrapper) map[string]string {
 		tags["invoice_id"] = fmt.Sprintf("%v", *request.Request.Body.ExtId)
 	}
 
+	if request.Operation != "" {
+		tags["operation"] = request.Operation
+	}
+
 	return tags
 }
 
