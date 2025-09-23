@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/stremovskyy/recorder v1.1.1
+	github.com/stremovskyy/recorder v1.1.3
 	golang.org/x/crypto v0.42.0
 	gorm.io/driver/sqlite v1.6.0
 	gorm.io/gorm v1.31.0
