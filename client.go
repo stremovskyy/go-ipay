@@ -73,7 +73,8 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 	}
 
 	createTokenRequest := ipay.NewRequest(
-		ipay.ActionCreateToken3DS, ipay.LangUk,
+		ipay.ActionCreateToken3DS,
+		ipay.WithLanguage(ipay.LangUk),
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithInvoiceInTransactions(request.GetAmount(), request.GetSubMerchantID()),
 		ipay.WithRedirects(request.GetRedirects()),
@@ -111,7 +112,8 @@ func (c *client) Status(request *Request) (*ipay.Response, error) {
 	}
 
 	statusRequest := ipay.NewRequest(
-		ipay.ActionGetPaymentStatus, ipay.LangUk,
+		ipay.ActionGetPaymentStatus,
+		ipay.WithLanguage(ipay.LangUk),
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
@@ -176,6 +178,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 	}
 
 	common := []func(*ipay.RequestWrapper){
+		ipay.WithLanguage(ipay.LangUk),
 		ipay.WithAuth(request.GetMobileAuth()),
 		ipay.WithInvoiceAmount(request.GetAmount()),
 		ipay.WithInvoiceInTransactions(request.GetAmount(), request.GetSubMerchantID()),
@@ -201,9 +204,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 		common = append(common, ipay.WithAppleContainer(container))
 		common = append(common, ipay.WithOperationOperation(operationKind))
 
-		paymentRequest = ipay.NewRequest(
-			ipay.MobilePaymentCreate, ipay.LangUk, common...,
-		)
+		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.ApplePayApi
 	} else {
 		token, err := request.GetGoogleToken()
@@ -216,9 +217,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 		common = append(common, ipay.WithGoogleContainer(token))
 		common = append(common, ipay.WithOperationOperation(operationKind))
 
-		paymentRequest = ipay.NewRequest(
-			ipay.MobilePaymentCreate, ipay.LangUk, common...,
-		)
+		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.GooglePayApi
 	}
 
@@ -235,6 +234,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 	}
 
 	options := []func(*ipay.RequestWrapper){
+		ipay.WithLanguage(ipay.LangUk),
 		ipay.WithAmount(request.GetAmount()),
 		ipay.WithCurrency(request.GetCurrency()),
 		ipay.WithAuth(request.GetAuth()),
@@ -253,7 +253,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 		options = append(options, ipay.WithPreauth(true))
 	}
 
-	holdRequest := ipay.NewRequest(ipay.ActionDebiting, ipay.LangUk, options...)
+	holdRequest := ipay.NewRequest(ipay.ActionDebiting, options...)
 
 	return c.ipayClient.Api(holdRequest)
 }
@@ -264,7 +264,7 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 	}
 
 	captureRequest := ipay.NewRequest(
-		ipay.ActionCompletion, ipay.LangUk,
+		ipay.ActionCompletion,
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithAmountInTransactions(request.GetAmount(), request.GetSubMerchantID()),
 		ipay.WithDescription(request.GetDescription()),
@@ -285,7 +285,7 @@ func (c *client) Refund(request *Request) (*ipay.Response, error) {
 	}
 
 	refundRequest := ipay.NewRequest(
-		ipay.ActionReversal, ipay.LangUk,
+		ipay.ActionReversal,
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithIpayPaymentID(request.GetIpayPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
@@ -307,7 +307,6 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithTrackingData(request.GetTrackingData()),
-		ipay.WithDescription(request.GetDescription()),
 		ipay.WithReceiver(request.GetReceiver()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithOperationOperation(consts.Credit),
@@ -322,10 +321,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		return nil, fmt.Errorf("credit: neither CardToken nor CardPan provided")
 	}
 
-	creditRequest := ipay.NewRequest(
-		ipay.ActionCredit, ipay.LangUk,
-		options...,
-	)
+	creditRequest := ipay.NewRequest(ipay.ActionCredit, options...)
 
 	response, err := c.ipayClient.Api(creditRequest)
 	if err != nil {
@@ -365,10 +361,7 @@ func (c *client) A2CPaymentStatus(request *Request) (*ipay.Response, error) {
 		opts = append(opts, ipay.WithIpayPaymentID(pmtID))
 	}
 
-	statusRequest := ipay.NewRequest(
-		ipay.ActionA2CPaymentStatus, ipay.LangUk,
-		opts...,
-	)
+	statusRequest := ipay.NewRequest(ipay.ActionA2CPaymentStatus, opts...)
 
 	return c.ipayClient.Api(statusRequest)
 }

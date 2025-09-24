@@ -31,11 +31,10 @@ import (
 	"github.com/stremovskyy/go-ipay/internal/utils"
 )
 
-func NewRequest(action Action, lang Lang, options ...func(*RequestWrapper)) *RequestWrapper {
+func NewRequest(action Action, options ...func(*RequestWrapper)) *RequestWrapper {
 	rw := &RequestWrapper{
 		Request: Request{
 			Action: action,
-			Lang:   lang,
 			Body:   Body{},
 		},
 	}
@@ -233,6 +232,12 @@ func WithExtID(paymentID *string) func(*RequestWrapper) {
 func WithAuth(auth Auth) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Auth = auth
+	}
+}
+
+func WithLanguage(language Lang) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Lang = &language
 	}
 }
 

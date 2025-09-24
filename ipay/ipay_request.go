@@ -56,7 +56,7 @@ type Request struct {
 	Auth   Auth   `json:"auth"`           // Authentication details for the payment request.
 	Action Action `json:"action"`         // Specifies the action to be performed.
 	Body   Body   `json:"body"`           // Contains the core data of the payment request.
-	Lang   Lang   `json:"lang,omitempty"` // Optional language setting for web pages (ua - Ukrainian, en - English).
+	Lang   *Lang  `json:"lang,omitempty"` // Optional language setting for web pages (ua - Ukrainian, en - English).
 }
 
 // Body encompasses the main content of the payment request.
