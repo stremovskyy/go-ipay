@@ -311,6 +311,7 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 		ipay.WithReceiver(request.GetReceiver()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithOperationOperation(consts.Credit),
+		ipay.WithRelatedIDs(request.GetRelatedIDs()),
 	}
 
 	if request.GetCardToken() != nil {
