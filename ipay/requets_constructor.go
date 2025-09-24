@@ -343,7 +343,11 @@ func WithGoogleContainer(token *string) func(*RequestWrapper) {
 
 func WithTrackingData(data *int64) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
-		rw.Request.Body.Info.PmtIdIn = data
+		if data == nil {
+			return
+		}
+
+		rw.Request.Body.Info.PmtIdIn = append(rw.Request.Body.Info.PmtIdIn, *data)
 	}
 }
 
@@ -407,7 +411,7 @@ func WithReceiver(receiver *Receiver) func(*RequestWrapper) {
 
 func WithRelatedIDs(relatedIDs []int64) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
-		// rw.Request.Body.RelatedIDs = relatedIDs
+		rw.Request.Body.Info.PmtIdIn = relatedIDs
 	}
 }
 

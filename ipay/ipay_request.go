@@ -133,7 +133,7 @@ type Info struct {
 	ExternalCVD           *Cvd        `json:"external_cvd,omitempty"`            // External Card Verification Data.
 	Preauth               *int        `json:"preauth,omitempty"`                 // Preauthorization flag.
 	NotifyUrl             *string     `json:"notify_url,omitempty"`              // Notification URL.
-	PmtIdIn               *int64      `json:"pmt_id_in,omitempty"`               // Payment ID in.
+	PmtIdIn               []int64     `json:"pmt_id_in,omitempty"`               // Payment IDs in.
 	ReceiverAccountNumber *string     `json:"receiver_account_number,omitempty"` // Receiver's account number.
 	Metadata              *string     `json:"metadata,omitempty"`                // Metadata.
 }
