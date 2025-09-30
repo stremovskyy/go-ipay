@@ -34,6 +34,7 @@ import (
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
 	"github.com/stremovskyy/go-ipay/private"
+	"github.com/stremovskyy/recorder"
 	"github.com/stremovskyy/recorder/gorm_recorder"
 )
 
@@ -56,7 +57,11 @@ func main() {
 		WithTagTable("custom_tags").
 		WithTagColumns("record_ref", "tag_key", "tag_value")
 
-	rec, err := gorm_recorder.NewRecorderWithModels(sqlDb, opts)
+	scrub := recorder.NewScrubber(
+		recorder.WithDefaultReplacement("<hidden>"),
+	)
+
+	rec, err := gorm_recorder.NewRecorderWithModels(sqlDb, opts, recorder.WithScrubber(scrub))
 	if err != nil {
 		fmt.Println("Failed to create recorder:", err)
 		return
