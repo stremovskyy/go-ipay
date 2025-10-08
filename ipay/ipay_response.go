@@ -254,6 +254,12 @@ func (ctr *ResponseWrapper) Debug() string {
 }
 
 func UnmarshalJSONResponse(data []byte) (*Response, error) {
+	if data == nil || len(data) == 0 {
+		return &Response{
+			Error: utils.Ref("empty response data"),
+		}, nil
+	}
+
 	var resp ResponseWrapper
 
 	if err := json.Unmarshal(data, &resp); err != nil {
