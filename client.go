@@ -187,6 +187,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithPersonalData(request.GetPersonalData()),
 		ipay.WithMetadata(request.GetMetadata()),
+		ipay.WithReceiver(request.GetReceiver()),
 	}
 
 	if isPreauth {
