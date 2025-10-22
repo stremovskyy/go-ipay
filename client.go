@@ -263,8 +263,7 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 		return nil, fmt.Errorf("capture: %w", ErrRequestIsNil)
 	}
 
-	captureRequest := ipay.NewRequest(
-		ipay.ActionCompletion,
+	options := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithAmountInTransactions(request.GetAmount(), request.GetSubMerchantID()),
 		ipay.WithDescription(request.GetDescription()),
@@ -272,9 +271,16 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 		ipay.WithWebhookURL(request.GetWebhookURL()),
 		ipay.WithRelatedIDs(request.GetRelatedIDs()),
 		ipay.WithMetadata(request.GetMetadata()),
-		ipay.WithAML(request.GetAML()),
 		ipay.WithOperationOperation(consts.Capture),
-	)
+	}
+
+	if request.IsMobile() {
+		options = append(options, ipay.WithReceiver(request.GetReceiver()))
+	} else {
+		options = append(options, ipay.WithAML(request.GetAML()))
+	}
+
+	captureRequest := ipay.NewRequest(ipay.ActionCompletion, options...)
 
 	return c.ipayClient.Api(captureRequest)
 }
