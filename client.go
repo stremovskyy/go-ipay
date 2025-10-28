@@ -214,6 +214,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 		ipay.WithPersonalData(request.GetPersonalData()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithReceiver(request.GetReceiver()),
+		ipay.WithOperationOperation(operationKind),
 	}
 
 	if isPreauth {
@@ -224,32 +225,36 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 		common = append(common, ipay.WithRecurrent(true))
 	}
 
-	if request.HasRecurrent() {
-		common = append(common, ipay.WithRecurrentToken(request.GetRecurrentToken()))
-	} else if request.IsApplePay() {
-		container, err := request.GetAppleContainer()
-		if err != nil {
-			return nil, fmt.Errorf("cannot get Apple Container: %w", err)
+	if request.IsApplePay() {
+		if request.HasRecurrent() {
+			common = append(common, ipay.WithRecurrentToken(request.GetRecurrentToken()))
+		} else {
+			container, err := request.GetAppleContainer()
+			if err != nil {
+				return nil, fmt.Errorf("cannot get Apple Container: %w", err)
+			}
+
+			operationKind += consts.ApplePaySuffix
+
+			common = append(common, ipay.WithAppleContainer(container))
 		}
-
-		operationKind += consts.ApplePaySuffix
-
-		common = append(common, ipay.WithAppleContainer(container))
-		common = append(common, ipay.WithOperationOperation(operationKind))
 
 		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.ApplePayApi
 		endpoint = consts.ApplePayUrl
 	} else if request.IsGooglePay() {
-		token, err := request.GetGoogleToken()
-		if err != nil {
-			return nil, fmt.Errorf("cannot get Google Token: %w", err)
+		if request.HasRecurrent() {
+			common = append(common, ipay.WithRecurrentToken(request.GetRecurrentToken()))
+		} else {
+			token, err := request.GetGoogleToken()
+			if err != nil {
+				return nil, fmt.Errorf("cannot get Google Token: %w", err)
+			}
+
+			operationKind += consts.GooglePaySuffix
+
+			common = append(common, ipay.WithGoogleContainer(token))
 		}
-
-		operationKind += consts.GooglePaySuffix
-
-		common = append(common, ipay.WithGoogleContainer(token))
-		common = append(common, ipay.WithOperationOperation(operationKind))
 
 		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.GooglePayApi

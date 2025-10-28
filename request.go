@@ -305,11 +305,11 @@ func (r *Request) GetAppleContainer() (*string, error) {
 }
 
 func (r *Request) IsApplePay() bool {
-	return r.PaymentMethod != nil && r.PaymentMethod.AppleContainer != nil && *r.PaymentMethod.AppleContainer != ""
+	return r.PaymentMethod != nil && ((r.PaymentMethod.AppleContainer != nil && *r.PaymentMethod.AppleContainer != "") || r.PaymentMethod.PaymentType == "apay")
 }
 
 func (r *Request) IsGooglePay() bool {
-	return r.PaymentMethod != nil && r.PaymentMethod.GoogleToken != nil && *r.PaymentMethod.GoogleToken != ""
+	return r.PaymentMethod != nil && ((r.PaymentMethod.GoogleToken != nil && *r.PaymentMethod.GoogleToken != "") || r.PaymentMethod.PaymentType == "gpay")
 }
 
 func (r *Request) GetGoogleToken() (*string, error) {

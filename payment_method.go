@@ -33,6 +33,8 @@ type PaymentMethod struct {
 	GoogleToken *string
 	// RecurrentToken is token for recurrent payments
 	RecurrentToken *string
+	// PaymentType is type of payment
+	PaymentType string
 }
 
 // Card represents a payment card with its details.
