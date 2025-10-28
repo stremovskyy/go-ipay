@@ -354,3 +354,11 @@ func (r *Request) GetMetadata() map[string]string {
 
 	return r.PaymentData.Metadata
 }
+
+func (r *Request) GetRecurrent() bool {
+	if r.PaymentData == nil {
+		return false
+	}
+
+	return r.PaymentData.GetRecurrent
+}

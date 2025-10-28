@@ -56,6 +56,15 @@ type Payment struct {
 	BnkErrorNote  interface{}   `xml:"bnk_error_note" json:"bnk_error_note"`
 	InitDate      string        `xml:"init_date" json:"init_date"`
 	ExtID         *string       `xml:"ext_id" json:"ext_id"`
+
+	// Additional fields for 3DS
+	MchID          *string `xml:"mch_id" json:"mch_id"`
+	Use3DS         *bool   `xml:"use_3ds" json:"use_3ds"`
+	CardType       *string `xml:"card_type" json:"card_type"`
+	BankName       *string `xml:"bank_name" json:"bank_name"`
+	BnkError       *string `xml:"bnk_error" json:"bnk_error"`
+	RRN            *string `xml:"rrn" json:"rrn"`
+	RecurrentToken *string `xml:"recurrent_token" json:"recurrent_token"`
 }
 
 // Transactions represents a collection of Transaction.

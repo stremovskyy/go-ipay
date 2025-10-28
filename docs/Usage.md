@@ -11,6 +11,7 @@ This guide provides comprehensive examples for using the GO-iPay library to inte
   - [Card Payments](#card-payments)
   - [Apple Pay](#apple-pay)
   - [Google Pay](#google-pay)
+  - [Run Options](#run-options)
   - [Payment Status](#payment-status)
   - [Refunds](#refunds)
   - [Webhooks](#webhooks)
@@ -163,6 +164,40 @@ if err != nil {
 
 fmt.Printf("Payment Status: %s\n", status.Status)
 fmt.Printf("Amount: %.2f %s\n", status.Amount, status.Currency)
+```
+
+### Run Options
+
+All client calls accept optional run options. Use them to adjust behaviour per request, for example to perform a dry run without contacting the API while inspecting the payload that would be sent.
+
+> Tip: when you call `options.DryRun()` without a custom handler, the library pretty-prints the request payload to the logger. Make sure to enable logging (`client.SetLogLevel(log.LevelInfo)`) to see it.
+
+```go
+import (
+    "fmt"
+
+    go_ipay "github.com/stremovskyy/go-ipay"
+    "github.com/stremovskyy/go-ipay/options"
+    "github.com/stremovskyy/go-ipay/ipay"
+)
+
+client := go_ipay.NewDefaultClient()
+
+var wrapper *ipay.RequestWrapper
+
+_, err := client.Hold(request, options.DryRun(func(endpoint string, payload any) {
+    fmt.Println("Skipping request to:", endpoint)
+
+    if v, ok := payload.(*ipay.RequestWrapper); ok {
+        wrapper = v
+    }
+}))
+
+if err != nil {
+    panic(err)
+}
+
+fmt.Printf("Operation: %s\n", wrapper.Operation)
 ```
 
 ### Refunds

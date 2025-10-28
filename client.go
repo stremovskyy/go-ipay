@@ -67,10 +67,12 @@ func NewClient(options ...Option) Ipay {
 	return c
 }
 
-func (c *client) VerificationLink(request *Request) (*url.URL, error) {
+func (c *client) VerificationLink(request *Request, runOpts ...RunOption) (*url.URL, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
+	opts := collectRunOptions(runOpts)
 
 	createTokenRequest := ipay.NewRequest(
 		ipay.ActionCreateToken3DS,
@@ -89,6 +91,11 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 		ipay.WithOperationOperation(consts.VerificationLink),
 	)
 
+	if opts.isDryRun() {
+		opts.handleDryRun(consts.ApiUrl, createTokenRequest)
+		return nil, nil
+	}
+
 	apiResponse, err := c.ipayClient.Api(createTokenRequest)
 	if err != nil {
 		return nil, fmt.Errorf("verification link API call: %w", err)
@@ -106,10 +113,12 @@ func (c *client) VerificationLink(request *Request) (*url.URL, error) {
 	return u, nil
 }
 
-func (c *client) Status(request *Request) (*ipay.Response, error) {
+func (c *client) Status(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
+	opts := collectRunOptions(runOpts)
 
 	statusRequest := ipay.NewRequest(
 		ipay.ActionGetPaymentStatus,
@@ -120,13 +129,20 @@ func (c *client) Status(request *Request) (*ipay.Response, error) {
 		ipay.WithOperationOperation(consts.Status),
 	)
 
+	if opts.isDryRun() {
+		opts.handleDryRun(consts.ApiUrl, statusRequest)
+		return nil, nil
+	}
+
 	return c.ipayClient.Api(statusRequest)
 }
 
-func (c *client) PaymentURL(request *Request) (*ipay.PaymentResponse, error) {
+func (c *client) PaymentURL(request *Request, runOpts ...RunOption) (*ipay.PaymentResponse, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
+	opts := collectRunOptions(runOpts)
 
 	XMLPaymentURLRequest := ipay.CreateXMLPaymentCreateRequest()
 	XMLPaymentURLRequest.SetAuth(request.GetAuth())
@@ -134,6 +150,11 @@ func (c *client) PaymentURL(request *Request) (*ipay.PaymentResponse, error) {
 	XMLPaymentURLRequest.AddTransaction(request.GetTransaction())
 	XMLPaymentURLRequest.SetPersonalData(request.GetPersonalData())
 	XMLPaymentURLRequest.AddCardToken(request.GetCardToken())
+
+	if opts.isDryRun() {
+		opts.handleDryRun(consts.ApiXMLUrl, XMLPaymentURLRequest)
+		return nil, nil
+	}
 
 	apiResponse, err := c.ipayClient.ApiXML(XMLPaymentURLRequest)
 	if err != nil {
@@ -143,33 +164,38 @@ func (c *client) PaymentURL(request *Request) (*ipay.PaymentResponse, error) {
 	return apiResponse, nil
 }
 
-func (c *client) Payment(request *Request) (*ipay.Response, error) {
+func (c *client) Payment(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
 
+	opts := collectRunOptions(runOpts)
+
 	if request.IsMobile() {
-		return c.handleMobilePayment(request, false)
+		return c.handleMobilePayment(request, false, opts)
 	}
 
-	return c.handleStandardPayment(request, false)
+	return c.handleStandardPayment(request, false, opts)
 }
 
-func (c *client) Hold(request *Request) (*ipay.Response, error) {
+func (c *client) Hold(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
 
+	opts := collectRunOptions(runOpts)
+
 	if request.IsMobile() {
-		return c.handleMobilePayment(request, true)
+		return c.handleMobilePayment(request, true, opts)
 	}
 
-	return c.handleStandardPayment(request, true)
+	return c.handleStandardPayment(request, true, opts)
 }
 
-func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Response, error) {
+func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *runOptions) (*ipay.Response, error) {
 	var paymentRequest *ipay.RequestWrapper
 	var apiFunc func(*ipay.RequestWrapper) (*ipay.Response, error)
+	var endpoint string
 
 	operationKind := consts.Payment
 
@@ -194,6 +220,10 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 		common = append(common, ipay.WithPreauth(true))
 	}
 
+	if request.GetRecurrent() {
+		common = append(common, ipay.WithRecurrent(true))
+	}
+
 	if request.IsApplePay() {
 		container, err := request.GetAppleContainer()
 		if err != nil {
@@ -207,6 +237,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 
 		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.ApplePayApi
+		endpoint = consts.ApplePayUrl
 	} else {
 		token, err := request.GetGoogleToken()
 		if err != nil {
@@ -220,6 +251,12 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 
 		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.GooglePayApi
+		endpoint = consts.GooglePayUrl
+	}
+
+	if runOpts.isDryRun() {
+		runOpts.handleDryRun(endpoint, paymentRequest)
+		return nil, nil
 	}
 
 	apiResponse, err := apiFunc(paymentRequest)
@@ -229,7 +266,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool) (*ipay.Re
 	return apiResponse, nil
 }
 
-func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Response, error) {
+func (c *client) handleStandardPayment(request *Request, preauth bool, runOpts *runOptions) (*ipay.Response, error) {
 	if request == nil {
 		return nil, fmt.Errorf("standard payment: %w", ErrRequestIsNil)
 	}
@@ -254,15 +291,26 @@ func (c *client) handleStandardPayment(request *Request, preauth bool) (*ipay.Re
 		options = append(options, ipay.WithPreauth(true))
 	}
 
+	if request.GetRecurrent() {
+		options = append(options, ipay.WithRecurrent(true))
+	}
+
 	holdRequest := ipay.NewRequest(ipay.ActionDebiting, options...)
+
+	if runOpts.isDryRun() {
+		runOpts.handleDryRun(consts.ApiUrl, holdRequest)
+		return nil, nil
+	}
 
 	return c.ipayClient.Api(holdRequest)
 }
 
-func (c *client) Capture(request *Request) (*ipay.Response, error) {
+func (c *client) Capture(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, fmt.Errorf("capture: %w", ErrRequestIsNil)
 	}
+
+	opts := collectRunOptions(runOpts)
 
 	options := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetAuth()),
@@ -283,13 +331,20 @@ func (c *client) Capture(request *Request) (*ipay.Response, error) {
 
 	captureRequest := ipay.NewRequest(ipay.ActionCompletion, options...)
 
+	if opts.isDryRun() {
+		opts.handleDryRun(consts.ApiUrl, captureRequest)
+		return nil, nil
+	}
+
 	return c.ipayClient.Api(captureRequest)
 }
 
-func (c *client) Refund(request *Request) (*ipay.Response, error) {
+func (c *client) Refund(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, fmt.Errorf("refund: %w", ErrRequestIsNil)
 	}
+
+	opts := collectRunOptions(runOpts)
 
 	refundRequest := ipay.NewRequest(
 		ipay.ActionReversal,
@@ -300,13 +355,20 @@ func (c *client) Refund(request *Request) (*ipay.Response, error) {
 		ipay.WithOperationOperation(consts.Refund),
 	)
 
+	if opts.isDryRun() {
+		opts.handleDryRun(consts.ApiUrl, refundRequest)
+		return nil, nil
+	}
+
 	return c.ipayClient.Api(refundRequest)
 }
 
-func (c *client) Credit(request *Request) (*ipay.Response, error) {
+func (c *client) Credit(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, fmt.Errorf("credit: %w", ErrRequestIsNil)
 	}
+
+	opts := collectRunOptions(runOpts)
 
 	options := []func(*ipay.RequestWrapper){
 		ipay.WithAuth(request.GetAuth()),
@@ -330,6 +392,11 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 
 	creditRequest := ipay.NewRequest(ipay.ActionCredit, options...)
 
+	if opts.isDryRun() {
+		opts.handleDryRun(consts.ApiUrl, creditRequest)
+		return nil, nil
+	}
+
 	response, err := c.ipayClient.Api(creditRequest)
 	if err != nil {
 		return nil, fmt.Errorf("credit API call: %w", err)
@@ -342,10 +409,12 @@ func (c *client) Credit(request *Request) (*ipay.Response, error) {
 	return response, nil
 }
 
-func (c *client) A2CPaymentStatus(request *Request) (*ipay.Response, error) {
+func (c *client) A2CPaymentStatus(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
+	runOptions := collectRunOptions(runOpts)
 
 	extID := request.GetPaymentID()
 	pmtID := request.GetIpayPaymentID()
@@ -369,6 +438,11 @@ func (c *client) A2CPaymentStatus(request *Request) (*ipay.Response, error) {
 	}
 
 	statusRequest := ipay.NewRequest(ipay.ActionA2CPaymentStatus, opts...)
+
+	if runOptions.isDryRun() {
+		runOptions.handleDryRun(consts.ApiUrl, statusRequest)
+		return nil, nil
+	}
 
 	return c.ipayClient.Api(statusRequest)
 }

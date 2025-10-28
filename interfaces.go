@@ -32,14 +32,14 @@ import (
 )
 
 type Ipay interface {
-	VerificationLink(request *Request) (*url.URL, error)
-	Status(request *Request) (*ipay.Response, error)
-	A2CPaymentStatus(request *Request) (*ipay.Response, error)
-	PaymentURL(invoiceRequest *Request) (*ipay.PaymentResponse, error)
-	Payment(invoiceRequest *Request) (*ipay.Response, error)
-	Hold(invoiceRequest *Request) (*ipay.Response, error)
-	Capture(invoiceRequest *Request) (*ipay.Response, error)
-	Refund(invoiceRequest *Request) (*ipay.Response, error)
-	Credit(invoiceRequest *Request) (*ipay.Response, error)
+	VerificationLink(request *Request, opts ...RunOption) (*url.URL, error)
+	Status(request *Request, opts ...RunOption) (*ipay.Response, error)
+	A2CPaymentStatus(request *Request, opts ...RunOption) (*ipay.Response, error)
+	PaymentURL(invoiceRequest *Request, opts ...RunOption) (*ipay.PaymentResponse, error)
+	Payment(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
+	Hold(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
+	Capture(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
+	Refund(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
+	Credit(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
 	SetLogLevel(levelDebug log.Level)
 }

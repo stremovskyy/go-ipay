@@ -33,7 +33,7 @@ import (
 )
 
 func main() {
-	xmlData := []byte(private.ValidationXMLSuccess)
+	xmlData := []byte(private.TestXmlResponse)
 
 	payment, err := ipay.ParsePaymentXML(xmlData)
 	if err != nil {

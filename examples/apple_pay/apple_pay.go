@@ -65,6 +65,7 @@ func main() {
 			OrderID:       uuidString,
 			Description:   "Test payment: " + uuidString,
 			IsMobile:      true,
+			GetRecurrent:  true,
 		},
 		PersonalData: &go_ipay.PersonalData{
 			UserID:    utils.Ref(123),
@@ -79,6 +80,7 @@ func main() {
 	holdRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
 
 	holdResponse, err := client.Hold(holdRequest)
+	// holdResponse, err := client.Hold(holdRequest, go_ipay.DryRun())
 	if err != nil {
 		panic(err)
 	}

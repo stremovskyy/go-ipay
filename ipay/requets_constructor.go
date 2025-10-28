@@ -243,13 +243,13 @@ func WithLanguage(language Lang) func(*RequestWrapper) {
 
 func WithPersonalData(data *Info) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
-		rw.Request.Body.Info = data
+		rw.Request.Body.Info.MergeWith(data)
 	}
 }
 
 func WithWebhookURL(url *string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
-		if rw.Request.Action == ActionDebiting {
+		if rw.Request.Action == ActionDebiting || rw.Request.Action == MobilePaymentCreate {
 			if rw.Request.Body.Transactions == nil {
 				rw.Request.Body.Transactions = []RequestTransaction{
 					{
@@ -274,11 +274,7 @@ func WithWebhookURL(url *string) func(*RequestWrapper) {
 		}
 
 		if rw.Request.Body.Info == nil {
-			rw.Request.Body.Info = &Info{
-				NotifyUrl: url,
-			}
-
-			return
+			rw.Request.Body.Info = &Info{}
 		}
 
 		rw.Request.Body.Info.NotifyUrl = url
@@ -448,4 +444,16 @@ func WithMetadata(metadata map[string]string) func(*RequestWrapper) {
 
 func WithOperationOperation(op string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) { rw.Operation = op }
+}
+
+func WithRecurrent(use bool) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.Recurrent = &use
+
+		if rw.Request.Body.Info == nil {
+			rw.Request.Body.Info = &Info{}
+		}
+
+		rw.Request.Body.Info.Recurrent = &use
+	}
 }

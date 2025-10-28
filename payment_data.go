@@ -48,4 +48,6 @@ type PaymentData struct {
 	RelatedIds []int64
 	// Metadata is a map of additional data.
 	Metadata map[string]string
+	// Recurrent uses for request recurrent token
+	GetRecurrent bool
 }

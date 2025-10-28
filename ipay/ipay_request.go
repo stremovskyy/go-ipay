@@ -74,7 +74,7 @@ type Body struct {
 	AppleData      *string             `json:"apple_data,omitempty"`      // Apple Pay data.
 	PmtDesc        *string             `json:"pmt_desc,omitempty"`        // Payment description.
 	Token          *string             `json:"token,omitempty"`           // Token for Google Pay.
-	Recurrent      *string             `json:"recurrent,omitempty"`       // Recurrent payment (true or false).
+	Recurrent      *bool               `json:"recurrent,omitempty"`       // Recurrent payment (true or false).
 	RecurrentToken *string             `json:"recurrent_token,omitempty"` // Recurrent payment token.
 	Aml            *Aml                `json:"aml,omitempty"`             // Anti-Money Laundering information.
 	Sender         *Sender             `json:"sender,omitempty"`          // Sender details.
@@ -136,11 +136,74 @@ type Info struct {
 	PmtIdIn               []int64     `json:"pmt_id_in,omitempty"`               // Payment IDs in.
 	ReceiverAccountNumber *string     `json:"receiver_account_number,omitempty"` // Receiver's account number.
 	Metadata              *string     `json:"metadata,omitempty"`                // Metadata.
+	Recurrent             *bool       `json:"recurrent,omitempty"`               // Recurrent payment (true or false).
 }
 
 func (i *Info) JsonString() string {
 	jsonString, _ := json.Marshal(i)
 	return string(jsonString)
+}
+
+func (i *Info) MergeWith(info *Info) {
+	if info == nil {
+		return
+	}
+
+	if i.Cvd == nil {
+		i.Cvd = info.Cvd
+	}
+
+	if i.ExternalCVD == nil {
+		i.ExternalCVD = info.ExternalCVD
+	}
+
+	if i.Metadata == nil {
+		i.Metadata = info.Metadata
+	}
+
+	if i.PmtIdIn == nil {
+		i.PmtIdIn = info.PmtIdIn
+	}
+
+	if i.Recurrent == nil {
+		i.Recurrent = info.Recurrent
+	}
+
+	if i.Aml == nil {
+		i.Aml = info.Aml
+	}
+
+	if i.ReceiverAccountNumber == nil {
+		i.ReceiverAccountNumber = info.ReceiverAccountNumber
+	}
+
+	if i.NotifyUrl == nil {
+		i.NotifyUrl = info.NotifyUrl
+	}
+
+	if i.Preauth == nil {
+		i.Preauth = info.Preauth
+	}
+
+	if i.PmtIdIn == nil {
+		i.PmtIdIn = info.PmtIdIn
+	}
+
+	if i.ExtId == nil {
+		i.ExtId = info.ExtId
+	}
+
+	if i.OrderId == nil {
+		i.OrderId = info.OrderId
+	}
+
+	if i.UserID == nil {
+		i.UserID = info.UserID
+	}
+
+	if i.MctsVts == false {
+		i.MctsVts = info.MctsVts
+	}
 }
 
 // Cvd represents Card Verification Data.
