@@ -410,6 +410,12 @@ func WithReceiver(receiver *Receiver) func(*RequestWrapper) {
 	}
 }
 
+func WithRecurrentToken(token *string) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		rw.Request.Body.RecurrentToken = token
+	}
+}
+
 func WithRelatedIDs(relatedIDs []int64) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.Info.PmtIdIn = relatedIDs

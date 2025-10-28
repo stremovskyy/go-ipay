@@ -224,7 +224,9 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 		common = append(common, ipay.WithRecurrent(true))
 	}
 
-	if request.IsApplePay() {
+	if request.HasRecurrent() {
+		common = append(common, ipay.WithRecurrentToken(request.GetRecurrentToken()))
+	} else if request.IsApplePay() {
 		container, err := request.GetAppleContainer()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get Apple Container: %w", err)
@@ -238,7 +240,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.ApplePayApi
 		endpoint = consts.ApplePayUrl
-	} else {
+	} else if request.IsGooglePay() {
 		token, err := request.GetGoogleToken()
 		if err != nil {
 			return nil, fmt.Errorf("cannot get Google Token: %w", err)
@@ -278,7 +280,6 @@ func (c *client) handleStandardPayment(request *Request, preauth bool, runOpts *
 		ipay.WithAuth(request.GetAuth()),
 		ipay.WithPersonalData(request.GetPersonalData()),
 		ipay.WithInvoiceInTransactions(request.GetAmount(), request.GetSubMerchantID()),
-		ipay.WithCardToken(request.GetCardToken()),
 		ipay.WithPaymentID(request.GetPaymentID()),
 		ipay.WithDescription(request.GetDescription()),
 		ipay.WithWebhookURL(request.GetWebhookURL()),
@@ -293,6 +294,12 @@ func (c *client) handleStandardPayment(request *Request, preauth bool, runOpts *
 
 	if request.GetRecurrent() {
 		options = append(options, ipay.WithRecurrent(true))
+	}
+
+	if request.HasRecurrent() {
+		options = append(options, ipay.WithRecurrentToken(request.GetRecurrentToken()))
+	} else {
+		options = append(options, ipay.WithCardToken(request.GetCardToken()))
 	}
 
 	holdRequest := ipay.NewRequest(ipay.ActionDebiting, options...)

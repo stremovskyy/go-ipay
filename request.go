@@ -134,6 +134,14 @@ func (r *Request) GetReceiver() *ipay.Receiver {
 	return info
 }
 
+func (r *Request) GetRecurrentToken() *string {
+	if r.PaymentMethod == nil {
+		return nil
+	}
+
+	return r.PaymentMethod.RecurrentToken
+}
+
 func (r *Request) GetSender() *ipay.Sender {
 	if r.PersonalData == nil {
 		return &ipay.Sender{}
@@ -248,6 +256,14 @@ func (r *Request) GetSubMerchantID() *int {
 	return &r.Merchant.SubMerchantID
 }
 
+func (r *Request) HasRecurrent() bool {
+	if r.PaymentData == nil {
+		return false
+	}
+
+	return r.PaymentMethod.RecurrentToken != nil && *r.PaymentMethod.RecurrentToken != ""
+}
+
 func (r *Request) IsMobile() bool {
 	if r.PaymentData == nil {
 		return false
@@ -289,7 +305,11 @@ func (r *Request) GetAppleContainer() (*string, error) {
 }
 
 func (r *Request) IsApplePay() bool {
-	return r.PaymentMethod != nil && r.PaymentMethod.AppleContainer != nil
+	return r.PaymentMethod != nil && r.PaymentMethod.AppleContainer != nil && *r.PaymentMethod.AppleContainer != ""
+}
+
+func (r *Request) IsGooglePay() bool {
+	return r.PaymentMethod != nil && r.PaymentMethod.GoogleToken != nil && *r.PaymentMethod.GoogleToken != ""
 }
 
 func (r *Request) GetGoogleToken() (*string, error) {

@@ -31,6 +31,8 @@ type PaymentMethod struct {
 	AppleContainer *string
 	// GoogleToken is token from Google Pay encoded in base64
 	GoogleToken *string
+	// RecurrentToken is token for recurrent payments
+	RecurrentToken *string
 }
 
 // Card represents a payment card with its details.
