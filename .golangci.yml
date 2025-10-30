@@ -31,3 +31,11 @@ linters-settings:
       - G104
   misspell:
     locale: US
+  revive:
+    rules:
+      - name: var-naming
+        disabled: true
+      - name: exported
+        disabled: true
+      - name: receiver-naming
+        disabled: true

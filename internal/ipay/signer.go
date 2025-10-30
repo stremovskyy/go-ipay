@@ -78,7 +78,7 @@ func (s *signer) Sign(key string) *Sign {
 	}
 }
 
-func NewSigner(key string) Signer {
+func NewSigner(_ string) Signer {
 	return &signer{}
 }
 
