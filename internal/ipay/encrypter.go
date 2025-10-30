@@ -78,8 +78,8 @@ func (c *encrypter) EncryptData(rawData string) (string, error) {
 		return "", fmt.Errorf("failed to create new GCM: %w", err)
 	}
 
-	// Encrypt the data
-	ciphertext := aesgcm.Seal(nil, iv, []byte(rawData), nil)
+	// Encrypt the data using per-call random IV.
+	ciphertext := aesgcm.Seal(nil, iv, []byte(rawData), nil) // #nosec G407 -- IV generated above via crypto/rand.
 	// Separate the tag from the ciphertext
 	tag := ciphertext[len(ciphertext)-aesgcm.Overhead():]
 	encData := ciphertext[:len(ciphertext)-aesgcm.Overhead()]
