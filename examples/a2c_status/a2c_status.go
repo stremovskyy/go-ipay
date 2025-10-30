@@ -28,18 +28,19 @@ import (
 	"fmt"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
+	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:        private.MerchantName,
-		MerchantID:  private.MerchantIDWithdraw,
-		MerchantKey: private.MerchantKeyWithdraw,
+		Name:        cfg.MerchantName,
+		MerchantID:  cfg.MerchantIDWithdraw,
+		MerchantKey: cfg.MerchantKeyWithdraw,
 	}
 
 	req := &go_ipay.Request{

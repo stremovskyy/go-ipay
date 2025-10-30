@@ -29,18 +29,19 @@ import (
 	"os"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
+	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:        private.MerchantName,
-		MerchantID:  private.MerchantID,
-		MerchantKey: private.MerchantKey,
+		Name:        cfg.MerchantName,
+		MerchantID:  cfg.MerchantID,
+		MerchantKey: cfg.MerchantKey,
 	}
 
 	refundRequest := &go_ipay.Request{
@@ -52,7 +53,7 @@ func main() {
 	}
 
 	client.SetLogLevel(log.LevelDebug)
-	refundRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	refundRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
 	refundResponse, err := client.Refund(refundRequest)
 	if err != nil {

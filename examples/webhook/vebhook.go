@@ -29,11 +29,33 @@ import (
 	"time"
 
 	"github.com/stremovskyy/go-ipay/ipay"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
+const sampleWebhookResponse = `
+<payment id="123456">
+	<ident>demo-transaction</ident>
+	<status>4</status>
+	<amount>100.00</amount>
+	<currency>UAH</currency>
+	<timestamp>1700000000</timestamp>
+	<transactions>
+		<transaction id="1699368014">
+			<mch_id>13581</mch_id>
+			<srv_id>4767</srv_id>
+			<invoice>100</invoice>
+			<amount>100</amount>
+			<desc>Demo payment</desc>
+			<info>{"preauth":1,"notify_url":"https://example.test"}</info>
+		</transaction>
+	</transactions>
+	<salt>demo-salt</salt>
+	<sign>demo-signature</sign>
+	<pmt_id>123</pmt_id>
+</payment>
+`
+
 func main() {
-	xmlData := []byte(private.TestXmlResponse)
+	xmlData := []byte(sampleWebhookResponse)
 
 	payment, err := ipay.ParsePaymentXML(xmlData)
 	if err != nil {

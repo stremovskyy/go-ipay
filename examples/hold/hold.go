@@ -31,21 +31,22 @@ import (
 
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/currency"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
+	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:            private.MerchantName,
-		SubMerchantID:   private.SubMerchantID,
-		MerchantID:      private.MerchantID,
-		MerchantKey:     private.MerchantKey,
-		SuccessRedirect: private.SuccessRedirect,
-		FailRedirect:    private.FailRedirect,
+		Name:            cfg.MerchantName,
+		SubMerchantID:   cfg.SubMerchantID,
+		MerchantID:      cfg.MerchantID,
+		MerchantKey:     cfg.MerchantKey,
+		SuccessRedirect: cfg.SuccessRedirect,
+		FailRedirect:    cfg.FailRedirect,
 	}
 
 	uuidString := uuid.New().String()
@@ -58,11 +59,11 @@ func main() {
 		PaymentMethod: &go_ipay.PaymentMethod{
 			Card: &go_ipay.Card{
 				Name:  "Test Card",
-				Token: utils.Ref(private.CardToken),
+				Token: utils.Ref(cfg.CardToken),
 			},
 		},
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
+			IpayPaymentID: utils.Ref(int64(cfg.IpayPaymentID)),
 			PaymentID:     utils.Ref(uuidString),
 			Amount:        100,
 			Currency:      currency.UAH,
@@ -81,7 +82,7 @@ func main() {
 
 	client.SetLogLevel(log.LevelDebug)
 
-	holdRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	holdRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
 	holdResponse, err := client.Hold(holdRequest)
 	if err != nil {

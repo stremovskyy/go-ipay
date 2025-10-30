@@ -29,19 +29,20 @@ import (
 	"os"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
+	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:          private.MerchantName,
-		MerchantID:    private.MerchantID,
-		MerchantKey:   private.MerchantKey,
-		SubMerchantID: private.SubMerchantID, // WARNING: SubMerchantID is required for capture
+		Name:          cfg.MerchantName,
+		MerchantID:    cfg.MerchantID,
+		MerchantKey:   cfg.MerchantKey,
+		SubMerchantID: cfg.SubMerchantID, // WARNING: SubMerchantID is required for capture
 	}
 
 	captureRequest := &go_ipay.Request{
@@ -57,13 +58,13 @@ func main() {
 			LastName:          utils.Ref("Doe"),
 			MiddleName:        utils.Ref("Middle"),
 			TaxID:             utils.Ref("1234567890"),
-			TrackingCardToken: utils.Ref(private.CardToken),
+			TrackingCardToken: utils.Ref(cfg.CardToken),
 		},
 	}
 
 	client.SetLogLevel(log.LevelDebug)
 
-	captureRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	captureRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
 	captureResponse, err := client.Capture(captureRequest)
 	if err != nil {

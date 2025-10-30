@@ -31,20 +31,21 @@ import (
 
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/currency"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
+	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:            private.MerchantNameWithdraw,
-		MerchantID:      private.MerchantIDWithdraw,
-		MerchantKey:     private.MerchantKeyWithdraw,
-		SuccessRedirect: private.SuccessRedirect,
-		FailRedirect:    private.FailRedirect,
+		Name:            cfg.MerchantNameWithdraw,
+		MerchantID:      cfg.MerchantIDWithdraw,
+		MerchantKey:     cfg.MerchantKeyWithdraw,
+		SuccessRedirect: cfg.SuccessRedirect,
+		FailRedirect:    cfg.FailRedirect,
 	}
 
 	uuidString := uuid.New().String()
@@ -54,8 +55,8 @@ func main() {
 		PaymentMethod: &go_ipay.PaymentMethod{
 			Card: &go_ipay.Card{
 				Name:  "Test Card",
-				Token: utils.Ref(private.CardToken),
-				// Pan: utils.Ref(private.CardPan),
+				Token: utils.Ref(cfg.CardToken),
+				// Pan: utils.Ref("4111111111111111"),
 			},
 		},
 		PaymentData: &go_ipay.PaymentData{
@@ -76,7 +77,7 @@ func main() {
 
 	client.SetLogLevel(log.LevelDebug)
 
-	creditRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	creditRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
 	creditResponse, err := client.Credit(creditRequest)
 	if err != nil {

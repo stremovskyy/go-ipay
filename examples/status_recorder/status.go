@@ -31,9 +31,9 @@ import (
 	"gorm.io/gorm"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 	"github.com/stremovskyy/recorder"
 	"github.com/stremovskyy/recorder/gorm_recorder"
 )
@@ -67,12 +67,13 @@ func main() {
 		return
 	}
 
+	cfg := config.MustLoad()
 	client := go_ipay.NewClientWithRecorder(rec)
 
 	merchant := &go_ipay.Merchant{
-		Name:        private.MerchantName,
-		MerchantID:  private.MerchantID,
-		MerchantKey: private.MerchantKey,
+		Name:        cfg.MerchantName,
+		MerchantID:  cfg.MerchantID,
+		MerchantKey: cfg.MerchantKey,
 	}
 
 	statusRequest := &go_ipay.Request{
@@ -83,7 +84,7 @@ func main() {
 	}
 
 	client.SetLogLevel(log.LevelDebug)
-	// statusRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	// statusRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
 	statusResponse, err := client.Status(statusRequest)
 	if err != nil {

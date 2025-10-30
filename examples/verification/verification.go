@@ -28,21 +28,22 @@ import (
 	"github.com/google/uuid"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
-	"github.com/stremovskyy/go-ipay/private"
 )
 
 func main() {
+	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:            private.MerchantName,
-		MerchantID:      private.MerchantID,
-		SubMerchantID:   private.SubMerchantID,
-		MerchantKey:     private.MerchantKey,
-		SuccessRedirect: private.SuccessRedirect,
-		FailRedirect:    private.FailRedirect,
+		Name:            cfg.MerchantName,
+		MerchantID:      cfg.MerchantID,
+		SubMerchantID:   cfg.SubMerchantID,
+		MerchantKey:     cfg.MerchantKey,
+		SuccessRedirect: cfg.SuccessRedirect,
+		FailRedirect:    cfg.FailRedirect,
 	}
 
 	uuidString := uuid.New().String()
@@ -50,7 +51,7 @@ func main() {
 	VerificationRequest := &go_ipay.Request{
 		Merchant: merchant,
 		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(private.IpayPaymentID)),
+			IpayPaymentID: utils.Ref(int64(cfg.IpayPaymentID)),
 			PaymentID:     utils.Ref(uuidString),
 			OrderID:       uuidString,
 			Description:   "Verification payment: " + uuidString,
@@ -64,7 +65,7 @@ func main() {
 	}
 
 	client.SetLogLevel(log.LevelDebug)
-	VerificationRequest.SetWebhookURL(utils.Ref(private.WebhookURL))
+	VerificationRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
 	tokenURL, err := client.VerificationLink(VerificationRequest)
 	if err != nil {
