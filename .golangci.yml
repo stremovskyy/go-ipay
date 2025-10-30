@@ -10,15 +10,14 @@ linters:
     - misspell
     - gosec
     - revive
-    - shadow
 
 run:
   deadline: 5m
   tests: true
-  skip-dirs:
-    - private
 
 issues:
+  exclude-dirs:
+    - private
   exclude-rules:
     - path: _test\.go
       linters:
