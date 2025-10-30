@@ -139,6 +139,7 @@ func hydrateEnv() error {
 }
 
 func loadEnvFile(path string) error {
+	// #nosec G304 -- configuration files are explicitly chosen by the developer.
 	f, err := os.Open(path)
 	if err != nil {
 		return err

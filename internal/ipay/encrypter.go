@@ -27,6 +27,7 @@ package ipay
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
@@ -59,8 +60,10 @@ func (c *encrypter) EncryptData(rawData string) (string, error) {
 	// Convert the key to a SHA-512 hash to ensure it's 64 bytes and then truncate to 32 bytes for AES-256
 	keyHash := sha512.Sum512([]byte(c.key))
 	key := keyHash[:32]
-
-	iv := key[:12]
+	iv := make([]byte, 12)
+	if _, err := rand.Read(iv); err != nil {
+		return "", fmt.Errorf("failed to generate IV: %w", err)
+	}
 
 	c.logger.Debug("Encrypting data: %s", rawData)
 	c.logger.Debug("Key: %x", key)
@@ -85,9 +88,10 @@ func (c *encrypter) EncryptData(rawData string) (string, error) {
 
 	// Encode the tag to base64 for compatibility
 	tagBase64 := base64.StdEncoding.EncodeToString(tag)
+	ivBase64 := base64.StdEncoding.EncodeToString(iv)
 
 	c.logger.Debug("Tag: %x", tag)
 
 	// Return the encoded data and the tag concatenated, similar to the PHP version
-	return base64.StdEncoding.EncodeToString(encData) + "." + tagBase64, nil
+	return base64.StdEncoding.EncodeToString(encData) + "." + tagBase64 + "." + ivBase64, nil
 }

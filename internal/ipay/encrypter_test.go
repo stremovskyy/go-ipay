@@ -25,6 +25,8 @@
 package ipay
 
 import (
+	"encoding/base64"
+	"strings"
 	"testing"
 
 	"github.com/stremovskyy/go-ipay/log"
@@ -82,7 +84,6 @@ func Test_encrypter_EncryptData(t *testing.T) {
 		fields  fields
 		args    args
 		wantErr bool
-		out     string
 	}{
 		{
 			name: "Valid encryption",
@@ -94,7 +95,6 @@ func Test_encrypter_EncryptData(t *testing.T) {
 				rawData: "Hello, World!",
 			},
 			wantErr: false,
-			out:     "npswqWqNyYfvPH+DXg==.vmQarM/mLFQQG57mIGS2Uw==",
 		},
 		{
 			name: "Empty raw data",
@@ -135,8 +135,35 @@ func Test_encrypter_EncryptData(t *testing.T) {
 					t.Errorf("EncryptData() expected non-empty output")
 				}
 
-				if !tt.wantErr && got != tt.out {
-					t.Errorf("EncryptData() got = %v, want %v", got, tt.out)
+				if !tt.wantErr {
+					parts := strings.Split(got, ".")
+					if len(parts) != 3 {
+						t.Fatalf("EncryptData() expected 3 parts, got %d (%v)", len(parts), parts)
+					}
+
+					cipherText, err := base64.StdEncoding.DecodeString(parts[0])
+					if err != nil {
+						t.Fatalf("EncryptData() invalid ciphertext base64: %v", err)
+					}
+					if len(cipherText) == 0 {
+						t.Fatalf("EncryptData() ciphertext is empty")
+					}
+
+					tag, err := base64.StdEncoding.DecodeString(parts[1])
+					if err != nil {
+						t.Fatalf("EncryptData() invalid tag base64: %v", err)
+					}
+					if len(tag) != 16 {
+						t.Fatalf("EncryptData() expected tag length 16, got %d", len(tag))
+					}
+
+					iv, err := base64.StdEncoding.DecodeString(parts[2])
+					if err != nil {
+						t.Fatalf("EncryptData() invalid IV base64: %v", err)
+					}
+					if len(iv) != 12 {
+						t.Fatalf("EncryptData() expected IV length 12, got %d", len(iv))
+					}
 				}
 
 			},
