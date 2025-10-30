@@ -34,6 +34,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -44,28 +45,62 @@ import (
 	"github.com/stremovskyy/recorder"
 )
 
+type loggerType string
+
+const (
+	loggerTypeHTTP      loggerType = "iPay HTTP:"
+	loggerTypeHTTPXML   loggerType = "iPay HTTP XML:"
+	loggerTypeApplePay  loggerType = "iPay ApplePay:"
+	loggerTypeGooglePay loggerType = "iPay GooglePay:"
+)
+
 type Client struct {
-	client         *http.Client
-	options        *Options
-	logger         *log.Logger
-	xmlLogger      *log.Logger
-	applePayLogger *log.Logger
-	recorder       recorder.Recorder
+	client    *http.Client
+	options   *Options
+	loggers   map[loggerType]*log.Logger
+	loggersMu sync.RWMutex
+	recorder  recorder.Recorder
 }
 
 // Api handles the standard iPay API request.
 func (c *Client) Api(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
-	return c.sendRequest(consts.ApiUrl, apiRequest, c.logger)
+	return c.sendRequest(consts.ApiUrl, apiRequest, c.loggerFor(loggerTypeHTTP))
 }
 
 // ApplePayApi handles the Apple Pay-specific API request.
 func (c *Client) ApplePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
-	return c.sendRequest(consts.ApplePayUrl, apiRequest, c.applePayLogger)
+	return c.sendRequest(consts.ApplePayUrl, apiRequest, c.loggerFor(loggerTypeApplePay))
 }
 
 // GooglePayApi handles the Google Pay-specific API request.
 func (c *Client) GooglePayApi(apiRequest *ipay.RequestWrapper) (*ipay.Response, error) {
-	return c.sendRequest(consts.GooglePayUrl, apiRequest, c.applePayLogger)
+	return c.sendRequest(consts.GooglePayUrl, apiRequest, c.loggerFor(loggerTypeGooglePay))
+}
+
+func (c *Client) loggerFor(category loggerType) *log.Logger {
+	c.loggersMu.RLock()
+	logger, ok := c.loggers[category]
+	c.loggersMu.RUnlock()
+	if ok {
+		return logger
+	}
+
+	c.loggersMu.Lock()
+	defer c.loggersMu.Unlock()
+
+	// Double-check to avoid races when creating loggers lazily.
+	if logger, ok = c.loggers[category]; ok {
+		return logger
+	}
+
+	if c.loggers == nil {
+		c.loggers = make(map[loggerType]*log.Logger)
+	}
+
+	logger = log.NewLogger(string(category))
+	c.loggers[category] = logger
+
+	return logger
 }
 
 // WithRecorder attaches a recorder to the client.
@@ -181,23 +216,24 @@ func tagsRetriever(request *ipay.RequestWrapper) map[string]string {
 
 // ApiXML handles XML API requests.
 func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse, error) {
+	logger := c.loggerFor(loggerTypeHTTPXML)
 	requestID := uuid.New().String()
 
-	c.xmlLogger.Debug("Request ID: %v", requestID)
+	logger.Debug("Request ID: %v", requestID)
 
 	xmlBody, err := ipayXMLPayment.Marshal()
 	if err != nil {
 		return nil, fmt.Errorf("cannot marshal request: %w", err)
 	}
 
-	c.xmlLogger.Debug("Request: %v", string(xmlBody))
+	logger.Debug("Request: %v", string(xmlBody))
 
 	formData := url.Values{}
 	formData.Set("data", string(xmlBody))
 
 	req, err := http.NewRequest("POST", consts.ApiXMLUrl, strings.NewReader(formData.Encode()))
 	if err != nil {
-		return nil, c.logAndReturnError("cannot create XML request", err, c.xmlLogger, requestID, nil)
+		return nil, c.logAndReturnError("cannot create XML request", err, logger, requestID, nil)
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -209,19 +245,19 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 	tStart := time.Now()
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot send XML request", err, c.xmlLogger, requestID, nil)
+		return nil, c.logAndReturnError("cannot send XML request", err, logger, requestID, nil)
 	}
-	c.xmlLogger.Debug("Request time: %v", time.Since(tStart))
+	logger.Debug("Request time: %v", time.Since(tStart))
 
-	defer c.safeClose(resp.Body, c.xmlLogger)
+	defer c.safeClose(resp.Body, logger)
 
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot read XML response", err, c.xmlLogger, requestID, nil)
+		return nil, c.logAndReturnError("cannot read XML response", err, logger, requestID, nil)
 	}
 
-	c.xmlLogger.Debug("Response: %v", string(raw))
-	c.xmlLogger.Debug("Response status: %v", resp.StatusCode)
+	logger.Debug("Response: %v", string(raw))
+	logger.Debug("Response status: %v", resp.StatusCode)
 
 	return ipay.UnmarshalXmlResponse(raw)
 }
@@ -256,10 +292,13 @@ func NewClient(options *Options) *Client {
 	}
 
 	return &Client{
-		client:         cl,
-		options:        options,
-		logger:         log.NewLogger("iPay HTTP:"),
-		applePayLogger: log.NewLogger("iPay ApplePay:"),
-		xmlLogger:      log.NewLogger("iPay HTTP XML:"),
+		client:  cl,
+		options: options,
+		loggers: map[loggerType]*log.Logger{
+			loggerTypeHTTP:      log.NewLogger(string(loggerTypeHTTP)),
+			loggerTypeApplePay:  log.NewLogger(string(loggerTypeApplePay)),
+			loggerTypeGooglePay: log.NewLogger(string(loggerTypeGooglePay)),
+			loggerTypeHTTPXML:   log.NewLogger(string(loggerTypeHTTPXML)),
+		},
 	}
 }
