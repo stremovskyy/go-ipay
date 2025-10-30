@@ -25,14 +25,14 @@ jobs:
       run: go mod tidy && go mod verify
 
     - name: Install golangci-lint
-      if: ${{ matrix.go-version == '1.24' }}
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24' }}
       run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
     - name: Install gosec
       run: go install github.com/securego/gosec/v2/cmd/gosec@latest
 
     - name: Run linter
-      if: ${{ matrix.go-version == '1.24' }}
+      if: ${{ matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24' }}
       run: golangci-lint run
 
     - name: Run tests with coverage
@@ -44,6 +44,7 @@ jobs:
       run: go test -v -race ./...
 
     - name: Run security check
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       run: gosec ./...
 
     - name: Build
