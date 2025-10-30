@@ -32,7 +32,7 @@ import (
 	"github.com/stremovskyy/go-ipay/log"
 )
 
-// RunOption controls the behaviour of a single API call.
+// RunOption controls the behavior of a single API call.
 type RunOption func(*runOptions)
 
 // DryRunHandler receives information about a skipped request.

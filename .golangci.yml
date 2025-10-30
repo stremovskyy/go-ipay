@@ -1,7 +1,8 @@
+version: 1
+
 linters:
   enable:
     - gofmt
-    - golint
     - govet
     - gosimple
     - staticcheck
@@ -10,24 +11,22 @@ linters:
     - unconvert
     - misspell
     - gosec
+    - revive
+    - shadow
 
 run:
   deadline: 5m
   tests: true
-  skip-dirs:
-    - private
 
 issues:
+  exclude-dirs:
+    - private
   exclude-rules:
     - path: _test\.go
       linters:
         - gosec
 
 linters-settings:
-  govet:
-    check-shadowing: true
-  golint:
-    min-confidence: 0.8
   gofmt:
     simplify: true
   gosec:

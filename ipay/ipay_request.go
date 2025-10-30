@@ -201,7 +201,7 @@ func (i *Info) MergeWith(info *Info) {
 		i.UserID = info.UserID
 	}
 
-	if i.MctsVts == false {
+	if !i.MctsVts {
 		i.MctsVts = info.MctsVts
 	}
 }

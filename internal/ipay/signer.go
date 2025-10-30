@@ -26,7 +26,7 @@ package ipay
 
 import (
 	"crypto/hmac"
-	"crypto/sha1"
+	"crypto/sha1" // #nosec G505 -- iPay requires legacy SHA-1 signatures for salts.
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
@@ -92,5 +92,6 @@ func hashHmacSha512(data string, key string) string {
 func sha1string(data int64) string {
 	dataStr := fmt.Sprintf("%d", data)
 
+	// #nosec G401 -- iPay requires SHA-1 hashing for backward-compatible signatures.
 	return fmt.Sprintf("%x", sha1.Sum([]byte(dataStr)))
 }

@@ -235,6 +235,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 			}
 
 			operationKind += consts.ApplePaySuffix
+			common[len(common)-1] = ipay.WithOperationOperation(operationKind)
 
 			common = append(common, ipay.WithAppleContainer(container))
 		}
@@ -252,6 +253,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 			}
 
 			operationKind += consts.GooglePaySuffix
+			common[len(common)-1] = ipay.WithOperationOperation(operationKind)
 
 			common = append(common, ipay.WithGoogleContainer(token))
 		}
