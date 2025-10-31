@@ -193,12 +193,13 @@ func (c *client) Hold(request *Request, runOpts ...RunOption) (*ipay.Response, e
 }
 
 func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *runOptions) (*ipay.Response, error) {
-	var paymentRequest *ipay.RequestWrapper
-	var apiFunc func(*ipay.RequestWrapper) (*ipay.Response, error)
-	var endpoint string
+	var (
+		paymentRequest *ipay.RequestWrapper
+		apiFunc        func(*ipay.RequestWrapper) (*ipay.Response, error)
+		endpoint       string
+	)
 
 	operationKind := consts.Payment
-
 	if isPreauth {
 		operationKind = consts.Hold
 	}
@@ -214,7 +215,6 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 		ipay.WithPersonalData(request.GetPersonalData()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithReceiver(request.GetReceiver()),
-		ipay.WithOperationOperation(operationKind),
 	}
 
 	if isPreauth {
@@ -225,7 +225,8 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 		common = append(common, ipay.WithRecurrent(true))
 	}
 
-	if request.IsApplePay() {
+	switch {
+	case request.IsApplePay():
 		if request.HasRecurrent() {
 			common = append(common, ipay.WithRecurrentToken(request.GetRecurrentToken()))
 		} else {
@@ -235,15 +236,14 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 			}
 
 			operationKind += consts.ApplePaySuffix
-			common[len(common)-1] = ipay.WithOperationOperation(operationKind)
-
 			common = append(common, ipay.WithAppleContainer(container))
+
 		}
 
-		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.ApplePayApi
 		endpoint = consts.ApplePayUrl
-	} else if request.IsGooglePay() {
+
+	case request.IsGooglePay():
 		if request.HasRecurrent() {
 			common = append(common, ipay.WithRecurrentToken(request.GetRecurrentToken()))
 		} else {
@@ -253,15 +253,19 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 			}
 
 			operationKind += consts.GooglePaySuffix
-			common[len(common)-1] = ipay.WithOperationOperation(operationKind)
-
 			common = append(common, ipay.WithGoogleContainer(token))
 		}
 
-		paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 		apiFunc = c.ipayClient.GooglePayApi
 		endpoint = consts.GooglePayUrl
+
+	default:
+		return nil, fmt.Errorf("unsupported mobile payment type")
 	}
+
+	common = append(common, ipay.WithOperationOperation(operationKind))
+
+	paymentRequest = ipay.NewRequest(ipay.MobilePaymentCreate, common...)
 
 	if runOpts.isDryRun() {
 		runOpts.handleDryRun(endpoint, paymentRequest)
@@ -272,6 +276,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 	if err != nil {
 		return nil, fmt.Errorf("mobile payment API call: %w", err)
 	}
+
 	return apiResponse, nil
 }
 
