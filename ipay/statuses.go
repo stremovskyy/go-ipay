@@ -33,7 +33,7 @@ const (
 	PaymentStatusFailed              PaymentStatus = 4
 	PaymentStatusSuccess             PaymentStatus = 5
 	PaymentStatusCanceled            PaymentStatus = 9
-	ipayPaymentStatusAMLRequired     PaymentStatus = 10
+	PaymentStatusAMLRequired         PaymentStatus = 10
 	PaymentStatusManualProcessing    PaymentStatus = 11
 	PaymentStatusSuccessWithoutClaim PaymentStatus = 13
 	PaymentStatusSecurityRefusal     PaymentStatus = 14
@@ -61,7 +61,7 @@ func (s *PaymentStatus) String() string {
 		return "SuccessWithoutClaim"
 	case PaymentStatusSecurityRefusal:
 		return "SecurityRefusal"
-	case ipayPaymentStatusAMLRequired:
+	case PaymentStatusAMLRequired:
 		return "AMLRequired"
 	default:
 		return "Unknown"
