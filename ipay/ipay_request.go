@@ -254,4 +254,5 @@ type Receiver struct {
 	Address              *string `json:"address,omitempty"`               // Receiver's address.
 	IdentificationNumber *string `json:"identification_number,omitempty"` // Receiver's tax identification number (optional).
 	AccountNumber        *string `json:"accountNumber,omitempty"`         // Receiver's account number (optional).
+	ToklyToken           *string `json:"tokly_token,omitempty"`           // Tokly token associated with the receiver's card number (optional).
 }

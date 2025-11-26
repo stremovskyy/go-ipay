@@ -129,6 +129,7 @@ func (r *Request) GetReceiver() *ipay.Receiver {
 		Firstname:            r.PersonalData.FirstName,
 		Middlename:           r.PersonalData.MiddleName,
 		IdentificationNumber: r.PersonalData.TaxID,
+		ToklyToken:           r.PersonalData.TrackingCardToken,
 	}
 
 	return info
