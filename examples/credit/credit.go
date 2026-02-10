@@ -26,6 +26,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 
@@ -81,11 +82,17 @@ func main() {
 
 	creditResponse, err := client.Credit(creditRequest)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Credit error: %v\n", err)
+		os.Exit(1)
+	}
+	if creditResponse == nil {
+		fmt.Fprintln(os.Stderr, "Credit error: empty response")
+		os.Exit(1)
 	}
 
-	if creditResponse.GetError() != nil {
-		panic(creditResponse.GetError())
+	if apiErr := creditResponse.GetError(); apiErr != nil {
+		fmt.Fprintf(os.Stderr, "Credit API error: %v\n", apiErr)
+		os.Exit(1)
 	}
 
 	fmt.Printf("\nWithdraw: %s is %s", uuidString, creditResponse.Status.String())

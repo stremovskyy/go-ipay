@@ -194,7 +194,8 @@ _, err := client.Hold(request, options.DryRun(func(endpoint string, payload any)
 }))
 
 if err != nil {
-    panic(err)
+    fmt.Printf("Hold error: %v\n", err)
+    return
 }
 
 fmt.Printf("Operation: %s\n", wrapper.Operation)

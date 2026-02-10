@@ -22,70 +22,15 @@
  * SOFTWARE.
  */
 
-package go_ipay
+package repayment
 
-import (
-	"strconv"
+import "fmt"
 
-	"github.com/stremovskyy/go-ipay/internal/ipay"
-)
-
-type Merchant struct {
-	// Merchant Name
-	Name string
-	// Merchant ID
-	MerchantID string
-	// Merchant Key
-	MerchantKey string
-	// System Key
-	SystemKey string
-	// RepaymentKey is the signing key for Repayment API
-	RepaymentKey string
-	// Sub Merchant ID
-	SubMerchantID int
-
-	// Login
-	Login string
-
-	// SuccessRedirect
-	SuccessRedirect string
-
-	// FailRedirect
-	FailRedirect string
-
-	signer ipay.Signer
+// APIError is returned when Repayment API responds with an error message.
+type APIError struct {
+	Message string
 }
 
-func (m *Merchant) GetMerchantID() *int64 {
-	id, err := strconv.ParseInt(m.MerchantID, 10, 64)
-
-	if err != nil {
-		return nil
-	}
-
-	return &id
-}
-
-func (m *Merchant) GetSign() ipay.Sign {
-	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.MerchantKey)
-	}
-
-	return *m.signer.Sign(m.MerchantKey)
-}
-
-func (m *Merchant) GetMobileSign() ipay.MobileSign {
-	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.SystemKey)
-	}
-
-	return *m.signer.MobileSign(m.SystemKey)
-}
-
-func (m *Merchant) GetMobileLogin() *string {
-	if m.Login == "" {
-		return nil
-	}
-
-	return &m.Login
+func (e *APIError) Error() string {
+	return fmt.Sprintf("repayment API error: %s", e.Message)
 }

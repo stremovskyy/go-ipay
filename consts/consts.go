@@ -34,17 +34,23 @@ const (
 	ApplePayUrl  = "https://api-applepay.ipay.ua"
 	GooglePayUrl = "https://api-googlepay.ipay.ua"
 	ApiXMLUrl    = baseUrl + "/api302"
+
+	RepaymentUrl = "https://api-repayment.ipay.ua"
 )
 
 const (
-	VerificationLink = "VerificationLink"
-	Status           = "Status"
-	Payment          = "Payment"
-	Hold             = "Hold"
-	Capture          = "Capture"
-	Refund           = "Refund"
-	Credit           = "Credit"
-	ApplePaySuffix   = "ApplePay"
-	GooglePaySuffix  = "GooglePay"
-	A2CPaymentStatus = "A2CPaymentStatus"
+	VerificationLink           = "VerificationLink"
+	Status                     = "Status"
+	Payment                    = "Payment"
+	Hold                       = "Hold"
+	Capture                    = "Capture"
+	Refund                     = "Refund"
+	Credit                     = "Credit"
+	ApplePaySuffix             = "ApplePay"
+	GooglePaySuffix            = "GooglePay"
+	A2CPaymentStatus           = "A2CPaymentStatus"
+	CreateRepayment            = "CreateRepayment"
+	CancelRepayment            = "CancelRepayment"
+	GetRepaymentStatus         = "GetRepaymentStatus"
+	GetRepaymentProcessingFile = "GetRepaymentProcessingFile"
 )

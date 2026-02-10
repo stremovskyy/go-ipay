@@ -27,6 +27,7 @@ type Config struct {
 	GoogleToken          string
 	WebhookURL           string
 	AppleContainer       string
+	RepaymentKey         string
 }
 
 var defaultEnvPaths = []string{
@@ -36,12 +37,15 @@ var defaultEnvPaths = []string{
 	"examples/.env",
 }
 
-// MustLoad loads configuration and panics if required values are missing.
+// MustLoad loads configuration and exits the process if required values are missing.
 func MustLoad() *Config {
 	cfg, err := Load()
+
 	if err != nil {
-		panic(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
 	}
+
 	return cfg
 }
 
@@ -101,6 +105,9 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	if cfg.IpayPaymentID, err = requireInt("IPAY_IPAY_PAYMENT_ID"); err != nil {
+		return nil, err
+	}
+	if cfg.RepaymentKey, err = requireString("IPAY_REPAYMENT_KEY"); err != nil {
 		return nil, err
 	}
 

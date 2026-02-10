@@ -26,6 +26,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 
@@ -83,11 +84,17 @@ func main() {
 	holdResponse, err := client.Hold(holdRequest)
 	// holdResponse, err := client.Hold(holdRequest, go_ipay.DryRun())
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Hold error: %v\n", err)
+		os.Exit(1)
+	}
+	if holdResponse == nil {
+		fmt.Fprintln(os.Stderr, "Hold error: empty response")
+		os.Exit(1)
 	}
 
-	if holdResponse.GetError() != nil {
-		panic(holdResponse.GetError())
+	if apiErr := holdResponse.GetError(); apiErr != nil {
+		fmt.Fprintf(os.Stderr, "Hold API error: %v\n", apiErr)
+		os.Exit(1)
 	}
 
 	fmt.Printf("Payment: %s is %s", uuidString, holdResponse.Status.String())

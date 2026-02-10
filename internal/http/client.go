@@ -168,7 +168,8 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 
 // logAndReturnError logs an error and optionally records it.
 func (c *Client) logAndReturnError(msg string, err error, logger *log.Logger, requestID string, tags map[string]string) error {
-	logger.Error(msg, "error", err)
+	// Logger is printf-style, not structured; include the error in the formatted message.
+	logger.Error("%s: %v", msg, err)
 	if c.recorder != nil {
 		ctx := context.WithValue(context.Background(), CtxKeyRequestID, requestID)
 		if recordErr := c.recorder.RecordError(ctx, nil, requestID, err, tags); recordErr != nil {

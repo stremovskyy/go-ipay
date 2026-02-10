@@ -27,8 +27,7 @@ package main
 import (
 	"fmt"
 	"os"
-
-	"github.com/google/uuid"
+	"strings"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
 	"github.com/stremovskyy/go-ipay/examples/internal/config"
@@ -40,41 +39,40 @@ func main() {
 	cfg := config.MustLoad()
 	client := go_ipay.NewDefaultClient()
 
-	merchant := &go_ipay.Merchant{
-		Name:            cfg.MerchantName,
-		MerchantID:      cfg.MerchantID,
-		SubMerchantID:   cfg.SubMerchantID,
-		MerchantKey:     cfg.MerchantKey,
-		SuccessRedirect: cfg.SuccessRedirect,
-		FailRedirect:    cfg.FailRedirect,
+	repaymentGUID := strings.TrimSpace(os.Getenv("IPAY_REPAYMENT_GUID"))
+	extID := strings.TrimSpace(os.Getenv("IPAY_REPAYMENT_EXT_ID"))
+
+	var guidPtr *string
+	if repaymentGUID != "" {
+		guidPtr = utils.Ref(repaymentGUID)
 	}
 
-	uuidString := uuid.New().String()
+	var extPtr *string
+	if extID != "" {
+		extPtr = utils.Ref(extID)
+	}
 
-	VerificationRequest := &go_ipay.Request{
-		Merchant: merchant,
-		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(cfg.IpayPaymentID)),
-			PaymentID:     utils.Ref(uuidString),
-			OrderID:       uuidString,
-			Description:   "Verification payment: " + uuidString,
-		},
-		PersonalData: &go_ipay.PersonalData{
-			UserID:    utils.Ref(123),
-			FirstName: utils.Ref("John"),
-			LastName:  utils.Ref("Doe"),
-			TaxID:     utils.Ref("1234567890"),
-		},
+	merchant := &go_ipay.Merchant{
+		Login:        cfg.Login,
+		RepaymentKey: cfg.RepaymentKey,
+	}
+
+	req := &go_ipay.GetRepaymentProcessingFileRequest{
+		Merchant:      merchant,
+		RepaymentGUID: guidPtr,
+		ExtID:         extPtr,
 	}
 
 	client.SetLogLevel(log.LevelDebug)
-	VerificationRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
 
-	tokenURL, err := client.VerificationLink(VerificationRequest)
+	raw, err := client.GetRepaymentProcessingFile(req)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "VerificationLink error: %v\n", err)
-		os.Exit(1)
+		fmt.Printf("GetRepaymentProcessingFile error: %v\n", err)
+		if len(raw) > 0 {
+			fmt.Printf("Raw response:\n%s\n", string(raw))
+		}
+		return
 	}
 
-	fmt.Println(tokenURL.String())
+	fmt.Printf("Processing CSV:\n%s\n", string(raw))
 }

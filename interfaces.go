@@ -29,6 +29,7 @@ import (
 
 	"github.com/stremovskyy/go-ipay/ipay"
 	"github.com/stremovskyy/go-ipay/log"
+	"github.com/stremovskyy/go-ipay/repayment"
 )
 
 type Ipay interface {
@@ -41,5 +42,9 @@ type Ipay interface {
 	Capture(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
 	Refund(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
 	Credit(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
+	CreateRepayment(request *CreateRepaymentRequest, opts ...RunOption) (*repayment.Response, error)
+	CancelRepayment(request *CancelRepaymentRequest, opts ...RunOption) (*repayment.Response, error)
+	GetRepaymentStatus(request *GetRepaymentStatusRequest, opts ...RunOption) (*repayment.Response, error)
+	GetRepaymentProcessingFile(request *GetRepaymentProcessingFileRequest, opts ...RunOption) ([]byte, error)
 	SetLogLevel(levelDebug log.Level)
 }

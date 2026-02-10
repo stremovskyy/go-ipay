@@ -22,70 +22,50 @@
  * SOFTWARE.
  */
 
-package go_ipay
+package repayment
 
 import (
-	"strconv"
+	"encoding/json"
+	"fmt"
 
-	"github.com/stremovskyy/go-ipay/internal/ipay"
+	"github.com/stremovskyy/go-ipay/internal/utils"
 )
 
-type Merchant struct {
-	// Merchant Name
-	Name string
-	// Merchant ID
-	MerchantID string
-	// Merchant Key
-	MerchantKey string
-	// System Key
-	SystemKey string
-	// RepaymentKey is the signing key for Repayment API
-	RepaymentKey string
-	// Sub Merchant ID
-	SubMerchantID int
-
-	// Login
-	Login string
-
-	// SuccessRedirect
-	SuccessRedirect string
-
-	// FailRedirect
-	FailRedirect string
-
-	signer ipay.Signer
+type ResponseWrapper struct {
+	Response Response `json:"response"`
 }
 
-func (m *Merchant) GetMerchantID() *int64 {
-	id, err := strconv.ParseInt(m.MerchantID, 10, 64)
+type Response struct {
+	RepaymentGUID   *string `json:"repayment_guid"`
+	ExtID           *string `json:"ext_id"`
+	Status          *int    `json:"status"`
+	Invoice         *int    `json:"invoice"`
+	Amount          *int    `json:"amount"`
+	MchID           *int64  `json:"mch_id"`
+	MchBalance      *int    `json:"mch_balance"`
+	SuccessPayments *int    `json:"success_payments"`
+	FailedPayments  *int    `json:"failed_payments"`
 
-	if err != nil {
+	Error *string `json:"error"`
+}
+
+func (r Response) GetError() error {
+	if r.Error == nil || *r.Error == "" {
 		return nil
 	}
 
-	return &id
+	return &APIError{Message: *r.Error}
 }
 
-func (m *Merchant) GetSign() ipay.Sign {
-	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.MerchantKey)
+func UnmarshalJSONResponse(data []byte) (*Response, error) {
+	if len(data) == 0 {
+		return &Response{Error: utils.Ref("empty response data")}, nil
 	}
 
-	return *m.signer.Sign(m.MerchantKey)
-}
-
-func (m *Merchant) GetMobileSign() ipay.MobileSign {
-	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.SystemKey)
+	var resp ResponseWrapper
+	if err := json.Unmarshal(data, &resp); err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response: %w", err)
 	}
 
-	return *m.signer.MobileSign(m.SystemKey)
-}
-
-func (m *Merchant) GetMobileLogin() *string {
-	if m.Login == "" {
-		return nil
-	}
-
-	return &m.Login
+	return &resp.Response, nil
 }

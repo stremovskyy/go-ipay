@@ -25,6 +25,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/google/uuid"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
@@ -75,8 +78,15 @@ func main() {
 
 	paymentResponse, err := client.PaymentURL(paymentRequest)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "PaymentURL error: %v\n", err)
+		os.Exit(1)
+	}
+	if paymentResponse == nil {
+		fmt.Fprintln(os.Stderr, "PaymentURL error: empty response")
+		os.Exit(1)
 	}
 
-	println(paymentResponse)
+	fmt.Printf("PID: %s\n", paymentResponse.PID)
+	fmt.Printf("Status: %d\n", paymentResponse.Status)
+	fmt.Printf("URL: %s\n", paymentResponse.URL)
 }

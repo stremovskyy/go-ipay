@@ -31,7 +31,6 @@ import (
 	"github.com/google/uuid"
 
 	go_ipay "github.com/stremovskyy/go-ipay"
-	"github.com/stremovskyy/go-ipay/currency"
 	"github.com/stremovskyy/go-ipay/examples/internal/config"
 	"github.com/stremovskyy/go-ipay/internal/utils"
 	"github.com/stremovskyy/go-ipay/log"
@@ -42,60 +41,41 @@ func main() {
 	client := go_ipay.NewDefaultClient()
 
 	merchant := &go_ipay.Merchant{
-		Name:            cfg.MerchantName,
-		MerchantID:      cfg.MerchantID,
-		Login:           cfg.Login,
-		MerchantKey:     cfg.MerchantKey,
-		SystemKey:       cfg.SystemKey,
-		SuccessRedirect: cfg.SuccessRedirect,
-		FailRedirect:    cfg.FailRedirect,
-		SubMerchantID:   cfg.SubMerchantID, // WARNING: SubMerchantID is required for mobile payments
+		MerchantID:   cfg.MerchantIDWithdraw,
+		Login:        cfg.Login,
+		RepaymentKey: cfg.RepaymentKey,
 	}
 
-	uuidString := uuid.New().String()
+	repaymentExtID := uuid.New().String()
 
-	holdRequest := &go_ipay.Request{
+	req := &go_ipay.CreateRepaymentRequest{
 		Merchant: merchant,
-		PaymentMethod: &go_ipay.PaymentMethod{
-			GoogleToken: utils.Ref(cfg.GoogleToken),
-		},
-		PaymentData: &go_ipay.PaymentData{
-			IpayPaymentID: utils.Ref(int64(cfg.IpayPaymentID)),
-			PaymentID:     utils.Ref(uuidString),
-			Amount:        100,
-			Currency:      currency.UAH,
-			OrderID:       uuidString,
-			Description:   "Test payment: " + uuidString,
-			IsMobile:      true,
-		},
-		PersonalData: &go_ipay.PersonalData{
-			UserID:    utils.Ref(123),
-			FirstName: utils.Ref("John"),
-			LastName:  utils.Ref("Doe"),
-			TaxID:     utils.Ref("1234567890"),
+		ExtID:    repaymentExtID,
+		Transactions: []go_ipay.RepaymentTransaction{
+			{
+				PmtID: int64(cfg.IpayPaymentID),
+				ExtID: uuid.New().String(),
+			},
 		},
 	}
 
 	client.SetLogLevel(log.LevelDebug)
 
-	holdRequest.SetWebhookURL(utils.Ref(cfg.WebhookURL))
-
-	holdResponse, err := client.Hold(holdRequest)
+	resp, err := client.CreateRepayment(req)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Hold error: %v\n", err)
-		os.Exit(1)
-	}
-	if holdResponse == nil {
-		fmt.Fprintln(os.Stderr, "Hold error: empty response")
+		fmt.Fprintf(os.Stderr, "CreateRepayment error: %v\n", err)
 		os.Exit(1)
 	}
 
-	if apiErr := holdResponse.GetError(); apiErr != nil {
-		fmt.Fprintf(os.Stderr, "Hold API error: %v\n", apiErr)
-		os.Exit(1)
+	fmt.Printf("Repayment GUID: %s\n", utils.SafeString(resp.RepaymentGUID))
+	fmt.Printf("Repayment ext_id: %s\n", utils.SafeString(resp.ExtID))
+	fmt.Printf("Status: %d\n", utils.SafeInt(resp.Status))
+	fmt.Printf("Invoice: %d\n", utils.SafeInt(resp.Invoice))
+	fmt.Printf("Amount: %d\n", utils.SafeInt(resp.Amount))
+	if resp.MchID != nil {
+		fmt.Printf("mch_id: %d\n", *resp.MchID)
 	}
-
-	status := holdResponse.GetPaymentStatus()
-
-	fmt.Printf("Payment: %s is %s", uuidString, status.String())
+	fmt.Printf("mch_balance: %d\n", utils.SafeInt(resp.MchBalance))
+	fmt.Printf("success_payments: %d\n", utils.SafeInt(resp.SuccessPayments))
+	fmt.Printf("failed_payments: %d\n", utils.SafeInt(resp.FailedPayments))
 }

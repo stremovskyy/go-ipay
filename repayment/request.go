@@ -22,70 +22,36 @@
  * SOFTWARE.
  */
 
-package go_ipay
+package repayment
 
-import (
-	"strconv"
+type Action string
 
-	"github.com/stremovskyy/go-ipay/internal/ipay"
+const (
+	ActionCreateRepayment            Action = "CreateRepayment"
+	ActionCancelRepayment            Action = "CancelRepayment"
+	ActionGetRepaymentStatus         Action = "GetRepaymentStatus"
+	ActionGetRepaymentProcessingFile Action = "GetRepaymentProcessingFile"
 )
 
-type Merchant struct {
-	// Merchant Name
-	Name string
-	// Merchant ID
-	MerchantID string
-	// Merchant Key
-	MerchantKey string
-	// System Key
-	SystemKey string
-	// RepaymentKey is the signing key for Repayment API
-	RepaymentKey string
-	// Sub Merchant ID
-	SubMerchantID int
+// RequestWrapper is the outer payload for Repayment API requests.
+// For CreateRepayment it is JSON-marshaled and sent as multipart/form-data field named "request".
+// For other actions it is sent as an application/json payload.
+type RequestWrapper struct {
+	Request Request `json:"request"`
 
-	// Login
-	Login string
-
-	// SuccessRedirect
-	SuccessRedirect string
-
-	// FailRedirect
-	FailRedirect string
-
-	signer ipay.Signer
+	// Operation is not part of the API payload; it is used for logging/recording.
+	Operation string `json:"-"`
 }
 
-func (m *Merchant) GetMerchantID() *int64 {
-	id, err := strconv.ParseInt(m.MerchantID, 10, 64)
-
-	if err != nil {
-		return nil
-	}
-
-	return &id
+type Request struct {
+	Auth   Auth   `json:"auth"`
+	Action Action `json:"action"`
+	Body   Body   `json:"body"`
 }
 
-func (m *Merchant) GetSign() ipay.Sign {
-	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.MerchantKey)
-	}
-
-	return *m.signer.Sign(m.MerchantKey)
-}
-
-func (m *Merchant) GetMobileSign() ipay.MobileSign {
-	if m.signer == nil {
-		m.signer = ipay.NewSigner(m.SystemKey)
-	}
-
-	return *m.signer.MobileSign(m.SystemKey)
-}
-
-func (m *Merchant) GetMobileLogin() *string {
-	if m.Login == "" {
-		return nil
-	}
-
-	return &m.Login
+type Body struct {
+	MchID         *int64  `json:"mch_id,omitempty"`
+	ExtID         *string `json:"ext_id,omitempty"`
+	SmchID        *int64  `json:"smch_id,omitempty"`
+	RepaymentGUID *string `json:"repayment_guid,omitempty"`
 }

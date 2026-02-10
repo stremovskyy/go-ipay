@@ -30,6 +30,7 @@ import (
 
 	"github.com/stremovskyy/go-ipay/ipay"
 	"github.com/stremovskyy/go-ipay/log"
+	"github.com/stremovskyy/go-ipay/repayment"
 )
 
 // RunOption controls the behavior of a single API call.
@@ -102,6 +103,16 @@ func defaultDryRunHandler(endpoint string, payload any) {
 		body := struct {
 			Operation string       `json:"operation"`
 			Request   ipay.Request `json:"request"`
+		}{
+			Operation: req.Operation,
+			Request:   req.Request,
+		}
+
+		dryRunLogger.Info("Dry run payload:\n%s", marshalIndent(body))
+	case *repayment.RequestWrapper:
+		body := struct {
+			Operation string            `json:"operation"`
+			Request   repayment.Request `json:"request"`
 		}{
 			Operation: req.Operation,
 			Request:   req.Request,
