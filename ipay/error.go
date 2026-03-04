@@ -87,6 +87,9 @@ func getErrorMessageA2CPay(code int) string {
 		621: "Issuer bank of recipient's card cannot process the transaction",
 		622: "Need to clarify recipient card details with issuing bank",
 		623: "Recipient's card blocked by issuing bank",
+		671: "Recipient or payer matches sanctions list of persons",
+		672: "Recipient or payer matches sanctions list of companies",
+		673: "Recipient or payer matches international terrorists list",
 		900: "Banker system error",
 		901: "Banker validation error",
 	}
