@@ -23,3 +23,21 @@ func TestGetStatusCode_Includes67CardCountryNotAllowed(t *testing.T) {
 		t.Fatalf("expected ExtCode 67, got %d", code.ExtCode)
 	}
 }
+
+func TestGetStatusCodeByExtCode(t *testing.T) {
+	code, found := GetStatusCodeByExtCode(42)
+	if !found {
+		t.Fatalf("expected ext code 42 to be found")
+	}
+
+	if code.Code != "42-insufficient_funds" {
+		t.Fatalf("unexpected code mapping %q", code.Code)
+	}
+}
+
+func TestGetStatusCodeByExtCode_NotFound(t *testing.T) {
+	_, found := GetStatusCodeByExtCode(999)
+	if found {
+		t.Fatalf("did not expect ext code 999 to be found")
+	}
+}

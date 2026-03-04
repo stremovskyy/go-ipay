@@ -146,3 +146,14 @@ func GetStatusCode(code StatusCode) (BankErrorStatusCode, bool) {
 	statusCode, found := statusCodes[code]
 	return statusCode, found
 }
+
+// GetStatusCodeByExtCode retrieves status code information by external numeric code.
+func GetStatusCodeByExtCode(extCode int) (BankErrorStatusCode, bool) {
+	for _, statusCode := range statusCodes {
+		if statusCode.ExtCode == extCode {
+			return statusCode, true
+		}
+	}
+
+	return BankErrorStatusCode{}, false
+}

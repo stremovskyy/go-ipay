@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/stremovskyy/go-ipay/internal/ipay"
@@ -167,14 +168,72 @@ func (r Response) GetError() error {
 	case PaymentStatusSecurityRefusal:
 		return createIpayError(900, "Payment Status: Security Refusal", "")
 	case PaymentStatusFailed:
+		if groupCode := responseBankErrorGroupCode(r); groupCode > 0 {
+			if statusCode, found := ipay.GetStatusCodeByExtCode(groupCode); found {
+				return createIpayError(
+					statusCode.ExtCode,
+					"Bank Error",
+					fmt.Sprintf("Reason: %s, Message: %s", statusCode.Reason, statusCode.Message),
+				)
+			}
+
+			return createIpayError(
+				groupCode,
+				"Payment Failed",
+				fmt.Sprintf("Bank Response Error Group: %d", groupCode),
+			)
+		}
+
 		details := "Payment failed for unknown reasons"
 		if r.Pmt != nil && r.Pmt.BnkErrorGroup != nil && r.Pmt.BnkErrorNote != nil {
 			details = fmt.Sprintf("Bank Error: %s, Group: %v", r.Pmt.BnkErrorNote, r.Pmt.BnkErrorGroup)
-		} else if r.BankResponse != nil && r.BankResponse.ErrorGroup != 0 {
-			details = fmt.Sprintf("Bank Response Error Group: %d", r.BankResponse.ErrorGroup)
 		}
 		return createIpayError(900, "Payment Failed", details)
 	}
 
 	return nil
+}
+
+func responseBankErrorGroupCode(r Response) int {
+	if r.Pmt != nil {
+		if code := parseErrorGroupCode(r.Pmt.BnkErrorGroup); code > 0 {
+			return code
+		}
+	}
+
+	if r.BankResponse != nil && r.BankResponse.ErrorGroup > 0 {
+		return r.BankResponse.ErrorGroup
+	}
+
+	return 0
+}
+
+func parseErrorGroupCode(raw interface{}) int {
+	switch v := raw.(type) {
+	case nil:
+		return 0
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case int32:
+		return int(v)
+	case float64:
+		return int(v)
+	case float32:
+		return int(v)
+	case string:
+		value, err := strconv.Atoi(strings.TrimSpace(v))
+		if err != nil {
+			return 0
+		}
+		return value
+	case *string:
+		if v == nil {
+			return 0
+		}
+		return parseErrorGroupCode(*v)
+	default:
+		return 0
+	}
 }
