@@ -127,6 +127,18 @@ var statusCodes = map[StatusCode]BankErrorStatusCode{
 		Message: "Payment declined by the bank. Recommended to contact your bank's hotline to clarify the reason for the refusal.",
 		ExtCode: 62,
 	},
+	"66-required_3ds": {
+		Code:    "66-required_3ds",
+		Reason:  "3DS verification required",
+		Message: "Payment declined by the bank. 3D Secure verification is required.",
+		ExtCode: 66,
+	},
+	"67-card_country_not_allowed": {
+		Code:    "67-card_country_not_allowed",
+		Reason:  "Foreign bank card is not allowed for this operation",
+		Message: "Operation declined because this foreign bank card is not allowed for this operation. Please use another payment card.",
+		ExtCode: 67,
+	},
 }
 
 // GetStatusCode retrieves status code information by its code.
