@@ -33,7 +33,6 @@ import (
 	"time"
 
 	"github.com/stremovskyy/go-ipay/internal/ipay"
-	"github.com/stremovskyy/go-ipay/internal/utils"
 )
 
 const (
@@ -127,14 +126,21 @@ func createIpayError(code int, message, details string) *IpayError {
 func (r Response) GetError() error {
 	// Check for general error messages
 	if r.Error != nil {
-		errorCode := 900
-		if r.ErrorCode != nil {
-			errorCode, _ = strconv.Atoi(*r.ErrorCode)
+		errorCode := parseGeneralErrorCode(r.ErrorCode)
+		errorMessage := strings.TrimSpace(*r.Error)
+		if errorMessage == "" {
+			errorMessage = "iPay General Error"
 		}
+
+		details := fmt.Sprintf("Error: %s", errorMessage)
+		if r.ErrorCode != nil && strings.TrimSpace(*r.ErrorCode) != "" {
+			details = fmt.Sprintf("%s, Code: %s", details, strings.TrimSpace(*r.ErrorCode))
+		}
+
 		return createIpayError(
 			errorCode,
-			"iPay General Error",
-			fmt.Sprintf("Error: %s, Code: %s", *r.Error, utils.SafeString(r.ErrorCode)),
+			errorMessage,
+			details,
 		)
 	}
 
@@ -192,6 +198,26 @@ func (r Response) GetError() error {
 	}
 
 	return nil
+}
+
+func parseGeneralErrorCode(code *string) int {
+	if code == nil {
+		return 900
+	}
+
+	raw := strings.TrimSpace(*code)
+	if raw == "" {
+		return 900
+	}
+
+	parsedCode, err := strconv.Atoi(raw)
+	if err != nil {
+		// Non-numeric error codes (e.g. U0, R01, P04) are textual transport codes.
+		// Keep fallback "system/general" numeric code for backward compatibility.
+		return 900
+	}
+
+	return parsedCode
 }
 
 func responseBankErrorGroupCode(r Response) int {

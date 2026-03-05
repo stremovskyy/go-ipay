@@ -106,3 +106,53 @@ func TestResponseGetError_FailedWithUnknownBankResponseGroup(t *testing.T) {
 		t.Fatalf("expected message %q, got %q", "Payment Failed", ipayErr.Message)
 	}
 }
+
+func TestResponseGetError_GeneralErrorUsesOriginalMessage(t *testing.T) {
+	rawErr := "a2c amount in request > c2a sum amount from pmt_id_in payments"
+	resp := Response{
+		Error: &rawErr,
+	}
+
+	err := resp.GetError()
+	if err == nil {
+		t.Fatalf("expected error for general response error")
+	}
+
+	var ipayErr *IpayError
+	if !errors.As(err, &ipayErr) {
+		t.Fatalf("expected *IpayError, got %T", err)
+	}
+
+	if ipayErr.Code != 900 {
+		t.Fatalf("expected code 900, got %d", ipayErr.Code)
+	}
+	if ipayErr.Message != rawErr {
+		t.Fatalf("expected message %q, got %q", rawErr, ipayErr.Message)
+	}
+}
+
+func TestResponseGetError_GeneralErrorTextCodeU0FallsBackTo900(t *testing.T) {
+	rawErr := "missing required field desc"
+	rawCode := "U0"
+	resp := Response{
+		Error:     &rawErr,
+		ErrorCode: &rawCode,
+	}
+
+	err := resp.GetError()
+	if err == nil {
+		t.Fatalf("expected error for general response error")
+	}
+
+	var ipayErr *IpayError
+	if !errors.As(err, &ipayErr) {
+		t.Fatalf("expected *IpayError, got %T", err)
+	}
+
+	if ipayErr.Code != 900 {
+		t.Fatalf("expected code 900 for non-numeric error code, got %d", ipayErr.Code)
+	}
+	if !strings.Contains(ipayErr.Details, "Code: U0") {
+		t.Fatalf("expected details to include raw error code, got %q", ipayErr.Details)
+	}
+}
