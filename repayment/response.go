@@ -27,6 +27,7 @@ package repayment
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/stremovskyy/go-ipay/internal/utils"
 )
@@ -62,10 +63,107 @@ func UnmarshalJSONResponse(data []byte) (*Response, error) {
 		return &Response{Error: utils.Ref("empty response data")}, nil
 	}
 
-	var resp ResponseWrapper
-	if err := json.Unmarshal(data, &resp); err != nil {
+	var raw struct {
+		Response struct {
+			RepaymentGUID   *string         `json:"repayment_guid"`
+			ExtID           *string         `json:"ext_id"`
+			Status          json.RawMessage `json:"status"`
+			Invoice         json.RawMessage `json:"invoice"`
+			Amount          json.RawMessage `json:"amount"`
+			MchID           json.RawMessage `json:"mch_id"`
+			MchBalance      json.RawMessage `json:"mch_balance"`
+			SuccessPayments json.RawMessage `json:"success_payments"`
+			FailedPayments  json.RawMessage `json:"failed_payments"`
+			Error           *string         `json:"error"`
+		} `json:"response"`
+	}
+
+	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response: %w", err)
 	}
 
-	return &resp.Response, nil
+	resp := &Response{
+		RepaymentGUID: raw.Response.RepaymentGUID,
+		ExtID:         raw.Response.ExtID,
+		Error:         raw.Response.Error,
+	}
+
+	var err error
+
+	resp.Status, err = parseOptionalInt(raw.Response.Status)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response status: %w", err)
+	}
+	resp.Invoice, err = parseOptionalInt(raw.Response.Invoice)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response invoice: %w", err)
+	}
+	resp.Amount, err = parseOptionalInt(raw.Response.Amount)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response amount: %w", err)
+	}
+	resp.MchID, err = parseOptionalInt64(raw.Response.MchID)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response mch_id: %w", err)
+	}
+	resp.MchBalance, err = parseOptionalInt(raw.Response.MchBalance)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response mch_balance: %w", err)
+	}
+	resp.SuccessPayments, err = parseOptionalInt(raw.Response.SuccessPayments)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response success_payments: %w", err)
+	}
+	resp.FailedPayments, err = parseOptionalInt(raw.Response.FailedPayments)
+	if err != nil {
+		return nil, fmt.Errorf("error unmarshalling repayment JSON response failed_payments: %w", err)
+	}
+
+	return resp, nil
+}
+
+func parseOptionalInt(raw json.RawMessage) (*int, error) {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil, nil
+	}
+
+	var value int
+	if err := json.Unmarshal(raw, &value); err == nil {
+		return &value, nil
+	}
+
+	var str string
+	if err := json.Unmarshal(raw, &str); err != nil {
+		return nil, fmt.Errorf("invalid int payload %q", string(raw))
+	}
+
+	value, err := strconv.Atoi(str)
+	if err != nil {
+		return nil, fmt.Errorf("invalid int string %q: %w", str, err)
+	}
+
+	return &value, nil
+}
+
+func parseOptionalInt64(raw json.RawMessage) (*int64, error) {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil, nil
+	}
+
+	var value int64
+	if err := json.Unmarshal(raw, &value); err == nil {
+		return &value, nil
+	}
+
+	var str string
+	if err := json.Unmarshal(raw, &str); err != nil {
+		return nil, fmt.Errorf("invalid int64 payload %q", string(raw))
+	}
+
+	value, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid int64 string %q: %w", str, err)
+	}
+
+	return &value, nil
 }
