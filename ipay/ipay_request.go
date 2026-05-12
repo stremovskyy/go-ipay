@@ -32,6 +32,8 @@ import (
 
 type Action string
 
+const ApplePayAPIVersion = 1.11
+
 // Action types for RequestWrapper
 const (
 	ActionCreateToken      Action = "CreateToken"
@@ -53,10 +55,11 @@ type RequestWrapper struct {
 
 // Request represents the main structure of a payment request.
 type Request struct {
-	Auth   Auth   `json:"auth"`           // Authentication details for the payment request.
-	Action Action `json:"action"`         // Specifies the action to be performed.
-	Body   Body   `json:"body"`           // Contains the core data of the payment request.
-	Lang   *Lang  `json:"lang,omitempty"` // Optional language setting for web pages (ua - Ukrainian, en - English).
+	Version *float64 `json:"version,omitempty"` // API version for APIs that require an explicit version.
+	Auth    Auth     `json:"auth"`              // Authentication details for the payment request.
+	Action  Action   `json:"action"`            // Specifies the action to be performed.
+	Body    Body     `json:"body"`              // Contains the core data of the payment request.
+	Lang    *Lang    `json:"lang,omitempty"`    // Optional language setting for web pages (ua - Ukrainian, en - English).
 }
 
 // Body encompasses the main content of the payment request.
@@ -65,6 +68,7 @@ type Body struct {
 	UrlGood        *string             `json:"url_good,omitempty"`        // Merchant's success URL.
 	UrlBad         *string             `json:"url_bad,omitempty"`         // Merchant's failure URL.
 	Info           *Info               `json:"info,omitempty"`            // Additional payment information.
+	PmtInfo        *Info               `json:"pmt_info,omitempty"`        // Additional Apple Pay payment information.
 	VerifyType     *string             `json:"verify_type,omitempty"`     // Verification type.
 	PmtId          *int64              `json:"pmt_id,omitempty"`          // Payment ID.
 	Transactions   RequestTransactions `json:"transactions,omitempty"`    // List of transactions.

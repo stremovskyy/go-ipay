@@ -25,6 +25,7 @@
 package go_ipay
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -291,18 +292,46 @@ func (r *Request) GetAppleContainer() (*string, error) {
 		return nil, fmt.Errorf("cannot decode Apple Container: %w", err)
 	}
 
-	var token map[string]interface{}
-	if errr := json.Unmarshal(decoded, &token); errr != nil {
-		return nil, fmt.Errorf("json unmarshal error: %w", errr)
-	}
-
-	outputJSON, err := json.Marshal(token["token"])
+	tokenJSON, err := applePaymentTokenJSON(decoded)
 	if err != nil {
-		return nil, fmt.Errorf("json marshal error: %w", err)
+		return nil, err
 	}
 
-	outputBase64 := base64.StdEncoding.EncodeToString(outputJSON)
+	outputBase64 := base64.StdEncoding.EncodeToString(tokenJSON)
 	return &outputBase64, nil
+}
+
+func applePaymentTokenJSON(decoded []byte) ([]byte, error) {
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(decoded, &envelope); err != nil {
+		return nil, fmt.Errorf("json unmarshal error: %w", err)
+	}
+
+	if tokenJSON, ok := envelope["token"]; ok {
+		return validatedApplePaymentTokenJSON(tokenJSON)
+	}
+
+	return validatedApplePaymentTokenJSON(decoded)
+}
+
+func validatedApplePaymentTokenJSON(raw []byte) ([]byte, error) {
+	raw = bytes.TrimSpace(raw)
+	if len(raw) == 0 || bytes.Equal(raw, []byte("null")) {
+		return nil, fmt.Errorf("Apple payment token is empty")
+	}
+
+	var token map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &token); err != nil {
+		return nil, fmt.Errorf("json unmarshal token error: %w", err)
+	}
+
+	for _, field := range []string{"paymentData", "paymentMethod", "transactionIdentifier"} {
+		if len(bytes.TrimSpace(token[field])) == 0 || bytes.Equal(bytes.TrimSpace(token[field]), []byte("null")) {
+			return nil, fmt.Errorf("Apple payment token missing %s", field)
+		}
+	}
+
+	return raw, nil
 }
 
 func (r *Request) IsApplePay() bool {

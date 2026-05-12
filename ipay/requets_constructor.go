@@ -456,6 +456,29 @@ func WithOperationOperation(op string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) { rw.Operation = op }
 }
 
+func WithApplePayPaymentCreateShape() func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		version := ApplePayAPIVersion
+		rw.Request.Version = &version
+		rw.Request.Lang = nil
+
+		if rw.Request.Body.PmtDesc == nil {
+			for i := range rw.Request.Body.Transactions {
+				if strings.TrimSpace(rw.Request.Body.Transactions[i].Desc) != "" {
+					desc := rw.Request.Body.Transactions[i].Desc
+					rw.Request.Body.PmtDesc = &desc
+					break
+				}
+			}
+		}
+
+		if rw.Request.Body.Info != nil {
+			rw.Request.Body.PmtInfo = rw.Request.Body.Info
+			rw.Request.Body.Info = nil
+		}
+	}
+}
+
 func WithRecurrent(use bool) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		rw.Request.Body.Recurrent = &use

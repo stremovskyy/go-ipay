@@ -27,7 +27,9 @@ package ipay
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strconv"
+	"strings"
 
 	"github.com/stremovskyy/go-ipay/internal/ipay"
 	"github.com/stremovskyy/go-ipay/internal/utils"
@@ -40,23 +42,82 @@ type ResponseWrapper struct {
 type Response struct {
 	Transactions []ResponseTransaction `json:"transactions"`
 
-	PmtId            interface{}      `json:"pmt_id"`
-	ExtId            *string          `json:"ext_id"`
-	Pmt              *Payment         `json:"pmt"`
-	Url              string           `json:"url"`
-	Salt             string           `json:"salt"`
-	Sign             string           `json:"sign"`
-	Status           *PaymentStatus   `json:"status"`
-	BnkErrorNote     *ipay.StatusCode `json:"bnk_error_note"`
-	ResAuthCode      int              `json:"res_auth_code"`
-	Error            *string          `json:"error"`
-	ErrorCode        *string          `json:"error_code"`
-	Invoice          interface{}      `json:"invoice"`
-	Amount           interface{}      `json:"amount"`
-	PmtStatus        *string          `json:"pmt_status"`
-	CardMask         *string          `json:"card_mask"`
-	BankResponse     *BankResponse    `json:"bank_response"`
-	BankAcquirerName *string          `json:"bank_acquirer_name"`
+	PmtId              interface{}      `json:"pmt_id"`
+	ExtId              *string          `json:"ext_id"`
+	Pmt                *Payment         `json:"pmt"`
+	Url                string           `json:"url"`
+	Salt               string           `json:"salt"`
+	Sign               string           `json:"sign"`
+	Status             *PaymentStatus   `json:"status"`
+	BnkErrorNote       *ipay.StatusCode `json:"bnk_error_note"`
+	ResAuthCode        int              `json:"res_auth_code"`
+	Error              *string          `json:"error"`
+	ErrorCode          *string          `json:"error_code"`
+	Invoice            interface{}      `json:"invoice"`
+	Amount             interface{}      `json:"amount"`
+	PmtStatus          *string          `json:"pmt_status"`
+	CardMask           *string          `json:"card_mask"`
+	BankResponse       *BankResponse    `json:"bank_response"`
+	BankAcquirerName   *string          `json:"bank_acquirer_name"`
+	SecurityRate       *string          `json:"security_rate"`
+	SecurityData       *SecurityData    `json:"security_data"`
+	ExpectedAMLFields  []string         `json:"expected_aml_fields"`
+	RecurrentToken     *string          `json:"recurrent_token"`
+	RRN                *string          `json:"rrn"`
+	TerminalID         *string          `json:"terminal_id"`
+	TerminalMerchantID *string          `json:"terminal_merchant_id"`
+	AuthCode           *string          `json:"auth_code"`
+	MchAmount          []MchAmount      `json:"mch_amount"`
+}
+
+type SecurityData struct {
+	RedirectURL *string `json:"redirect_url"`
+}
+
+type MchAmount struct {
+	SmchID *string `json:"smch_id"`
+	Amount *string `json:"amount"`
+}
+
+func (r *Response) UnmarshalJSON(data []byte) error {
+	type responseAlias Response
+	var aux struct {
+		*responseAlias
+		PmtStatus json.RawMessage `json:"pmt_status"`
+	}
+
+	aux.responseAlias = (*responseAlias)(r)
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	status, err := parseFlexibleString(aux.PmtStatus)
+	if err != nil {
+		return fmt.Errorf("pmt_status: %w", err)
+	}
+	r.PmtStatus = status
+
+	return nil
+}
+
+func parseFlexibleString(raw json.RawMessage) (*string, error) {
+	rawText := strings.TrimSpace(string(raw))
+	if rawText == "" || rawText == "null" {
+		return nil, nil
+	}
+
+	var asString string
+	if err := json.Unmarshal(raw, &asString); err == nil {
+		return &asString, nil
+	}
+
+	var asNumber json.Number
+	if err := json.Unmarshal(raw, &asNumber); err == nil {
+		value := asNumber.String()
+		return &value, nil
+	}
+
+	return nil, fmt.Errorf("expected string or number, got %s", rawText)
 }
 
 func (p *Response) PrettyPrint() {
@@ -211,8 +272,40 @@ func (r Response) getInt64FromInterface(value interface{}) int64 {
 	}
 
 	switch v := value.(type) {
-	case int, int64, float64:
-		return int64(v.(float64))
+	case int:
+		return int64(v)
+	case int8:
+		return int64(v)
+	case int16:
+		return int64(v)
+	case int32:
+		return int64(v)
+	case int64:
+		return v
+	case uint:
+		return int64(v)
+	case uint8:
+		return int64(v)
+	case uint16:
+		return int64(v)
+	case uint32:
+		return int64(v)
+	case uint64:
+		if v > math.MaxInt64 {
+			return 0
+		}
+		return int64(v)
+	case float32:
+		return int64(v)
+	case float64:
+		return int64(v)
+	case json.Number:
+		if i, err := v.Int64(); err == nil {
+			return i
+		}
+		if f, err := strconv.ParseFloat(v.String(), 64); err == nil {
+			return int64(f)
+		}
 	case string:
 		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
 			return i
@@ -235,6 +328,7 @@ func (r Response) InvoiceAmountInt64() int64 {
 
 type ResponseTransaction struct {
 	TrnId    *int    `json:"trn_id"`
+	SmchID   *int    `json:"smch_id"`
 	SmchRr   *int    `json:"smch_rr"`
 	SmchMfo  *int    `json:"smch_mfo"`
 	SmchOkpo *int    `json:"smch_okpo"`

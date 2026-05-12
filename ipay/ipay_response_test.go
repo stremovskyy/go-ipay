@@ -1,0 +1,178 @@
+package ipay
+
+import (
+	"reflect"
+	"testing"
+)
+
+func TestUnmarshalJSONResponseApplePayNumericPmtStatus(t *testing.T) {
+	raw := []byte(`{
+		"response": {
+			"pmt_id": 1234567,
+			"invoice": 100,
+			"amount": 100,
+			"pmt_status": 1,
+			"security_rate": "3D",
+			"security_data": {
+				"redirect_url": "https://example.com/acs"
+			},
+			"expected_aml_fields": ["sender.firstname", "receiver.lastname"],
+			"recurrent_token": "recurrent-token",
+			"rrn": "rrn-123",
+			"terminal_id": "terminal-123",
+			"terminal_merchant_id": "terminal-merchant-123",
+			"auth_code": "auth-123",
+			"mch_amount": [
+				{"smch_id": "112233", "amount": "100"}
+			],
+			"transactions": [
+				{"trn_id": 7654321, "smch_id": 112233, "invoice": 100, "amount": 100}
+			]
+		}
+	}`)
+
+	resp, err := UnmarshalJSONResponse(raw)
+	if err != nil {
+		t.Fatalf("UnmarshalJSONResponse() error: %v", err)
+	}
+	if got := resp.GetPaymentStatus(); got != PaymentStatusRegistered {
+		t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusRegistered)
+	}
+	if got := resp.PmtIdInt64(); got != 1234567 {
+		t.Fatalf("PmtIdInt64() = %d, want 1234567", got)
+	}
+
+	assertStringPointerField(t, resp, "SecurityRate", "3D")
+	assertNestedStringPointerField(t, resp, "SecurityData", "RedirectURL", "https://example.com/acs")
+	assertStringSliceField(t, resp, "ExpectedAMLFields", []string{"sender.firstname", "receiver.lastname"})
+	assertStringPointerField(t, resp, "RecurrentToken", "recurrent-token")
+	assertStringPointerField(t, resp, "RRN", "rrn-123")
+	assertStringPointerField(t, resp, "TerminalID", "terminal-123")
+	assertStringPointerField(t, resp, "TerminalMerchantID", "terminal-merchant-123")
+	assertStringPointerField(t, resp, "AuthCode", "auth-123")
+	assertMchAmountField(t, resp)
+	assertTransactionSmchIDField(t, resp)
+}
+
+func TestUnmarshalJSONResponseApplePayStringPmtStatus(t *testing.T) {
+	resp, err := UnmarshalJSONResponse([]byte(`{"response":{"pmt_id":"1234567","pmt_status":"5"}}`))
+	if err != nil {
+		t.Fatalf("UnmarshalJSONResponse() error: %v", err)
+	}
+	if got := resp.GetPaymentStatus(); got != PaymentStatusSuccess {
+		t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusSuccess)
+	}
+}
+
+func TestResponseNumericHelpersAcceptManualIntegerTypes(t *testing.T) {
+	resp := Response{
+		PmtId:   int64(1234567),
+		Invoice: int(100),
+		Amount:  int64(125),
+	}
+
+	if got := resp.PmtIdInt64(); got != 1234567 {
+		t.Fatalf("PmtIdInt64() = %d, want 1234567", got)
+	}
+	if got := resp.InvoiceAmountInt64(); got != 100 {
+		t.Fatalf("InvoiceAmountInt64() = %d, want 100", got)
+	}
+	if got := resp.AmountInt64(); got != 125 {
+		t.Fatalf("AmountInt64() = %d, want 125", got)
+	}
+}
+
+func assertStringPointerField(t *testing.T, resp *Response, fieldName string, want string) {
+	t.Helper()
+
+	field := responseField(t, resp, fieldName)
+	if field.IsNil() {
+		t.Fatalf("%s is nil, want %q", fieldName, want)
+	}
+	if got := field.Elem().String(); got != want {
+		t.Fatalf("%s = %q, want %q", fieldName, got, want)
+	}
+}
+
+func assertNestedStringPointerField(t *testing.T, resp *Response, fieldName string, nestedFieldName string, want string) {
+	t.Helper()
+
+	field := responseField(t, resp, fieldName)
+	if field.IsNil() {
+		t.Fatalf("%s is nil, want nested %s=%q", fieldName, nestedFieldName, want)
+	}
+
+	nested := field.Elem().FieldByName(nestedFieldName)
+	if !nested.IsValid() {
+		t.Fatalf("%s.%s field is missing", fieldName, nestedFieldName)
+	}
+	if nested.IsNil() {
+		t.Fatalf("%s.%s is nil, want %q", fieldName, nestedFieldName, want)
+	}
+	if got := nested.Elem().String(); got != want {
+		t.Fatalf("%s.%s = %q, want %q", fieldName, nestedFieldName, got, want)
+	}
+}
+
+func assertStringSliceField(t *testing.T, resp *Response, fieldName string, want []string) {
+	t.Helper()
+
+	field := responseField(t, resp, fieldName)
+	if field.Len() != len(want) {
+		t.Fatalf("len(%s) = %d, want %d", fieldName, field.Len(), len(want))
+	}
+	for i := range want {
+		if got := field.Index(i).String(); got != want[i] {
+			t.Fatalf("%s[%d] = %q, want %q", fieldName, i, got, want[i])
+		}
+	}
+}
+
+func assertMchAmountField(t *testing.T, resp *Response) {
+	t.Helper()
+
+	field := responseField(t, resp, "MchAmount")
+	if field.Len() != 1 {
+		t.Fatalf("len(MchAmount) = %d, want 1", field.Len())
+	}
+
+	row := field.Index(0)
+	smchID := row.FieldByName("SmchID")
+	amount := row.FieldByName("Amount")
+	if !smchID.IsValid() || !amount.IsValid() {
+		t.Fatalf("MchAmount row fields are missing: %#v", row)
+	}
+	if smchID.IsNil() || smchID.Elem().String() != "112233" {
+		t.Fatalf("MchAmount[0].SmchID = %#v, want 112233", smchID)
+	}
+	if amount.IsNil() || amount.Elem().String() != "100" {
+		t.Fatalf("MchAmount[0].Amount = %#v, want 100", amount)
+	}
+}
+
+func assertTransactionSmchIDField(t *testing.T, resp *Response) {
+	t.Helper()
+
+	if len(resp.Transactions) != 1 {
+		t.Fatalf("len(Transactions) = %d, want 1", len(resp.Transactions))
+	}
+
+	field := reflect.ValueOf(resp.Transactions[0]).FieldByName("SmchID")
+	if !field.IsValid() {
+		t.Fatalf("ResponseTransaction.SmchID field is missing")
+	}
+	if field.IsNil() || int(field.Elem().Int()) != 112233 {
+		t.Fatalf("Transactions[0].SmchID = %#v, want 112233", field)
+	}
+}
+
+func responseField(t *testing.T, resp *Response, fieldName string) reflect.Value {
+	t.Helper()
+
+	field := reflect.ValueOf(resp).Elem().FieldByName(fieldName)
+	if !field.IsValid() {
+		t.Fatalf("Response.%s field is missing", fieldName)
+	}
+
+	return field
+}

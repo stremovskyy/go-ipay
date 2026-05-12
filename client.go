@@ -241,6 +241,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 
 		}
 
+		common = append(common, ipay.WithApplePayPaymentCreateShape())
 		apiFunc = c.ipayClient.ApplePayApi
 		endpoint = consts.ApplePayUrl
 
