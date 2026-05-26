@@ -64,37 +64,74 @@ func TestUnmarshalJSONResponseApplePayStringPmtStatus(t *testing.T) {
 	}
 }
 
-func TestUnmarshalJSONResponseToleratesStructuredExtID(t *testing.T) {
-	resp, err := UnmarshalJSONResponse([]byte(`{
-		"response": {
-			"ext_id": {
-				"ext_id": "56bff39a-e594-4f17-b7be-6096bb5c2b50",
-				"mch_id": "4767",
-				"pmt_id": "1108174424"
-			},
-			"pmt_id": "1108174424",
-			"pmt_status": "3",
-			"invoice": "100",
-			"amount": "100"
-		}
-	}`))
-	if err != nil {
-		t.Fatalf("UnmarshalJSONResponse() error: %v", err)
+func TestUnmarshalJSONResponseExtIDCompatibilityShapes(t *testing.T) {
+	tests := []struct {
+		name  string
+		extID string
+		want  *string
+	}{
+		{
+			name:  "legacy string ext_id",
+			extID: `"56bff39a-e594-4f17-b7be-6096bb5c2b50"`,
+			want:  refString("56bff39a-e594-4f17-b7be-6096bb5c2b50"),
+		},
+		{
+			name:  "numeric ext_id",
+			extID: `1108174424`,
+			want:  refString("1108174424"),
+		},
+		{
+			name:  "structured ext_id",
+			extID: `{"ext_id":"56bff39a-e594-4f17-b7be-6096bb5c2b50","mch_id":"4767","pmt_id":"1108174424"}`,
+			want:  refString("56bff39a-e594-4f17-b7be-6096bb5c2b50"),
+		},
+		{
+			name:  "structured numeric ext_id",
+			extID: `{"ext_id":1108174424,"mch_id":"4767","pmt_id":"1108174424"}`,
+			want:  refString("1108174424"),
+		},
+		{
+			name:  "null ext_id",
+			extID: `null`,
+			want:  nil,
+		},
+		{
+			name:  "unsupported structured ext_id",
+			extID: `{"mch_id":"4767","pmt_id":"1108174424"}`,
+			want:  nil,
+		},
 	}
-	if resp.ExtId == nil || *resp.ExtId != "56bff39a-e594-4f17-b7be-6096bb5c2b50" {
-		t.Fatalf("ExtId = %v, want nested ext_id", resp.ExtId)
-	}
-	if got := resp.PmtIdInt64(); got != 1108174424 {
-		t.Fatalf("PmtIdInt64() = %d, want 1108174424", got)
-	}
-	if got := resp.GetPaymentStatus(); got != PaymentStatusPreAuthorized {
-		t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusPreAuthorized)
-	}
-	if got := resp.InvoiceAmountInt64(); got != 100 {
-		t.Fatalf("InvoiceAmountInt64() = %d, want 100", got)
-	}
-	if got := resp.AmountInt64(); got != 100 {
-		t.Fatalf("AmountInt64() = %d, want 100", got)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := UnmarshalJSONResponse([]byte(`{
+				"response": {
+					"ext_id": ` + tt.extID + `,
+					"pmt_id": "1108174424",
+					"pmt_status": "3",
+					"invoice": "100",
+					"amount": "100"
+				}
+			}`))
+			if err != nil {
+				t.Fatalf("UnmarshalJSONResponse() error: %v", err)
+			}
+			if !sameStringPointer(resp.ExtId, tt.want) {
+				t.Fatalf("ExtId = %v, want %v", resp.ExtId, tt.want)
+			}
+			if got := resp.PmtIdInt64(); got != 1108174424 {
+				t.Fatalf("PmtIdInt64() = %d, want 1108174424", got)
+			}
+			if got := resp.GetPaymentStatus(); got != PaymentStatusPreAuthorized {
+				t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusPreAuthorized)
+			}
+			if got := resp.InvoiceAmountInt64(); got != 100 {
+				t.Fatalf("InvoiceAmountInt64() = %d, want 100", got)
+			}
+			if got := resp.AmountInt64(); got != 100 {
+				t.Fatalf("AmountInt64() = %d, want 100", got)
+			}
+		})
 	}
 }
 
@@ -209,4 +246,16 @@ func responseField(t *testing.T, resp *Response, fieldName string) reflect.Value
 	}
 
 	return field
+}
+
+func refString(value string) *string {
+	return &value
+}
+
+func sameStringPointer(got *string, want *string) bool {
+	if got == nil || want == nil {
+		return got == want
+	}
+
+	return *got == *want
 }
