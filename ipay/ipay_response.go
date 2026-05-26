@@ -83,6 +83,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	type responseAlias Response
 	var aux struct {
 		*responseAlias
+		ExtId     json.RawMessage `json:"ext_id"`
 		PmtStatus json.RawMessage `json:"pmt_status"`
 	}
 
@@ -96,8 +97,29 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 		return fmt.Errorf("pmt_status: %w", err)
 	}
 	r.PmtStatus = status
+	r.ExtId = parseFlexibleExtID(aux.ExtId)
 
 	return nil
+}
+
+func parseFlexibleExtID(raw json.RawMessage) *string {
+	if value, err := parseFlexibleString(raw); err == nil {
+		return value
+	}
+
+	var structured struct {
+		ExtID json.RawMessage `json:"ext_id"`
+	}
+	if err := json.Unmarshal(raw, &structured); err != nil {
+		return nil
+	}
+
+	value, err := parseFlexibleString(structured.ExtID)
+	if err != nil {
+		return nil
+	}
+
+	return value
 }
 
 func parseFlexibleString(raw json.RawMessage) (*string, error) {

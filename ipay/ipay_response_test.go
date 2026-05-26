@@ -64,6 +64,40 @@ func TestUnmarshalJSONResponseApplePayStringPmtStatus(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJSONResponseToleratesStructuredExtID(t *testing.T) {
+	resp, err := UnmarshalJSONResponse([]byte(`{
+		"response": {
+			"ext_id": {
+				"ext_id": "56bff39a-e594-4f17-b7be-6096bb5c2b50",
+				"mch_id": "4767",
+				"pmt_id": "1108174424"
+			},
+			"pmt_id": "1108174424",
+			"pmt_status": "3",
+			"invoice": "100",
+			"amount": "100"
+		}
+	}`))
+	if err != nil {
+		t.Fatalf("UnmarshalJSONResponse() error: %v", err)
+	}
+	if resp.ExtId == nil || *resp.ExtId != "56bff39a-e594-4f17-b7be-6096bb5c2b50" {
+		t.Fatalf("ExtId = %v, want nested ext_id", resp.ExtId)
+	}
+	if got := resp.PmtIdInt64(); got != 1108174424 {
+		t.Fatalf("PmtIdInt64() = %d, want 1108174424", got)
+	}
+	if got := resp.GetPaymentStatus(); got != PaymentStatusPreAuthorized {
+		t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusPreAuthorized)
+	}
+	if got := resp.InvoiceAmountInt64(); got != 100 {
+		t.Fatalf("InvoiceAmountInt64() = %d, want 100", got)
+	}
+	if got := resp.AmountInt64(); got != 100 {
+		t.Fatalf("AmountInt64() = %d, want 100", got)
+	}
+}
+
 func TestResponseNumericHelpersAcceptManualIntegerTypes(t *testing.T) {
 	resp := Response{
 		PmtId:   int64(1234567),
