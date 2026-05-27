@@ -79,6 +79,21 @@ type MchAmount struct {
 	Amount *string `json:"amount"`
 }
 
+func (m *MchAmount) UnmarshalJSON(data []byte) error {
+	var aux struct {
+		SmchID json.RawMessage `json:"smch_id"`
+		Amount json.RawMessage `json:"amount"`
+	}
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	m.SmchID = parseFlexibleStringOrNil(aux.SmchID)
+	m.Amount = parseFlexibleStringOrNil(aux.Amount)
+
+	return nil
+}
+
 func (r *Response) UnmarshalJSON(data []byte) error {
 	type responseAlias Response
 	var aux struct {
@@ -100,6 +115,15 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	r.ExtId = parseFlexibleExtID(aux.ExtId)
 
 	return nil
+}
+
+func parseFlexibleStringOrNil(raw json.RawMessage) *string {
+	value, err := parseFlexibleString(raw)
+	if err != nil {
+		return nil
+	}
+
+	return value
 }
 
 func parseFlexibleExtID(raw json.RawMessage) *string {

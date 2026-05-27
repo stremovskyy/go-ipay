@@ -135,6 +135,75 @@ func TestUnmarshalJSONResponseExtIDCompatibilityShapes(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJSONResponseMchAmountCompatibilityShapes(t *testing.T) {
+	tests := []struct {
+		name       string
+		mchAmount  string
+		wantSmchID *string
+		wantAmount *string
+	}{
+		{
+			name:       "sentry mobile payment numeric amount",
+			mchAmount:  `[{"smch_id":"13581","amount":97}]`,
+			wantSmchID: refString("13581"),
+			wantAmount: refString("97"),
+		},
+		{
+			name:       "legacy string amount",
+			mchAmount:  `[{"smch_id":"112233","amount":"100"}]`,
+			wantSmchID: refString("112233"),
+			wantAmount: refString("100"),
+		},
+		{
+			name:       "numeric smch id and amount",
+			mchAmount:  `[{"smch_id":13581,"amount":97}]`,
+			wantSmchID: refString("13581"),
+			wantAmount: refString("97"),
+		},
+		{
+			name:       "null fields",
+			mchAmount:  `[{"smch_id":null,"amount":null}]`,
+			wantSmchID: nil,
+			wantAmount: nil,
+		},
+		{
+			name:       "unsupported object fields",
+			mchAmount:  `[{"smch_id":{"id":"13581"},"amount":{"value":97}}]`,
+			wantSmchID: nil,
+			wantAmount: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := UnmarshalJSONResponse([]byte(`{
+				"response": {
+					"pmt_id": "1108644127",
+					"pmt_status": "5",
+					"invoice": "97",
+					"amount": "97",
+					"mch_amount": ` + tt.mchAmount + `
+				}
+			}`))
+			if err != nil {
+				t.Fatalf("UnmarshalJSONResponse() error: %v", err)
+			}
+			if len(resp.MchAmount) != 1 {
+				t.Fatalf("len(MchAmount) = %d, want 1", len(resp.MchAmount))
+			}
+			if !sameStringPointer(resp.MchAmount[0].SmchID, tt.wantSmchID) {
+				t.Fatalf("MchAmount[0].SmchID = %v, want %v", resp.MchAmount[0].SmchID, tt.wantSmchID)
+			}
+			if !sameStringPointer(resp.MchAmount[0].Amount, tt.wantAmount) {
+				t.Fatalf("MchAmount[0].Amount = %v, want %v", resp.MchAmount[0].Amount, tt.wantAmount)
+			}
+			if got := resp.GetPaymentStatus(); got != PaymentStatusSuccess {
+				t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusSuccess)
+			}
+		})
+	}
+}
+
 func TestResponseNumericHelpersAcceptManualIntegerTypes(t *testing.T) {
 	resp := Response{
 		PmtId:   int64(1234567),
