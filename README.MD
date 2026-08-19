@@ -13,7 +13,7 @@ A Go client library for the iPay.ua Payment Gateway API. This library provides a
 - Comprehensive error handling
 - Full iPay.ua API coverage
 - Thread-safe client implementation
-- Configurable timeout and retry options
+- Configurable HTTP client and timeouts
 - Detailed logging support
 
 ## Installation
@@ -61,26 +61,54 @@ The client can be configured with various options:
 
 ```go
 client := go_ipay.NewClient(
-    WithTimeout(time.Second * 30),
-    WithRetryAttempts(3),
-    WithLogger(customLogger),
+    go_ipay.WithClient(&http.Client{Timeout: 30 * time.Second}),
 )
 ```
 
 ## Error Handling
 
-The library provides detailed error types for better error handling:
+The `ipay` package exposes typed transport, HTTP-response, decode, and provider
+business errors. Use `errors.Is` for error kinds and `errors.As` for diagnostic
+metadata. Diagnostic response bodies are bounded and are deliberately excluded
+from `Error()`.
 
 ```go
+import (
+    "errors"
+
+    go_ipay "github.com/stremovskyy/go-ipay"
+    "github.com/stremovskyy/go-ipay/ipay"
+)
+
 if err != nil {
-    switch e := err.(type) {
-    case *go_ipay.ValidationError:
-        // Handle validation error
-    case *go_ipay.APIError:
-        // Handle API error
-    default:
-        // Handle other errors
+    var providerErr *ipay.IpayError
+    var responseErr *ipay.UnexpectedResponseError
+
+    switch {
+    case errors.As(err, &providerErr):
+        // A structured business response from iPay.
+    case errors.As(err, &responseErr):
+        // Inspect status/content type/request ID; do not log responseErr.Body.
+    case errors.Is(err, ipay.ErrTransport):
+        // The HTTP exchange failed.
+    case errors.Is(err, ipay.ErrDecode):
+        // The response looked like JSON but was malformed.
     }
+}
+```
+
+An `A2CPay` transport or response failure may leave the payout outcome unknown.
+Never retry it automatically. Reconcile the original `ext_id` with
+`A2CPaymentStatus` first:
+
+```go
+response, err := client.Credit(request)
+if ipay.RequiresA2CStatusCheck(err) {
+    extID := request.PaymentData.PaymentID
+    response, err = client.A2CPaymentStatus(&go_ipay.Request{
+        Merchant: request.Merchant,
+        PaymentData: &go_ipay.PaymentData{PaymentID: extID},
+    })
 }
 ```
 

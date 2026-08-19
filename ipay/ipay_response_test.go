@@ -1,6 +1,7 @@
 package ipay
 
 import (
+	"math"
 	"reflect"
 	"testing"
 )
@@ -219,6 +220,17 @@ func TestResponseNumericHelpersAcceptManualIntegerTypes(t *testing.T) {
 	}
 	if got := resp.AmountInt64(); got != 125 {
 		t.Fatalf("AmountInt64() = %d, want 125", got)
+	}
+}
+
+func TestResponseNumericHelpersRejectOverflowingUint(t *testing.T) {
+	if uint64(^uint(0)) <= math.MaxInt64 {
+		t.Skip("uint cannot exceed int64 on this architecture")
+	}
+
+	resp := Response{PmtId: ^uint(0)}
+	if got := resp.PmtIdInt64(); got != 0 {
+		t.Fatalf("PmtIdInt64() = %d, want 0 for overflowing uint", got)
 	}
 }
 

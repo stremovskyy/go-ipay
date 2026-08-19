@@ -115,6 +115,20 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
+	if apiRequest == nil {
+		return nil, c.logAndReturnError(
+			"request is nil",
+			fmt.Errorf("ipay request is nil"),
+			logger,
+			requestID,
+			nil,
+		)
+	}
+
+	action := apiRequest.Request.Action
+	operation := apiRequest.Operation
+	const method = http.MethodPost
+
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
 		return nil, c.logAndReturnError("cannot marshal request", err, logger, requestID, nil)
@@ -125,7 +139,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	ctx := context.WithValue(context.Background(), CtxKeyRequestID, requestID)
 	tags := tagsRetriever(apiRequest)
 
-	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(method, apiURL, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, c.logAndReturnError("cannot create request", err, logger, requestID, tags)
 	}
@@ -138,29 +152,232 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 		}
 	}
 
+	if c.client == nil {
+		transportErr := &ipay.TransportError{
+			Op:        "http.client",
+			Action:    action,
+			Operation: operation,
+			Method:    method,
+			Endpoint:  apiURL,
+			RequestID: requestID,
+			Cause:     fmt.Errorf("http client is nil"),
+		}
+
+		return nil, c.logAndReturnError(
+			"cannot send request",
+			transportErr,
+			logger,
+			requestID,
+			errorTags(tags, "transport"),
+		)
+	}
+
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot send request", err, logger, requestID, tags)
+		transportErr := &ipay.TransportError{
+			Op:             "http.do",
+			Action:         action,
+			Operation:      operation,
+			Method:         method,
+			Endpoint:       apiURL,
+			RequestID:      requestID,
+			OutcomeUnknown: true,
+			Cause:          err,
+		}
+
+		return nil, c.logAndReturnError(
+			"cannot send request",
+			transportErr,
+			logger,
+			requestID,
+			errorTags(tags, "transport"),
+		)
+	}
+	if resp == nil {
+		responseErr := &ipay.UnexpectedResponseError{
+			Op:             "http.do",
+			Action:         action,
+			Operation:      operation,
+			Method:         method,
+			Endpoint:       apiURL,
+			RequestID:      requestID,
+			Message:        "response is nil",
+			OutcomeUnknown: true,
+		}
+
+		return nil, c.logAndReturnError(
+			"invalid response",
+			responseErr,
+			logger,
+			requestID,
+			errorTags(tags, "unexpected_response"),
+		)
+	}
+	if resp.Body == nil {
+		responseErr := &ipay.UnexpectedResponseError{
+			Op:             "response.validate",
+			Action:         action,
+			Operation:      operation,
+			Method:         method,
+			Endpoint:       apiURL,
+			RequestID:      requestID,
+			StatusCode:     resp.StatusCode,
+			ContentType:    responseContentType(resp),
+			Message:        "response body is nil",
+			OutcomeUnknown: true,
+		}
+		tagsWithResponse := responseTags(tags, resp)
+
+		return nil, c.logAndReturnError(
+			"invalid response",
+			responseErr,
+			logger,
+			requestID,
+			errorTags(tagsWithResponse, "unexpected_response"),
+		)
 	}
 	defer c.safeClose(resp.Body, logger)
 
-	raw, err := io.ReadAll(resp.Body)
+	tagsWithResponse := responseTags(tags, resp)
+	raw, tooLarge, err := readBoundedResponseBody(resp.Body)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot read response", err, logger, requestID, tags)
+		if c.recorder != nil {
+			if errr := c.recorder.RecordResponse(ctx, nil, requestID, raw, tagsWithResponse); errr != nil {
+				logger.Error("%s: cannot record response %v", "error", errr)
+			}
+		}
+
+		transportErr := &ipay.TransportError{
+			Op:             "response.read",
+			Action:         action,
+			Operation:      operation,
+			Method:         method,
+			Endpoint:       apiURL,
+			RequestID:      requestID,
+			StatusCode:     resp.StatusCode,
+			ContentType:    responseContentType(resp),
+			Body:           diagnosticResponseBody(raw),
+			OutcomeUnknown: true,
+			Cause:          err,
+		}
+
+		return nil, c.logAndReturnError(
+			"cannot read response",
+			transportErr,
+			logger,
+			requestID,
+			errorTags(responseTags(tags, resp), "transport"),
+		)
 	}
 
-	logger.Debug("Response: %v", string(raw))
+	logger.Debug("Response body: %d bytes", len(raw))
 	logger.Debug("Response status: %v", resp.StatusCode)
+	if tooLarge {
+		tagsWithResponse["response_truncated"] = "true"
+	}
 
 	if c.recorder != nil {
-		if errr := c.recorder.RecordResponse(ctx, nil, requestID, raw, tags); errr != nil {
+		if errr := c.recorder.RecordResponse(ctx, nil, requestID, raw, tagsWithResponse); errr != nil {
 			logger.Error("%s: cannot record response %v", "error", errr)
 		}
 	}
 
+	responseContext := ipay.UnexpectedResponseError{
+		Action:         action,
+		Operation:      operation,
+		Method:         method,
+		Endpoint:       apiURL,
+		RequestID:      requestID,
+		StatusCode:     resp.StatusCode,
+		ContentType:    responseContentType(resp),
+		Body:           diagnosticResponseBody(raw),
+		OutcomeUnknown: true,
+	}
+
+	if tooLarge {
+		responseContext.Op = "response.read"
+		responseContext.Message = fmt.Sprintf("response exceeds %d bytes", maxResponseBodyBytes)
+
+		return nil, c.logAndReturnError(
+			"response too large",
+			&responseContext,
+			logger,
+			requestID,
+			errorTags(tagsWithResponse, "unexpected_response"),
+		)
+	}
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		responseContext.Op = "response.status"
+		responseContext.Message = "unexpected HTTP status"
+		if isLikelyIPayJSONResponse(raw) {
+			if parsed, parseErr := ipay.UnmarshalJSONResponse(raw); parseErr == nil && parsed != nil {
+				if providerErr := parsed.GetError(); providerErr != nil {
+					responseContext.Cause = providerErr
+					responseContext.OutcomeUnknown = false
+				}
+			}
+		}
+
+		return nil, c.logAndReturnError(
+			"unexpected response status",
+			&responseContext,
+			logger,
+			requestID,
+			errorTags(tagsWithResponse, "unexpected_response"),
+		)
+	}
+
+	if len(bytes.TrimSpace(raw)) == 0 {
+		responseContext.Op = "response.validate"
+		responseContext.Message = "empty response body"
+
+		return nil, c.logAndReturnError(
+			"empty response",
+			&responseContext,
+			logger,
+			requestID,
+			errorTags(tagsWithResponse, "unexpected_response"),
+		)
+	}
+
+	if !isLikelyIPayJSONResponse(raw) {
+		responseContext.Op = "response.validate"
+		responseContext.Message = "expected JSON response"
+
+		return nil, c.logAndReturnError(
+			"unexpected response format",
+			&responseContext,
+			logger,
+			requestID,
+			errorTags(tagsWithResponse, "unexpected_response"),
+		)
+	}
+
 	response, err := ipay.UnmarshalJSONResponse(raw)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot unmarshal response", err, logger, requestID, tags)
+		decodeErr := &ipay.DecodeError{
+			Op:             "response.decode",
+			Action:         action,
+			Operation:      operation,
+			Method:         method,
+			Endpoint:       apiURL,
+			RequestID:      requestID,
+			StatusCode:     resp.StatusCode,
+			ContentType:    responseContentType(resp),
+			Message:        "cannot decode JSON response",
+			Body:           diagnosticResponseBody(raw),
+			OutcomeUnknown: true,
+			Cause:          err,
+		}
+
+		return nil, c.logAndReturnError(
+			"cannot unmarshal response",
+			decodeErr,
+			logger,
+			requestID,
+			errorTags(tagsWithResponse, "decode"),
+		)
 	}
 
 	return response, response.GetError()

@@ -108,13 +108,11 @@ response, err := client.Payment(request)
 
 ```go
 if err != nil {
-    switch e := err.(type) {
-    case *go_ipay.ValidationError:
-        fmt.Printf("Validation error: %v\n", e)
-    case *go_ipay.APIError:
-        fmt.Printf("API error: %v\n", e)
-    default:
-        fmt.Printf("Unknown error: %v\n", e)
+    var providerErr *ipay.IpayError
+    if errors.As(err, &providerErr) {
+        fmt.Printf("iPay rejected the request with code %d\n", providerErr.Code)
+    } else {
+        fmt.Printf("Payment call failed: %v\n", err)
     }
     return
 }
@@ -249,38 +247,65 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 ## Error Handling
 
-GO-iPay provides detailed error types:
+GO-iPay separates valid iPay business errors from transport and invalid-response
+failures. The public sentinels support `errors.Is`, and the typed errors support
+`errors.As`:
 
 ```go
-func processPayment(request *go_ipay.Request) error {
-    response, err := client.Payment(request)
-    if err != nil {
-        switch e := err.(type) {
-        case *go_ipay.ValidationError:
-            // Handle validation errors (e.g., invalid amount)
-            log.Printf("Validation error: %v", e)
-            return fmt.Errorf("invalid payment data: %w", e)
-            
-        case *go_ipay.APIError:
-            // Handle API errors (e.g., authentication failed)
-            log.Printf("API error: %v", e)
-            return fmt.Errorf("payment processing failed: %w", e)
-            
-        default:
-            // Handle unexpected errors
-            log.Printf("Unexpected error: %v", e)
-            return fmt.Errorf("payment system error: %w", e)
-        }
+import (
+    "errors"
+    "fmt"
+
+    "github.com/stremovskyy/go-ipay/ipay"
+)
+
+func classifyError(err error) error {
+    var providerErr *ipay.IpayError
+    var transportErr *ipay.TransportError
+    var responseErr *ipay.UnexpectedResponseError
+    var decodeErr *ipay.DecodeError
+
+    switch {
+    case errors.As(err, &providerErr):
+        return fmt.Errorf("iPay business error %d: %w", providerErr.Code, err)
+    case errors.As(err, &transportErr):
+        return fmt.Errorf("iPay transport failed (request %s): %w", transportErr.RequestID, err)
+    case errors.As(err, &responseErr):
+        // Body is a bounded diagnostic snapshot. Keep it out of ordinary logs.
+        return fmt.Errorf("unexpected iPay HTTP status %d (request %s): %w", responseErr.StatusCode, responseErr.RequestID, err)
+    case errors.As(err, &decodeErr):
+        return fmt.Errorf("invalid iPay JSON (request %s): %w", decodeErr.RequestID, err)
+    default:
+        return err
     }
-    
-    return nil
 }
 ```
+
+### A2C outcome reconciliation
+
+Do not automatically retry `Credit` (`A2CPay`) when the request outcome is
+unknown. Reusing the same payout as a new request could duplicate the transfer.
+Check the original external ID with `A2CPaymentStatus` first:
+
+```go
+response, err := client.Credit(request)
+if ipay.RequiresA2CStatusCheck(err) {
+    extID := request.PaymentData.PaymentID
+    response, err = client.A2CPaymentStatus(&go_ipay.Request{
+        Merchant: request.Merchant,
+        PaymentData: &go_ipay.PaymentData{PaymentID: extID},
+    })
+}
+```
+
+`RequiresA2CStatusCheck` is false for structured iPay business refusals and for
+errors returned by the status-check request itself.
 
 ## Best Practices
 
 1. **Error Handling**
    - Always check for errors and handle them appropriately
+   - Reconcile outcome-unknown A2C payouts by `ext_id`; never retry them automatically
    - Log errors with sufficient context
    - Provide meaningful error messages to users
 
@@ -302,13 +327,14 @@ func processPayment(request *go_ipay.Request) error {
    log.LevelDebug   // Logs everything including detailed IO
    ```
 
-4. **Timeouts and Retries**
+4. **Timeouts and A2C Safety**
    ```go
    client := go_ipay.NewClient(
-       go_ipay.WithTimeout(30 * time.Second),
-       go_ipay.WithRetryAttempts(3),
+       go_ipay.WithClient(&http.Client{Timeout: 30 * time.Second}),
    )
    ```
+   Configure the HTTP timeout explicitly, but do not retry an outcome-unknown
+   A2C payout. Run `A2CPaymentStatus` with the original `ext_id` first.
 
 5. **Testing**
    - Use test credentials in development

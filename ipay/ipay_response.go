@@ -25,6 +25,7 @@
 package ipay
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -329,7 +330,11 @@ func (r Response) getInt64FromInterface(value interface{}) int64 {
 	case int64:
 		return v
 	case uint:
-		return int64(v)
+		parsed, err := strconv.ParseInt(strconv.FormatUint(uint64(v), 10), 10, 64)
+		if err != nil {
+			return 0
+		}
+		return parsed
 	case uint8:
 		return int64(v)
 	case uint16:
@@ -394,16 +399,22 @@ func (ctr *ResponseWrapper) Debug() string {
 }
 
 func UnmarshalJSONResponse(data []byte) (*Response, error) {
-	if len(data) == 0 {
-		return &Response{
-			Error: utils.Ref("empty response data"),
-		}, nil
+	if len(bytes.TrimSpace(data)) == 0 {
+		return nil, &DecodeError{
+			Op:      "unmarshal",
+			Message: "empty response body",
+		}
 	}
 
 	var resp ResponseWrapper
 
 	if err := json.Unmarshal(data, &resp); err != nil {
-		return nil, fmt.Errorf("error unmarshalling JSON response: %w", err)
+		return nil, &DecodeError{
+			Op:      "unmarshal",
+			Message: "error unmarshalling JSON response",
+			Body:    diagnosticBody(data),
+			Cause:   err,
+		}
 	}
 
 	return &resp.Response, nil

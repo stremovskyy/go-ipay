@@ -25,7 +25,7 @@
 package consts
 
 const (
-	Version    = "1.0.0"
+	Version    = "1.15.0"
 	ApiVersion = "1.28"
 
 	baseUrl = "https://tokly.ipay.ua"
