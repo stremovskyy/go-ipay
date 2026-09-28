@@ -45,6 +45,7 @@ const (
 	ActionCredit           Action = "A2CPay"
 	MobilePaymentCreate    Action = "PaymentCreate"
 	ActionA2CPaymentStatus Action = "A2CPaymenStatus"
+	ActionA2CBalance       Action = "A2CBalance"
 )
 
 type RequestWrapper struct {
@@ -58,7 +59,7 @@ type Request struct {
 	Version *float64 `json:"version,omitempty"` // API version for APIs that require an explicit version.
 	Auth    Auth     `json:"auth"`              // Authentication details for the payment request.
 	Action  Action   `json:"action"`            // Specifies the action to be performed.
-	Body    Body     `json:"body"`              // Contains the core data of the payment request.
+	Body    Body     `json:"body,omitzero"`     // Contains the core data of the payment request.
 	Lang    *Lang    `json:"lang,omitempty"`    // Optional language setting for web pages (ua - Ukrainian, en - English).
 }
 

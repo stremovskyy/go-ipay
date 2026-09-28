@@ -36,6 +36,7 @@ type Ipay interface {
 	VerificationLink(request *Request, opts ...RunOption) (*url.URL, error)
 	Status(request *Request, opts ...RunOption) (*ipay.Response, error)
 	A2CPaymentStatus(request *Request, opts ...RunOption) (*ipay.Response, error)
+	A2CBalance(request *Request, opts ...RunOption) (*ipay.Response, error)
 	PaymentURL(invoiceRequest *Request, opts ...RunOption) (*ipay.PaymentResponse, error)
 	Payment(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)
 	Hold(invoiceRequest *Request, opts ...RunOption) (*ipay.Response, error)

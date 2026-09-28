@@ -467,3 +467,25 @@ func (c *client) A2CPaymentStatus(request *Request, runOpts ...RunOption) (*ipay
 
 	return c.ipayClient.Api(statusRequest)
 }
+
+// A2CBalance retrieves the current balance, overdraft, and credit information for the merchant)
+func (c *client) A2CBalance(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
+	if request == nil {
+		return nil, ErrRequestIsNil
+	}
+
+	runOptions := collectRunOptions(runOpts)
+
+	balanceRequest := ipay.NewRequest(
+		ipay.ActionA2CBalance,
+		ipay.WithAuth(request.GetAuth()),
+		ipay.WithOperationOperation(consts.A2CBalance),
+	)
+
+	if runOptions.isDryRun() {
+		runOptions.handleDryRun(consts.ApiUrl, balanceRequest)
+		return nil, nil
+	}
+
+	return c.ipayClient.Api(balanceRequest)
+}

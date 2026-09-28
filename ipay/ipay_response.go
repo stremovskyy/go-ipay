@@ -56,6 +56,9 @@ type Response struct {
 	ErrorCode          *string          `json:"error_code"`
 	Invoice            interface{}      `json:"invoice"`
 	Amount             interface{}      `json:"amount"`
+	CurrentBalance     int64            `json:"current_balance"`
+	Overdraft          int64            `json:"overdraft"`
+	Credit             int64            `json:"credit"`
 	PmtStatus          *string          `json:"pmt_status"`
 	CardMask           *string          `json:"card_mask"`
 	BankResponse       *BankResponse    `json:"bank_response"`

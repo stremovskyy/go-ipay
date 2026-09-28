@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2024 Anton Stremovskyy
+ * Copyright (c) 2026 Anton Stremovskyy
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,36 +22,34 @@
  * SOFTWARE.
  */
 
-package consts
+package main
 
-const (
-	Version    = "1.15.0"
-	ApiVersion = "1.28"
+import (
+	"fmt"
+	"os"
 
-	baseUrl = "https://tokly.ipay.ua"
-
-	ApiUrl       = baseUrl + "/api"
-	ApplePayUrl  = "https://api-applepay.ipay.ua"
-	GooglePayUrl = "https://api-googlepay.ipay.ua"
-	ApiXMLUrl    = baseUrl + "/api302"
-
-	RepaymentUrl = "https://api-repayment.ipay.ua"
+	go_ipay "github.com/stremovskyy/go-ipay"
+	"github.com/stremovskyy/go-ipay/examples/internal/config"
 )
 
-const (
-	VerificationLink           = "VerificationLink"
-	Status                     = "Status"
-	Payment                    = "Payment"
-	Hold                       = "Hold"
-	Capture                    = "Capture"
-	Refund                     = "Refund"
-	Credit                     = "Credit"
-	ApplePaySuffix             = "ApplePay"
-	GooglePaySuffix            = "GooglePay"
-	A2CPaymentStatus           = "A2CPaymentStatus"
-	A2CBalance                 = "A2CBalance"
-	CreateRepayment            = "CreateRepayment"
-	CancelRepayment            = "CancelRepayment"
-	GetRepaymentStatus         = "GetRepaymentStatus"
-	GetRepaymentProcessingFile = "GetRepaymentProcessingFile"
-)
+func main() {
+	cfg := config.MustLoad()
+	client := go_ipay.NewDefaultClient()
+
+	balance, err := client.A2CBalance(&go_ipay.Request{
+		Merchant: &go_ipay.Merchant{
+			Name:        cfg.MerchantNameWithdraw,
+			MerchantID:  cfg.MerchantIDWithdraw,
+			MerchantKey: cfg.MerchantKeyWithdraw,
+		},
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "A2C balance error: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("A2C balance values are in kopecks; current_balance may be negative.")
+	fmt.Printf("current_balance: %d\n", balance.CurrentBalance)
+	fmt.Printf("overdraft: %d\n", balance.Overdraft)
+	fmt.Printf("credit: %d\n", balance.Credit)
+}
