@@ -59,8 +59,26 @@ type Request struct {
 	Version *float64 `json:"version,omitempty"` // API version for APIs that require an explicit version.
 	Auth    Auth     `json:"auth"`              // Authentication details for the payment request.
 	Action  Action   `json:"action"`            // Specifies the action to be performed.
-	Body    Body     `json:"body,omitzero"`     // Contains the core data of the payment request.
+	Body    Body     `json:"body"`              // Contains the core data of the payment request.
 	Lang    *Lang    `json:"lang,omitempty"`    // Optional language setting for web pages (ua - Ukrainian, en - English).
+}
+
+// MarshalJSON omits the body only for the auth-only A2CBalance action.
+func (r Request) MarshalJSON() ([]byte, error) {
+	type requestAlias Request
+	if r.Action != ActionA2CBalance {
+		return json.Marshal(requestAlias(r))
+	}
+
+	type requestWire struct {
+		Version *float64 `json:"version,omitempty"`
+		Auth    Auth     `json:"auth"`
+		Action  Action   `json:"action"`
+		Body    Body     `json:"body,omitzero"`
+		Lang    *Lang    `json:"lang,omitempty"`
+	}
+
+	return json.Marshal(requestWire(r))
 }
 
 // Body encompasses the main content of the payment request.

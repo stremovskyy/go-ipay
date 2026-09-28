@@ -49,6 +49,39 @@ func MustLoad() *Config {
 	return cfg
 }
 
+// MustLoadA2CBalance loads only the withdrawal merchant credentials required by the A2CBalance example.
+func MustLoadA2CBalance() *Config {
+	cfg, err := LoadA2CBalance()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+
+	return cfg
+}
+
+// LoadA2CBalance populates the withdrawal merchant credentials used by the A2CBalance example.
+func LoadA2CBalance() (*Config, error) {
+	if err := hydrateEnv(); err != nil {
+		return nil, err
+	}
+
+	cfg := &Config{}
+	var err error
+
+	if cfg.MerchantNameWithdraw, err = requireString("IPAY_MERCHANT_NAME_WITHDRAW"); err != nil {
+		return nil, err
+	}
+	if cfg.MerchantIDWithdraw, err = requireString("IPAY_MERCHANT_ID_WITHDRAW"); err != nil {
+		return nil, err
+	}
+	if cfg.MerchantKeyWithdraw, err = requireString("IPAY_MERCHANT_KEY_WITHDRAW"); err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
+}
+
 // Load populates configuration from environment variables. It optionally pulls
 // values from a .env-compatible file to simplify local development.
 func Load() (*Config, error) {

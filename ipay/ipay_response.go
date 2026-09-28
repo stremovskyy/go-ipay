@@ -72,6 +72,10 @@ type Response struct {
 	TerminalMerchantID *string          `json:"terminal_merchant_id"`
 	AuthCode           *string          `json:"auth_code"`
 	MchAmount          []MchAmount      `json:"mch_amount"`
+
+	currentBalancePresent bool
+	overdraftPresent      bool
+	creditPresent         bool
 }
 
 type SecurityData struct {
@@ -99,11 +103,21 @@ func (m *MchAmount) UnmarshalJSON(data []byte) error {
 }
 
 func (r *Response) UnmarshalJSON(data []byte) error {
+	r.CurrentBalance = 0
+	r.Overdraft = 0
+	r.Credit = 0
+	r.currentBalancePresent = false
+	r.overdraftPresent = false
+	r.creditPresent = false
+
 	type responseAlias Response
 	var aux struct {
 		*responseAlias
-		ExtId     json.RawMessage `json:"ext_id"`
-		PmtStatus json.RawMessage `json:"pmt_status"`
+		ExtId          json.RawMessage `json:"ext_id"`
+		PmtStatus      json.RawMessage `json:"pmt_status"`
+		CurrentBalance json.RawMessage `json:"current_balance"`
+		Overdraft      json.RawMessage `json:"overdraft"`
+		Credit         json.RawMessage `json:"credit"`
 	}
 
 	aux.responseAlias = (*responseAlias)(r)
@@ -118,7 +132,36 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	r.PmtStatus = status
 	r.ExtId = parseFlexibleExtID(aux.ExtId)
 
+	if err := unmarshalOptionalInt64(aux.CurrentBalance, &r.CurrentBalance, &r.currentBalancePresent); err != nil {
+		return fmt.Errorf("current_balance: %w", err)
+	}
+	if err := unmarshalOptionalInt64(aux.Overdraft, &r.Overdraft, &r.overdraftPresent); err != nil {
+		return fmt.Errorf("overdraft: %w", err)
+	}
+	if err := unmarshalOptionalInt64(aux.Credit, &r.Credit, &r.creditPresent); err != nil {
+		return fmt.Errorf("credit: %w", err)
+	}
+
 	return nil
+}
+
+func unmarshalOptionalInt64(raw json.RawMessage, destination *int64, present *bool) error {
+	trimmed := bytes.TrimSpace(raw)
+	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
+		return nil
+	}
+
+	if err := json.Unmarshal(trimmed, destination); err != nil {
+		return err
+	}
+	*present = true
+
+	return nil
+}
+
+// HasA2CBalanceFields reports whether all required A2CBalance values were present in the response.
+func (r Response) HasA2CBalanceFields() bool {
+	return r.currentBalancePresent && r.overdraftPresent && r.creditPresent
 }
 
 func parseFlexibleStringOrNil(raw json.RawMessage) *string {

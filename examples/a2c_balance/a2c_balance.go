@@ -33,7 +33,7 @@ import (
 )
 
 func main() {
-	cfg := config.MustLoad()
+	cfg := config.MustLoadA2CBalance()
 	client := go_ipay.NewDefaultClient()
 
 	balance, err := client.A2CBalance(&go_ipay.Request{

@@ -468,7 +468,7 @@ func (c *client) A2CPaymentStatus(request *Request, runOpts ...RunOption) (*ipay
 	return c.ipayClient.Api(statusRequest)
 }
 
-// A2CBalance retrieves the current balance, overdraft, and credit information for the merchant)
+// A2CBalance retrieves the merchant's current balance, overdraft, and credit in kopecks.
 func (c *client) A2CBalance(request *Request, runOpts ...RunOption) (*ipay.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
@@ -487,5 +487,20 @@ func (c *client) A2CBalance(request *Request, runOpts ...RunOption) (*ipay.Respo
 		return nil, nil
 	}
 
-	return c.ipayClient.Api(balanceRequest)
+	response, err := c.ipayClient.Api(balanceRequest)
+	if err != nil {
+		return response, err
+	}
+	if response == nil || !response.HasA2CBalanceFields() {
+		return response, &ipay.DecodeError{
+			Op:        "response.validate",
+			Action:    ipay.ActionA2CBalance,
+			Operation: consts.A2CBalance,
+			Method:    "POST",
+			Endpoint:  consts.ApiUrl,
+			Message:   "missing required A2C balance fields",
+		}
+	}
+
+	return response, nil
 }
