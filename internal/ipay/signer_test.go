@@ -25,8 +25,29 @@
 package ipay
 
 import (
+	"strings"
 	"testing"
 )
+
+func TestSHA3512Compatibility(t *testing.T) {
+	// SHA3-512 vectors also cover UTF-8 keys and input longer than one hash block.
+	for _, tt := range []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{"empty", "", "a69f73cca23a9ac5c8b567dc185a756e97c982164fe25859e0d1dcc1475c80a615b2123af1f5f94c11e3e9402c3ac558f500199d95b6d3e301758586281dcd26"},
+		{"abc", "abc", "b751850b1a57168a5693cd924b6b096e08f621827444f70d884f5d0240d2712e10e116e9192af3c91a7ec57647e3934057340b4cf408d5a56592f8274eec53f0"},
+		{"unicode", "2026-10-19 18:00:00ключ-Дія", "f4af4089c731b5976224f4999939fbcad2963ba6e592a42a3c5af59c07945b28398b04e3ffe433527196844192b84003bac421192e04afd891f4600cb7c2806e"},
+		{"multiple blocks", strings.Repeat("a", 200), "eae6c85c6904f11075de9f9d5e1064371d000510fa3d2d79d40cf9be34892fb01859d0a0234e138bcb0ad5c84f6c0dca226a414b0c9a2897cb695f5185fe36ec"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := sha3512(tt.input); got != tt.want {
+				t.Errorf("SHA3-512 = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
 
 func TestNewSigner(t *testing.T) {
 	key := "testkey"

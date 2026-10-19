@@ -38,3 +38,4 @@ private/
 *.env
 *.log
 coverage.txt
+/examples/status_recorder/status_recorder
