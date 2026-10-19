@@ -27,12 +27,11 @@ package ipay
 import (
 	"crypto/hmac"
 	"crypto/sha1" // #nosec G505 -- iPay requires legacy SHA-1 signatures for salts.
+	"crypto/sha3"
 	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
 	"time"
-
-	"golang.org/x/crypto/sha3"
 
 	"github.com/stremovskyy/go-ipay/log"
 )
@@ -59,9 +58,8 @@ func (s *signer) MobileSign(key string) *MobileSign {
 }
 
 func sha3512(data string) string {
-	hasher := sha3.New512()
-	hasher.Write([]byte(data))
-	return hex.EncodeToString(hasher.Sum(nil))
+	sum := sha3.Sum512([]byte(data))
+	return hex.EncodeToString(sum[:])
 }
 
 func (s *signer) Sign(key string) *Sign {

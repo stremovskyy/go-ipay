@@ -31,6 +31,9 @@ go get github.com/stremovskyy/go-ipay
 For API reference and package documentation:
 - [GoDoc Documentation](https://godoc.org/github.com/stremovskyy/go-ipay)
 
+The SDK requires Go 1.24 or newer. The [GORM recorder example](examples/status_recorder/README.md)
+is a separate module with its own database dependencies and requires Go 1.25 or newer.
+
 ## Quick Start
 
 ```go
