@@ -37,10 +37,11 @@ import (
 )
 
 type Request struct {
-	Merchant              *Merchant
-	PersonalData          *PersonalData
-	PaymentData           *PaymentData
-	PaymentMethod         *PaymentMethod
+	Merchant      *Merchant
+	PersonalData  *PersonalData
+	PaymentData   *PaymentData
+	PaymentMethod *PaymentMethod
+	// ForceDiiaVerification forces Diia identity verification in VerificationLink.
 	ForceDiiaVerification bool
 }
 
