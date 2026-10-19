@@ -37,10 +37,11 @@ import (
 )
 
 type Request struct {
-	Merchant      *Merchant
-	PersonalData  *PersonalData
-	PaymentData   *PaymentData
-	PaymentMethod *PaymentMethod
+	Merchant              *Merchant
+	PersonalData          *PersonalData
+	PaymentData           *PaymentData
+	PaymentMethod         *PaymentMethod
+	ForceDiiaVerification bool
 }
 
 func (r *Request) GetAuth() ipay.Auth {

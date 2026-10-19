@@ -147,6 +147,7 @@ type Card struct {
 
 // Info holds additional information related to the payment, provided by the merchant.
 type Info struct {
+	ForceDiiaVerification bool        `json:"force_diia_verification,omitempty"` // Require additional cardholder identity verification.
 	OrderId               *string     `json:"order_id,omitempty"`                // Order ID.
 	ExtId                 *string     `json:"ext_id,omitempty"`                  // External ID.
 	UserID                *string     `json:"user_id,omitempty"`                 // User ID.
@@ -226,6 +227,9 @@ func (i *Info) MergeWith(info *Info) {
 
 	if !i.MctsVts {
 		i.MctsVts = info.MctsVts
+	}
+	if !i.ForceDiiaVerification {
+		i.ForceDiiaVerification = info.ForceDiiaVerification
 	}
 }
 
