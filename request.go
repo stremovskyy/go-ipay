@@ -41,6 +41,8 @@ type Request struct {
 	PersonalData  *PersonalData
 	PaymentData   *PaymentData
 	PaymentMethod *PaymentMethod
+	// ForceDiiaVerification forces Diia identity verification in VerificationLink.
+	ForceDiiaVerification bool
 }
 
 func (r *Request) GetAuth() ipay.Auth {

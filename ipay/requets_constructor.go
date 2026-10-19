@@ -46,6 +46,19 @@ func NewRequest(action Action, options ...func(*RequestWrapper)) *RequestWrapper
 	return rw
 }
 
+// WithForceDiiaVerification forces Diia identity verification for CreateToken3DS.
+func WithForceDiiaVerification(force bool) func(*RequestWrapper) {
+	return func(rw *RequestWrapper) {
+		if rw.Request.Body.Info == nil {
+			if !force {
+				return
+			}
+			rw.Request.Body.Info = &Info{}
+		}
+		rw.Request.Body.Info.ForceDiiaVerification = force
+	}
+}
+
 func WithAmount(amountString int) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
 		if rw.Request.Body.Transactions == nil {

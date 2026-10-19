@@ -29,8 +29,8 @@ func TestA2CBalanceHTTPShapeAndResponse(t *testing.T) {
 		if got := req.Header.Get("Api-Version"); got != consts.ApiVersion {
 			t.Fatalf("Api-Version = %q, want %q", got, consts.ApiVersion)
 		}
-		if got := req.Header.Get("User-Agent"); got != "GO IPAY/1.16.0" {
-			t.Fatalf("User-Agent = %q, want GO IPAY/1.16.0", got)
+		if got := req.Header.Get("User-Agent"); got != "GO IPAY/1.17.0" {
+			t.Fatalf("User-Agent = %q, want GO IPAY/1.17.0", got)
 		}
 
 		raw, err := io.ReadAll(req.Body)

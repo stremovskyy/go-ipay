@@ -89,6 +89,7 @@ func (c *client) VerificationLink(request *Request, runOpts ...RunOption) (*url.
 		ipay.WithAML(request.GetAML()),
 		ipay.WithMetadata(request.GetMetadata()),
 		ipay.WithOperationOperation(consts.VerificationLink),
+		ipay.WithForceDiiaVerification(request.ForceDiiaVerification),
 	)
 
 	if opts.isDryRun() {

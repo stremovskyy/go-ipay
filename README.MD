@@ -112,6 +112,25 @@ if ipay.RequiresA2CStatusCheck(err) {
 }
 ```
 
+## Diia Verification
+
+Set `ForceDiiaVerification` on a verification request to require Diia identity
+verification after the user enters their card details:
+
+```go
+request := &go_ipay.Request{
+    Merchant:              merchant,
+    ForceDiiaVerification: true,
+}
+verificationURL, err := client.VerificationLink(request)
+```
+
+The default `false` omits `force_diia_verification` from the request and keeps
+iPay's standard verification behavior. The low-level `ipay` package also exposes
+`WithForceDiiaVerification(true)` for `CreateToken3DS` requests.
+
+See the [Tokly API documentation](https://tokly.ipay.ua/doc) for the provider contract.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
