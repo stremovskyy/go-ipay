@@ -32,6 +32,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+	_ "time/tzdata"
 
 	"github.com/stremovskyy/go-ipay/log"
 )
@@ -45,11 +46,19 @@ type signer struct {
 	logger *log.Logger
 }
 
-func (s *signer) MobileSign(key string) *MobileSign {
-	timeNow := time.Now().Format("2006-01-02 15:04:05")
-	dataString := fmt.Sprintf("%s%s", timeNow, key)
+var kyivLocation = func() *time.Location {
+	location, err := time.LoadLocation("Europe/Kyiv")
+	if err != nil {
+		panic(fmt.Errorf("ipay: load Europe/Kyiv time zone: %w", err))
+	}
 
-	sign := sha3512(dataString)
+	return location
+}()
+
+func (s *signer) MobileSign(key string) *MobileSign {
+	timeNow := time.Now().In(kyivLocation).Format("2006-01-02 15:04:05")
+
+	sign := sha3512(timeNow + key)
 
 	return &MobileSign{
 		Time: &timeNow,

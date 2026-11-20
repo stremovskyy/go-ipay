@@ -27,7 +27,32 @@ package ipay
 import (
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestMobileSignInKyivTime(t *testing.T) {
+	const key = "test-key"
+	const layout = "2006-01-02 15:04:05"
+
+	location, err := time.LoadLocation("Europe/Kyiv")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	before := time.Now().In(location)
+	signed := NewSigner(key).MobileSign(key)
+	after := time.Now().In(location)
+
+	if signed.Time == nil {
+		t.Fatal("missing signing time")
+	}
+	if *signed.Time != before.Format(layout) && *signed.Time != after.Format(layout) {
+		t.Fatalf("signing time = %q, want Kyiv time between %v and %v", *signed.Time, before, after)
+	}
+	if want := sha3512(*signed.Time + key); signed.Sign != want {
+		t.Fatalf("sign = %q, want %q", signed.Sign, want)
+	}
+}
 
 func TestSHA3512Compatibility(t *testing.T) {
 	// SHA3-512 vectors also cover UTF-8 keys and input longer than one hash block.
