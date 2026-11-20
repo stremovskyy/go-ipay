@@ -19,6 +19,7 @@ func TestEncodeRepaymentTransactionsCSV(t *testing.T) {
 	}
 
 	want := "1;a\n2;b\n"
+
 	if string(got) != want {
 		t.Fatalf("encodeRepaymentTransactionsCSV() = %q, want %q", string(got), want)
 	}
@@ -64,6 +65,7 @@ func TestCreateRepayment_DryRun(t *testing.T) {
 		AuthTime  string            `json:"auth_time"`
 		AuthSign  string            `json:"auth_sign"`
 	}
+
 	if err := json.Unmarshal(raw, &payload); err != nil {
 		t.Fatalf("unmarshal dry-run payload: %v", err)
 	}
@@ -71,15 +73,19 @@ func TestCreateRepayment_DryRun(t *testing.T) {
 	if payload.Operation != consts.CreateRepayment {
 		t.Fatalf("operation = %q, want %q", payload.Operation, consts.CreateRepayment)
 	}
+
 	if payload.Request.Action != repayment.ActionCreateRepayment {
 		t.Fatalf("action = %q, want %q", payload.Request.Action, repayment.ActionCreateRepayment)
 	}
+
 	if payload.FileName != "transactions.csv" {
 		t.Fatalf("file_name = %q, want %q", payload.FileName, "transactions.csv")
 	}
+
 	if len(payload.AuthSign) != 64 {
 		t.Fatalf("auth_sign len = %d, want 64", len(payload.AuthSign))
 	}
+
 	if _, err := time.Parse("2006-01-02 15:04:05", payload.AuthTime); err != nil {
 		t.Fatalf("auth_time parse error: %v", err)
 	}
@@ -132,6 +138,7 @@ func TestCancelRepayment_DryRun(t *testing.T) {
 	}
 
 	wrapper, ok := gotPayload.(*repayment.RequestWrapper)
+
 	if !ok {
 		t.Fatalf("payload type = %T, want *repayment.RequestWrapper", gotPayload)
 	}
@@ -139,6 +146,7 @@ func TestCancelRepayment_DryRun(t *testing.T) {
 	if wrapper.Operation != consts.CancelRepayment {
 		t.Fatalf("operation = %q, want %q", wrapper.Operation, consts.CancelRepayment)
 	}
+
 	if wrapper.Request.Action != repayment.ActionCancelRepayment {
 		t.Fatalf("action = %q, want %q", wrapper.Request.Action, repayment.ActionCancelRepayment)
 	}
@@ -146,6 +154,7 @@ func TestCancelRepayment_DryRun(t *testing.T) {
 	if wrapper.Request.Body.RepaymentGUID == nil || *wrapper.Request.Body.RepaymentGUID != guid {
 		t.Fatalf("repayment_guid = %v, want %q", wrapper.Request.Body.RepaymentGUID, guid)
 	}
+
 	if wrapper.Request.Body.ExtID != nil {
 		t.Fatalf("ext_id should be nil, got %v", *wrapper.Request.Body.ExtID)
 	}
@@ -153,9 +162,11 @@ func TestCancelRepayment_DryRun(t *testing.T) {
 	if wrapper.Request.Auth.Login != "test-login" {
 		t.Fatalf("auth.login = %q, want %q", wrapper.Request.Auth.Login, "test-login")
 	}
+
 	if len(wrapper.Request.Auth.Sign) != 64 {
 		t.Fatalf("auth.sign len = %d, want 64", len(wrapper.Request.Auth.Sign))
 	}
+
 	if _, err := time.Parse("2006-01-02 15:04:05", wrapper.Request.Auth.Time); err != nil {
 		t.Fatalf("auth.time parse error: %v", err)
 	}
@@ -188,6 +199,7 @@ func TestGetRepaymentStatus_DryRun(t *testing.T) {
 	}
 
 	wrapper, ok := gotPayload.(*repayment.RequestWrapper)
+
 	if !ok {
 		t.Fatalf("payload type = %T, want *repayment.RequestWrapper", gotPayload)
 	}
@@ -195,6 +207,7 @@ func TestGetRepaymentStatus_DryRun(t *testing.T) {
 	if wrapper.Operation != consts.GetRepaymentStatus {
 		t.Fatalf("operation = %q, want %q", wrapper.Operation, consts.GetRepaymentStatus)
 	}
+
 	if wrapper.Request.Action != repayment.ActionGetRepaymentStatus {
 		t.Fatalf("action = %q, want %q", wrapper.Request.Action, repayment.ActionGetRepaymentStatus)
 	}
@@ -202,6 +215,7 @@ func TestGetRepaymentStatus_DryRun(t *testing.T) {
 	if wrapper.Request.Body.ExtID == nil || *wrapper.Request.Body.ExtID != extID {
 		t.Fatalf("ext_id = %v, want %q", wrapper.Request.Body.ExtID, extID)
 	}
+
 	if wrapper.Request.Body.RepaymentGUID != nil {
 		t.Fatalf("repayment_guid should be nil, got %v", *wrapper.Request.Body.RepaymentGUID)
 	}
@@ -209,9 +223,11 @@ func TestGetRepaymentStatus_DryRun(t *testing.T) {
 	if wrapper.Request.Auth.Login != "test-login" {
 		t.Fatalf("auth.login = %q, want %q", wrapper.Request.Auth.Login, "test-login")
 	}
+
 	if len(wrapper.Request.Auth.Sign) != 64 {
 		t.Fatalf("auth.sign len = %d, want 64", len(wrapper.Request.Auth.Sign))
 	}
+
 	if _, err := time.Parse("2006-01-02 15:04:05", wrapper.Request.Auth.Time); err != nil {
 		t.Fatalf("auth.time parse error: %v", err)
 	}
@@ -267,6 +283,7 @@ func TestGetRepaymentProcessingFile_DryRun(t *testing.T) {
 	}
 
 	wrapper, ok := gotPayload.(*repayment.RequestWrapper)
+
 	if !ok {
 		t.Fatalf("payload type = %T, want *repayment.RequestWrapper", gotPayload)
 	}
@@ -274,9 +291,11 @@ func TestGetRepaymentProcessingFile_DryRun(t *testing.T) {
 	if wrapper.Operation != consts.GetRepaymentProcessingFile {
 		t.Fatalf("operation = %q, want %q", wrapper.Operation, consts.GetRepaymentProcessingFile)
 	}
+
 	if wrapper.Request.Action != repayment.ActionGetRepaymentProcessingFile {
 		t.Fatalf("action = %q, want %q", wrapper.Request.Action, repayment.ActionGetRepaymentProcessingFile)
 	}
+
 	if wrapper.Request.Body.ExtID == nil || *wrapper.Request.Body.ExtID != extID {
 		t.Fatalf("ext_id = %v, want %q", wrapper.Request.Body.ExtID, extID)
 	}

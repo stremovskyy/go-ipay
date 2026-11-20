@@ -94,26 +94,32 @@ func UnmarshalJSONResponse(data []byte) (*Response, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response status: %w", err)
 	}
+
 	resp.Invoice, err = parseOptionalInt(raw.Response.Invoice)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response invoice: %w", err)
 	}
+
 	resp.Amount, err = parseOptionalInt(raw.Response.Amount)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response amount: %w", err)
 	}
+
 	resp.MchID, err = parseOptionalInt64(raw.Response.MchID)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response mch_id: %w", err)
 	}
+
 	resp.MchBalance, err = parseOptionalInt(raw.Response.MchBalance)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response mch_balance: %w", err)
 	}
+
 	resp.SuccessPayments, err = parseOptionalInt(raw.Response.SuccessPayments)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response success_payments: %w", err)
 	}
+
 	resp.FailedPayments, err = parseOptionalInt(raw.Response.FailedPayments)
 	if err != nil {
 		return nil, fmt.Errorf("error unmarshalling repayment JSON response failed_payments: %w", err)
@@ -128,11 +134,13 @@ func parseOptionalInt(raw json.RawMessage) (*int, error) {
 	}
 
 	var value int
+
 	if err := json.Unmarshal(raw, &value); err == nil {
 		return &value, nil
 	}
 
 	var str string
+
 	if err := json.Unmarshal(raw, &str); err != nil {
 		return nil, fmt.Errorf("invalid int payload %q", string(raw))
 	}
@@ -151,11 +159,13 @@ func parseOptionalInt64(raw json.RawMessage) (*int64, error) {
 	}
 
 	var value int64
+
 	if err := json.Unmarshal(raw, &value); err == nil {
 		return &value, nil
 	}
 
 	var str string
+
 	if err := json.Unmarshal(raw, &str); err != nil {
 		return nil, fmt.Errorf("invalid int64 payload %q", string(raw))
 	}

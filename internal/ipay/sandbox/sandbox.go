@@ -114,11 +114,14 @@ func (s *SandboxSimulator) SimulatePayment(cardNumber string, amount float64) (P
 			switch card.Type {
 			case SuccessRegardlessOfAmount, SuccessA2CPay:
 				return PaymentSuccess, nil
+
 			case SuccessIfUnder100:
 				if amount <= 100 {
 					return PaymentSuccess, nil
 				}
+
 				return PaymentFailure, errors.New("payment amount exceeds limit for success")
+
 			case FailureRegardlessOfAmount, FailureRandomErrorA2CPay:
 				return PaymentFailure, errors.New("simulated failure")
 			case FailureInsufficientBalanceA2CPay:
@@ -128,5 +131,6 @@ func (s *SandboxSimulator) SimulatePayment(cardNumber string, amount float64) (P
 			}
 		}
 	}
+
 	return PaymentInvalid, fmt.Errorf("card number %s not recognized", cardNumber)
 }

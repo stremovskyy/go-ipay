@@ -36,9 +36,11 @@ func TestUnmarshalJSONResponseApplePayNumericPmtStatus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UnmarshalJSONResponse() error: %v", err)
 	}
+
 	if got := resp.GetPaymentStatus(); got != PaymentStatusRegistered {
 		t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusRegistered)
 	}
+
 	if got := resp.PmtIdInt64(); got != 1234567 {
 		t.Fatalf("PmtIdInt64() = %d, want 1234567", got)
 	}
@@ -60,6 +62,7 @@ func TestUnmarshalJSONResponseApplePayStringPmtStatus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("UnmarshalJSONResponse() error: %v", err)
 	}
+
 	if got := resp.GetPaymentStatus(); got != PaymentStatusSuccess {
 		t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusSuccess)
 	}
@@ -117,18 +120,23 @@ func TestUnmarshalJSONResponseExtIDCompatibilityShapes(t *testing.T) {
 			if err != nil {
 				t.Fatalf("UnmarshalJSONResponse() error: %v", err)
 			}
+
 			if !sameStringPointer(resp.ExtId, tt.want) {
 				t.Fatalf("ExtId = %v, want %v", resp.ExtId, tt.want)
 			}
+
 			if got := resp.PmtIdInt64(); got != 1108174424 {
 				t.Fatalf("PmtIdInt64() = %d, want 1108174424", got)
 			}
+
 			if got := resp.GetPaymentStatus(); got != PaymentStatusPreAuthorized {
 				t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusPreAuthorized)
 			}
+
 			if got := resp.InvoiceAmountInt64(); got != 100 {
 				t.Fatalf("InvoiceAmountInt64() = %d, want 100", got)
 			}
+
 			if got := resp.AmountInt64(); got != 100 {
 				t.Fatalf("AmountInt64() = %d, want 100", got)
 			}
@@ -189,15 +197,19 @@ func TestUnmarshalJSONResponseMchAmountCompatibilityShapes(t *testing.T) {
 			if err != nil {
 				t.Fatalf("UnmarshalJSONResponse() error: %v", err)
 			}
+
 			if len(resp.MchAmount) != 1 {
 				t.Fatalf("len(MchAmount) = %d, want 1", len(resp.MchAmount))
 			}
+
 			if !sameStringPointer(resp.MchAmount[0].SmchID, tt.wantSmchID) {
 				t.Fatalf("MchAmount[0].SmchID = %v, want %v", resp.MchAmount[0].SmchID, tt.wantSmchID)
 			}
+
 			if !sameStringPointer(resp.MchAmount[0].Amount, tt.wantAmount) {
 				t.Fatalf("MchAmount[0].Amount = %v, want %v", resp.MchAmount[0].Amount, tt.wantAmount)
 			}
+
 			if got := resp.GetPaymentStatus(); got != PaymentStatusSuccess {
 				t.Fatalf("GetPaymentStatus() = %v, want %v", got, PaymentStatusSuccess)
 			}
@@ -215,9 +227,11 @@ func TestResponseNumericHelpersAcceptManualIntegerTypes(t *testing.T) {
 	if got := resp.PmtIdInt64(); got != 1234567 {
 		t.Fatalf("PmtIdInt64() = %d, want 1234567", got)
 	}
+
 	if got := resp.InvoiceAmountInt64(); got != 100 {
 		t.Fatalf("InvoiceAmountInt64() = %d, want 100", got)
 	}
+
 	if got := resp.AmountInt64(); got != 125 {
 		t.Fatalf("AmountInt64() = %d, want 125", got)
 	}
@@ -229,6 +243,7 @@ func TestResponseNumericHelpersRejectOverflowingUint(t *testing.T) {
 	}
 
 	resp := Response{PmtId: ^uint(0)}
+
 	if got := resp.PmtIdInt64(); got != 0 {
 		t.Fatalf("PmtIdInt64() = %d, want 0 for overflowing uint", got)
 	}
@@ -238,29 +253,41 @@ func assertStringPointerField(t *testing.T, resp *Response, fieldName string, wa
 	t.Helper()
 
 	field := responseField(t, resp, fieldName)
+
 	if field.IsNil() {
 		t.Fatalf("%s is nil, want %q", fieldName, want)
 	}
+
 	if got := field.Elem().String(); got != want {
 		t.Fatalf("%s = %q, want %q", fieldName, got, want)
 	}
 }
 
-func assertNestedStringPointerField(t *testing.T, resp *Response, fieldName string, nestedFieldName string, want string) {
+func assertNestedStringPointerField(
+	t *testing.T,
+	resp *Response,
+	fieldName string,
+	nestedFieldName string,
+	want string,
+) {
 	t.Helper()
 
 	field := responseField(t, resp, fieldName)
+
 	if field.IsNil() {
 		t.Fatalf("%s is nil, want nested %s=%q", fieldName, nestedFieldName, want)
 	}
 
 	nested := field.Elem().FieldByName(nestedFieldName)
+
 	if !nested.IsValid() {
 		t.Fatalf("%s.%s field is missing", fieldName, nestedFieldName)
 	}
+
 	if nested.IsNil() {
 		t.Fatalf("%s.%s is nil, want %q", fieldName, nestedFieldName, want)
 	}
+
 	if got := nested.Elem().String(); got != want {
 		t.Fatalf("%s.%s = %q, want %q", fieldName, nestedFieldName, got, want)
 	}
@@ -270,9 +297,11 @@ func assertStringSliceField(t *testing.T, resp *Response, fieldName string, want
 	t.Helper()
 
 	field := responseField(t, resp, fieldName)
+
 	if field.Len() != len(want) {
 		t.Fatalf("len(%s) = %d, want %d", fieldName, field.Len(), len(want))
 	}
+
 	for i := range want {
 		if got := field.Index(i).String(); got != want[i] {
 			t.Fatalf("%s[%d] = %q, want %q", fieldName, i, got, want[i])
@@ -284,6 +313,7 @@ func assertMchAmountField(t *testing.T, resp *Response) {
 	t.Helper()
 
 	field := responseField(t, resp, "MchAmount")
+
 	if field.Len() != 1 {
 		t.Fatalf("len(MchAmount) = %d, want 1", field.Len())
 	}
@@ -291,12 +321,15 @@ func assertMchAmountField(t *testing.T, resp *Response) {
 	row := field.Index(0)
 	smchID := row.FieldByName("SmchID")
 	amount := row.FieldByName("Amount")
+
 	if !smchID.IsValid() || !amount.IsValid() {
 		t.Fatalf("MchAmount row fields are missing: %#v", row)
 	}
+
 	if smchID.IsNil() || smchID.Elem().String() != "112233" {
 		t.Fatalf("MchAmount[0].SmchID = %#v, want 112233", smchID)
 	}
+
 	if amount.IsNil() || amount.Elem().String() != "100" {
 		t.Fatalf("MchAmount[0].Amount = %#v, want 100", amount)
 	}
@@ -310,9 +343,11 @@ func assertTransactionSmchIDField(t *testing.T, resp *Response) {
 	}
 
 	field := reflect.ValueOf(resp.Transactions[0]).FieldByName("SmchID")
+
 	if !field.IsValid() {
 		t.Fatalf("ResponseTransaction.SmchID field is missing")
 	}
+
 	if field.IsNil() || int(field.Elem().Int()) != 112233 {
 		t.Fatalf("Transactions[0].SmchID = %#v, want 112233", field)
 	}
@@ -322,6 +357,7 @@ func responseField(t *testing.T, resp *Response, fieldName string) reflect.Value
 	t.Helper()
 
 	field := reflect.ValueOf(resp).Elem().FieldByName(fieldName)
+
 	if !field.IsValid() {
 		t.Fatalf("Response.%s field is missing", fieldName)
 	}

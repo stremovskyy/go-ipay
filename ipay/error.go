@@ -109,7 +109,12 @@ type BankErrorInfo struct {
 }
 
 func (e *BankErrorInfo) Error() string {
-	return fmt.Sprintf("BankErrorInfo: code %s, description: %s, user message: %s", e.Code, e.Description, e.UserMessage)
+	return fmt.Sprintf(
+		"BankErrorInfo: code %s, description: %s, user message: %s",
+		e.Code,
+		e.Description,
+		e.UserMessage,
+	)
 }
 
 // GetBankErrorInfo extracts and interprets error information from either Response or Payment
@@ -124,10 +129,12 @@ func GetBankErrorInfo(data interface{}) *BankErrorInfo {
 		} else if v.BnkErrorNote != nil {
 			errorCode = string(*v.BnkErrorNote)
 		}
+
 	case *Payment:
 		if v.BnkErrorNote != nil {
 			errorCode = v.BnkErrorNote.(string)
 		}
+
 	default:
 		return nil
 	}

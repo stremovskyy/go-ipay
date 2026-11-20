@@ -43,11 +43,13 @@ func main() {
 	extID := strings.TrimSpace(os.Getenv("IPAY_REPAYMENT_EXT_ID"))
 
 	var guidPtr *string
+
 	if repaymentGUID != "" {
 		guidPtr = utils.Ref(repaymentGUID)
 	}
 
 	var extPtr *string
+
 	if extID != "" {
 		extPtr = utils.Ref(extID)
 	}
@@ -68,9 +70,11 @@ func main() {
 	raw, err := client.GetRepaymentProcessingFile(req)
 	if err != nil {
 		fmt.Printf("GetRepaymentProcessingFile error: %v\n", err)
+
 		if len(raw) > 0 {
 			fmt.Printf("Raw response:\n%s\n", string(raw))
 		}
+
 		return
 	}
 

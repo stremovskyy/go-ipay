@@ -81,6 +81,7 @@ func (c *Client) loggerFor(category loggerType) *log.Logger {
 	c.loggersMu.RLock()
 	logger, ok := c.loggers[category]
 	c.loggersMu.RUnlock()
+
 	if ok {
 		return logger
 	}
@@ -111,7 +112,11 @@ func (c *Client) WithRecorder(rec recorder.Recorder) *Client {
 }
 
 // sendRequest handles sending an HTTP request and processing the response.
-func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, logger *log.Logger) (*ipay.Response, error) {
+func (c *Client) sendRequest(
+	apiURL string,
+	apiRequest *ipay.RequestWrapper,
+	logger *log.Logger,
+) (*ipay.Response, error) {
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
@@ -193,6 +198,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 			errorTags(tags, "transport"),
 		)
 	}
+
 	if resp == nil {
 		responseErr := &ipay.UnexpectedResponseError{
 			Op:             "http.do",
@@ -213,6 +219,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 			errorTags(tags, "unexpected_response"),
 		)
 	}
+
 	if resp.Body == nil {
 		responseErr := &ipay.UnexpectedResponseError{
 			Op:             "response.validate",
@@ -236,6 +243,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 			errorTags(tagsWithResponse, "unexpected_response"),
 		)
 	}
+
 	defer c.safeClose(resp.Body, logger)
 
 	tagsWithResponse := responseTags(tags, resp)
@@ -272,6 +280,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 
 	logger.Debug("Response body: %d bytes", len(raw))
 	logger.Debug("Response status: %v", resp.StatusCode)
+
 	if tooLarge {
 		tagsWithResponse["response_truncated"] = "true"
 	}
@@ -310,6 +319,7 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
 		responseContext.Op = "response.status"
 		responseContext.Message = "unexpected HTTP status"
+
 		if isLikelyIPayJSONResponse(raw) {
 			if parsed, parseErr := ipay.UnmarshalJSONResponse(raw); parseErr == nil && parsed != nil {
 				if providerErr := parsed.GetError(); providerErr != nil {
@@ -384,11 +394,19 @@ func (c *Client) sendRequest(apiURL string, apiRequest *ipay.RequestWrapper, log
 }
 
 // logAndReturnError logs an error and optionally records it.
-func (c *Client) logAndReturnError(msg string, err error, logger *log.Logger, requestID string, tags map[string]string) error {
+func (c *Client) logAndReturnError(
+	msg string,
+	err error,
+	logger *log.Logger,
+	requestID string,
+	tags map[string]string,
+) error {
 	// Logger is printf-style, not structured; include the error in the formatted message.
 	logger.Error("%s: %v", msg, err)
+
 	if c.recorder != nil {
 		ctx := context.WithValue(context.Background(), CtxKeyRequestID, requestID)
+
 		if recordErr := c.recorder.RecordError(ctx, nil, requestID, err, tags); recordErr != nil {
 			logger.Error("%s: cannot record error %v", "error", recordErr)
 		}
@@ -465,6 +483,7 @@ func (c *Client) ApiXML(ipayXMLPayment *ipay.XmlPayment) (*ipay.PaymentResponse,
 	if err != nil {
 		return nil, c.logAndReturnError("cannot send XML request", err, logger, requestID, nil)
 	}
+
 	logger.Debug("Request time: %v", time.Since(tStart))
 
 	defer c.safeClose(resp.Body, logger)

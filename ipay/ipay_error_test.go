@@ -20,6 +20,7 @@ func TestResponseGetError_BankErrorNote66(t *testing.T) {
 	}
 
 	var ipayErr *IpayError
+
 	if !errors.As(err, &ipayErr) {
 		t.Fatalf("expected *IpayError, got %T", err)
 	}
@@ -41,6 +42,7 @@ func TestResponseGetError_BankErrorNote67(t *testing.T) {
 	}
 
 	var ipayErr *IpayError
+
 	if !errors.As(err, &ipayErr) {
 		t.Fatalf("expected *IpayError, got %T", err)
 	}
@@ -65,6 +67,7 @@ func TestResponseGetError_FailedWithBankResponseGroup42(t *testing.T) {
 	}
 
 	var ipayErr *IpayError
+
 	if !errors.As(err, &ipayErr) {
 		t.Fatalf("expected *IpayError, got %T", err)
 	}
@@ -72,9 +75,11 @@ func TestResponseGetError_FailedWithBankResponseGroup42(t *testing.T) {
 	if ipayErr.Code != 42 {
 		t.Fatalf("expected code 42, got %d", ipayErr.Code)
 	}
+
 	if ipayErr.Message != "Bank Error" {
 		t.Fatalf("expected message %q, got %q", "Bank Error", ipayErr.Message)
 	}
+
 	if !strings.Contains(ipayErr.Details, "Insufficient funds") {
 		t.Fatalf("expected details to include reason, got %q", ipayErr.Details)
 	}
@@ -95,6 +100,7 @@ func TestResponseGetError_FailedWithUnknownBankResponseGroup(t *testing.T) {
 	}
 
 	var ipayErr *IpayError
+
 	if !errors.As(err, &ipayErr) {
 		t.Fatalf("expected *IpayError, got %T", err)
 	}
@@ -102,6 +108,7 @@ func TestResponseGetError_FailedWithUnknownBankResponseGroup(t *testing.T) {
 	if ipayErr.Code != 777 {
 		t.Fatalf("expected code 777, got %d", ipayErr.Code)
 	}
+
 	if ipayErr.Message != "Payment Failed" {
 		t.Fatalf("expected message %q, got %q", "Payment Failed", ipayErr.Message)
 	}
@@ -119,6 +126,7 @@ func TestResponseGetError_GeneralErrorUsesOriginalMessage(t *testing.T) {
 	}
 
 	var ipayErr *IpayError
+
 	if !errors.As(err, &ipayErr) {
 		t.Fatalf("expected *IpayError, got %T", err)
 	}
@@ -126,6 +134,7 @@ func TestResponseGetError_GeneralErrorUsesOriginalMessage(t *testing.T) {
 	if ipayErr.Code != 900 {
 		t.Fatalf("expected code 900, got %d", ipayErr.Code)
 	}
+
 	if ipayErr.Message != rawErr {
 		t.Fatalf("expected message %q, got %q", rawErr, ipayErr.Message)
 	}
@@ -145,6 +154,7 @@ func TestResponseGetError_GeneralErrorTextCodeU0FallsBackTo900(t *testing.T) {
 	}
 
 	var ipayErr *IpayError
+
 	if !errors.As(err, &ipayErr) {
 		t.Fatalf("expected *IpayError, got %T", err)
 	}
@@ -152,6 +162,7 @@ func TestResponseGetError_GeneralErrorTextCodeU0FallsBackTo900(t *testing.T) {
 	if ipayErr.Code != 900 {
 		t.Fatalf("expected code 900 for non-numeric error code, got %d", ipayErr.Code)
 	}
+
 	if !strings.Contains(ipayErr.Details, "Code: U0") {
 		t.Fatalf("expected details to include raw error code, got %q", ipayErr.Details)
 	}

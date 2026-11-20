@@ -85,6 +85,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Credit error: %v\n", err)
 		os.Exit(1)
 	}
+
 	if creditResponse == nil {
 		fmt.Fprintln(os.Stderr, "Credit error: empty response")
 		os.Exit(1)

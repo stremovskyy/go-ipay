@@ -30,6 +30,8 @@ import (
 	"github.com/stremovskyy/go-ipay/ipay"
 )
 
-var ErrRequestIsNil = &ipay.Error{Code: 901, Message: "Request is nil", Details: "Request is nil"}
-var ErrMerchantIsNil = errors.New("merchant is nil")
-var ErrPersonalDataIsNil = errors.New("personal data is nil")
+var (
+	ErrRequestIsNil      = &ipay.Error{Code: 901, Message: "Request is nil", Details: "Request is nil"}
+	ErrMerchantIsNil     = errors.New("merchant is nil")
+	ErrPersonalDataIsNil = errors.New("personal data is nil")
+)

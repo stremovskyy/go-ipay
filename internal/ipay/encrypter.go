@@ -61,6 +61,7 @@ func (c *encrypter) EncryptData(rawData string) (string, error) {
 	keyHash := sha512.Sum512([]byte(c.key))
 	key := keyHash[:32]
 	iv := make([]byte, 12)
+
 	if _, err := rand.Read(iv); err != nil {
 		return "", fmt.Errorf("failed to generate IV: %w", err)
 	}

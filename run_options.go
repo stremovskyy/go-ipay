@@ -53,6 +53,7 @@ func DryRun(handler ...DryRunHandler) RunOption {
 
 		if len(handler) > 0 && handler[0] != nil {
 			o.dryRunHandle = handler[0]
+
 			return
 		}
 
@@ -95,6 +96,7 @@ func defaultDryRunHandler(endpoint string, payload any) {
 
 	if payload == nil {
 		dryRunLogger.Info("Dry run payload: <nil>")
+
 		return
 	}
 
@@ -109,6 +111,7 @@ func defaultDryRunHandler(endpoint string, payload any) {
 		}
 
 		dryRunLogger.Info("Dry run payload:\n%s", marshalIndent(body))
+
 	case *repayment.RequestWrapper:
 		body := struct {
 			Operation string            `json:"operation"`
@@ -119,13 +122,17 @@ func defaultDryRunHandler(endpoint string, payload any) {
 		}
 
 		dryRunLogger.Info("Dry run payload:\n%s", marshalIndent(body))
+
 	case interface{ Marshal() ([]byte, error) }:
 		raw, err := req.Marshal()
 		if err != nil {
 			dryRunLogger.Info("Dry run payload marshal error for %T: %v", req, err)
+
 			return
 		}
+
 		dryRunLogger.Info("Dry run payload:\n%s", string(raw))
+
 	default:
 		dryRunLogger.Info("Dry run payload:\n%s", marshalIndent(req))
 	}

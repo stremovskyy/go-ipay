@@ -66,6 +66,7 @@ type Request struct {
 // MarshalJSON omits the body only for the auth-only A2CBalance action.
 func (r Request) MarshalJSON() ([]byte, error) {
 	type requestAlias Request
+
 	if r.Action != ActionA2CBalance {
 		return json.Marshal(requestAlias(r))
 	}
@@ -128,13 +129,13 @@ func (r RequestTransactions) Last() *RequestTransaction {
 
 // Transaction represents an individual transaction.
 type RequestTransaction struct {
-	MchID    int           `xml:"mch_id" json:"mch_id,omitempty"`     // Merchant ID
-	SrvID    int           `xml:"srv_id" json:"srv_id,omitempty"`     // Legal entity for which the operation is carried out
-	SmchId   *int          `xml:"smch_id" json:"smch_id,omitempty"`   // Submerchant ID
-	Invoice  int           `xml:"invoice" json:"invoice,omitempty"`   // Payment amount in kopecks
-	Amount   int           `xml:"amount" json:"amount,omitempty"`     // Amount to be paid (including commission) in kopecks
-	Desc     string        `xml:"desc" json:"desc,omitempty"`         // Payment description
-	Info     *Info         `xml:"info" json:"info"`                   // Information for the payment provided by the merchant
+	MchID    int           `xml:"mch_id"   json:"mch_id,omitempty"`   // Merchant ID
+	SrvID    int           `xml:"srv_id"   json:"srv_id,omitempty"`   // Legal entity for which the operation is carried out
+	SmchId   *int          `xml:"smch_id"  json:"smch_id,omitempty"`  // Submerchant ID
+	Invoice  int           `xml:"invoice"  json:"invoice,omitempty"`  // Payment amount in kopecks
+	Amount   int           `xml:"amount"   json:"amount,omitempty"`   // Amount to be paid (including commission) in kopecks
+	Desc     string        `xml:"desc"     json:"desc,omitempty"`     // Payment description
+	Info     *Info         `xml:"info"     json:"info"`               // Information for the payment provided by the merchant
 	Currency currency.Code `xml:"currency" json:"currency,omitempty"` // Currency code
 }
 
@@ -165,6 +166,7 @@ type Info struct {
 
 func (i *Info) JsonString() string {
 	jsonString, _ := json.Marshal(i)
+
 	return string(jsonString)
 }
 
@@ -228,6 +230,7 @@ func (i *Info) MergeWith(info *Info) {
 	if !i.MctsVts {
 		i.MctsVts = info.MctsVts
 	}
+
 	if !i.ForceDiiaVerification {
 		i.ForceDiiaVerification = info.ForceDiiaVerification
 	}

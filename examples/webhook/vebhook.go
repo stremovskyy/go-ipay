@@ -60,6 +60,7 @@ func main() {
 	payment, err := ipay.ParsePaymentXML(xmlData)
 	if err != nil {
 		fmt.Println("Error parsing XML:", err)
+
 		return
 	}
 

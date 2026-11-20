@@ -63,6 +63,7 @@ func NewLogger(prefix string) *Logger {
 func SetLevel(level Level) {
 	logMutex.Lock()
 	defer logMutex.Unlock()
+
 	globalLogLevel = level
 }
 
@@ -72,6 +73,7 @@ func (l *Logger) log(level Level, format string, a ...interface{}) {
 	}
 
 	prefix := "iPay: "
+
 	if l != nil && l.prefix != "" {
 		prefix = l.prefix
 	}

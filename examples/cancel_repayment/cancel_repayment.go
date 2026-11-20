@@ -50,11 +50,13 @@ func main() {
 	}
 
 	var guidPtr *string
+
 	if repaymentGUID != "" {
 		guidPtr = utils.Ref(repaymentGUID)
 	}
 
 	var extPtr *string
+
 	if extID != "" {
 		extPtr = utils.Ref(extID)
 	}
@@ -75,6 +77,7 @@ func main() {
 	resp, err := client.CancelRepayment(cancelRequest)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "CancelRepayment error: %v\n", err)
+
 		if resp == nil {
 			os.Exit(1)
 		}
@@ -85,9 +88,11 @@ func main() {
 	fmt.Printf("Status: %d\n", utils.SafeInt(resp.Status))
 	fmt.Printf("Invoice: %d\n", utils.SafeInt(resp.Invoice))
 	fmt.Printf("Amount: %d\n", utils.SafeInt(resp.Amount))
+
 	if resp.MchID != nil {
 		fmt.Printf("mch_id: %d\n", *resp.MchID)
 	}
+
 	fmt.Printf("mch_balance: %d\n", utils.SafeInt(resp.MchBalance))
 	fmt.Printf("success_payments: %d\n", utils.SafeInt(resp.SuccessPayments))
 	fmt.Printf("failed_payments: %d\n", utils.SafeInt(resp.FailedPayments))

@@ -87,6 +87,7 @@ func main() {
 	holdResponse, err := client.Hold(holdRequest)
 	if err != nil {
 		fmt.Println(err)
+
 		return
 	}
 

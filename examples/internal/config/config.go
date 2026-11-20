@@ -40,7 +40,6 @@ var defaultEnvPaths = []string{
 // MustLoad loads configuration and exits the process if required values are missing.
 func MustLoad() *Config {
 	cfg, err := Load()
-
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(2)
@@ -72,9 +71,11 @@ func LoadA2CBalance() (*Config, error) {
 	if cfg.MerchantNameWithdraw, err = requireString("IPAY_MERCHANT_NAME_WITHDRAW"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantIDWithdraw, err = requireString("IPAY_MERCHANT_ID_WITHDRAW"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantKeyWithdraw, err = requireString("IPAY_MERCHANT_KEY_WITHDRAW"); err != nil {
 		return nil, err
 	}
@@ -95,51 +96,67 @@ func Load() (*Config, error) {
 	if cfg.MerchantName, err = requireString("IPAY_MERCHANT_NAME"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantNameWithdraw, err = requireString("IPAY_MERCHANT_NAME_WITHDRAW"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantID, err = requireString("IPAY_MERCHANT_ID"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantIDWithdraw, err = requireString("IPAY_MERCHANT_ID_WITHDRAW"); err != nil {
 		return nil, err
 	}
+
 	if cfg.Login, err = requireString("IPAY_LOGIN"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantKey, err = requireString("IPAY_MERCHANT_KEY"); err != nil {
 		return nil, err
 	}
+
 	if cfg.MerchantKeyWithdraw, err = requireString("IPAY_MERCHANT_KEY_WITHDRAW"); err != nil {
 		return nil, err
 	}
+
 	if cfg.SystemKey, err = requireString("IPAY_SYSTEM_KEY"); err != nil {
 		return nil, err
 	}
+
 	if cfg.SuccessRedirect, err = requireString("IPAY_SUCCESS_REDIRECT"); err != nil {
 		return nil, err
 	}
+
 	if cfg.FailRedirect, err = requireString("IPAY_FAIL_REDIRECT"); err != nil {
 		return nil, err
 	}
+
 	if cfg.CardToken, err = requireString("IPAY_CARD_TOKEN"); err != nil {
 		return nil, err
 	}
+
 	if cfg.GoogleToken, err = requireString("IPAY_GOOGLE_TOKEN"); err != nil {
 		return nil, err
 	}
+
 	if cfg.WebhookURL, err = requireString("IPAY_WEBHOOK_URL"); err != nil {
 		return nil, err
 	}
+
 	if cfg.AppleContainer, err = requireString("IPAY_APPLE_CONTAINER"); err != nil {
 		return nil, err
 	}
+
 	if cfg.SubMerchantID, err = requireInt("IPAY_SUB_MERCHANT_ID"); err != nil {
 		return nil, err
 	}
+
 	if cfg.IpayPaymentID, err = requireInt("IPAY_IPAY_PAYMENT_ID"); err != nil {
 		return nil, err
 	}
+
 	if cfg.RepaymentKey, err = requireString("IPAY_REPAYMENT_KEY"); err != nil {
 		return nil, err
 	}
@@ -153,20 +170,26 @@ func hydrateEnv() error {
 			if errors.Is(err, os.ErrNotExist) {
 				return fmt.Errorf("env file %q (referenced by IPAY_EXAMPLES_ENV_FILE) not found", custom)
 			}
+
 			return err
 		}
+
 		return nil
 	}
 
 	var attempted bool
+
 	for _, path := range defaultEnvPaths {
 		attempted = true
+
 		if err := loadEnvFile(path); err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				continue
 			}
+
 			return err
 		}
+
 		// stop after successfully loading the first available file
 		return nil
 	}
@@ -184,11 +207,14 @@ func loadEnvFile(path string) error {
 	if err != nil {
 		return err
 	}
+
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
+
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
+
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
@@ -213,13 +239,17 @@ func loadEnvFile(path string) error {
 
 func requireString(key string) (string, error) {
 	val, ok := os.LookupEnv(key)
+
 	if !ok {
 		return "", fmt.Errorf("environment variable %s is not set", key)
 	}
+
 	val = strings.TrimSpace(val)
+
 	if val == "" {
 		return "", fmt.Errorf("environment variable %s is empty", key)
 	}
+
 	return val, nil
 }
 
@@ -228,9 +258,11 @@ func requireInt(key string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	value, convErr := strconv.Atoi(raw)
 	if convErr != nil {
 		return 0, fmt.Errorf("environment variable %s must be an integer: %w", key, convErr)
 	}
+
 	return value, nil
 }

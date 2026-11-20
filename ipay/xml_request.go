@@ -82,8 +82,10 @@ func (p XmlPayment) Marshal() ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal XML: %w", err)
 	}
+
 	header := []byte(xml.Header)
 	output = append(header, output...)
+
 	return output, nil
 }
 
@@ -122,6 +124,7 @@ func (p *XmlPayment) SetPersonalData(personalData *Info) {
 	if personalData == nil {
 		return
 	}
+
 	if p.Transactions.Transaction == nil {
 		p.Transactions.Transaction = make([]XmlTransaction, 0)
 	}

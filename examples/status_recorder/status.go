@@ -42,12 +42,14 @@ func main() {
 	sqlDb, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		fmt.Println("Failed to open sqlite DB:", err)
+
 		return
 	}
 
 	err = sqlDb.AutoMigrate(&IpayRequestRecord{}, &IpayRequestTag{})
 	if err != nil {
 		fmt.Println("Failed to migrate DB:", err)
+
 		return
 	}
 
@@ -64,6 +66,7 @@ func main() {
 	rec, err := gorm_recorder.NewRecorderWithModels(sqlDb, opts, recorder.WithScrubber(scrub))
 	if err != nil {
 		fmt.Println("Failed to create recorder:", err)
+
 		return
 	}
 
@@ -95,6 +98,7 @@ func main() {
 		}
 
 		fmt.Println(err)
+
 		return
 	}
 

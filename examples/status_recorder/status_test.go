@@ -23,10 +23,12 @@ func TestStatusPersistsRequestAndResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open database: %v", err)
 	}
+
 	sqlDB, err := db.DB()
 	if err != nil {
 		t.Fatalf("get SQL database: %v", err)
 	}
+
 	t.Cleanup(func() {
 		if err := sqlDB.Close(); err != nil {
 			t.Errorf("close database: %v", err)
@@ -48,6 +50,7 @@ func TestStatusPersistsRequestAndResponse(t *testing.T) {
 	responseBody := []byte(`{"response":{"pmt_id":123,"status":5}}`)
 	transport := teststand.RoundTripperFunc(func(req *http.Request) (*http.Response, error) {
 		requestID = req.Header.Get("X-Request-ID")
+
 		return teststand.Response(http.StatusOK, "application/json", responseBody), nil
 	})
 	client := go_ipay.NewClient(go_ipay.WithRecorder(rec), go_ipay.WithClient(&http.Client{Transport: transport}))
@@ -59,6 +62,7 @@ func TestStatusPersistsRequestAndResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Status: %v", err)
 	}
+
 	if response == nil || response.GetPaymentStatus() != 5 || requestID == "" {
 		t.Fatalf("unexpected response or missing request ID: response=%+v requestID=%q", response, requestID)
 	}
@@ -67,29 +71,37 @@ func TestStatusPersistsRequestAndResponse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read stored request: %v", err)
 	}
+
 	var envelope struct {
 		Request struct {
 			Action string `json:"action"`
 			Auth   string `json:"auth"`
 		} `json:"request"`
 	}
+
 	if err := json.Unmarshal(request, &envelope); err != nil {
 		t.Fatalf("decode stored request: %v", err)
 	}
+
 	if envelope.Request.Action != "GetPaymentStatus" || envelope.Request.Auth != "<hidden>" {
 		t.Fatalf("stored request lost its action or signature scrubbing: %+v", envelope)
 	}
+
 	storedResponse, err := rec.GetResponse(context.Background(), requestID)
 	if err != nil {
 		t.Fatalf("read stored response: %v", err)
 	}
+
 	if string(storedResponse) != string(responseBody) {
 		t.Fatalf("stored response = %s, want %s", storedResponse, responseBody)
 	}
+
 	var count int64
+
 	if err := db.Model(&IpayRequestTag{}).Where("tag_key = ? AND tag_value = ?", "payment_id", "123").Count(&count).Error; err != nil {
 		t.Fatalf("count stored payment tags: %v", err)
 	}
+
 	if count != 2 {
 		t.Fatalf("payment tag count = %d, want request and response tags", count)
 	}

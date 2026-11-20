@@ -33,5 +33,6 @@ import (
 // According to the docs it is: SHA-256( request.auth.time + sign_key ) as hex.
 func SignSHA256Hex(timeString, key string) string {
 	sum := sha256.Sum256([]byte(timeString + key))
+
 	return hex.EncodeToString(sum[:])
 }

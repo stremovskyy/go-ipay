@@ -232,7 +232,6 @@ func (r *Request) GetAmount() int {
 	}
 
 	return r.PaymentData.Amount
-
 }
 
 func (r *Request) GetDescription() string {
@@ -249,7 +248,6 @@ func (r *Request) GetCurrency() currency.Code {
 	}
 
 	return r.PaymentData.Currency
-
 }
 
 func (r *Request) GetSubMerchantID() *int {
@@ -300,11 +298,13 @@ func (r *Request) GetAppleContainer() (*string, error) {
 	}
 
 	outputBase64 := base64.StdEncoding.EncodeToString(tokenJSON)
+
 	return &outputBase64, nil
 }
 
 func applePaymentTokenJSON(decoded []byte) ([]byte, error) {
 	var envelope map[string]json.RawMessage
+
 	if err := json.Unmarshal(decoded, &envelope); err != nil {
 		return nil, fmt.Errorf("json unmarshal error: %w", err)
 	}
@@ -318,11 +318,13 @@ func applePaymentTokenJSON(decoded []byte) ([]byte, error) {
 
 func validatedApplePaymentTokenJSON(raw []byte) ([]byte, error) {
 	raw = bytes.TrimSpace(raw)
+
 	if len(raw) == 0 || bytes.Equal(raw, []byte("null")) {
 		return nil, fmt.Errorf("Apple payment token is empty")
 	}
 
 	var token map[string]json.RawMessage
+
 	if err := json.Unmarshal(raw, &token); err != nil {
 		return nil, fmt.Errorf("json unmarshal token error: %w", err)
 	}
@@ -337,11 +339,13 @@ func validatedApplePaymentTokenJSON(raw []byte) ([]byte, error) {
 }
 
 func (r *Request) IsApplePay() bool {
-	return r.PaymentMethod != nil && ((r.PaymentMethod.AppleContainer != nil && *r.PaymentMethod.AppleContainer != "") || r.PaymentMethod.PaymentType == "apay")
+	return r.PaymentMethod != nil &&
+		((r.PaymentMethod.AppleContainer != nil && *r.PaymentMethod.AppleContainer != "") || r.PaymentMethod.PaymentType == "apay")
 }
 
 func (r *Request) IsGooglePay() bool {
-	return r.PaymentMethod != nil && ((r.PaymentMethod.GoogleToken != nil && *r.PaymentMethod.GoogleToken != "") || r.PaymentMethod.PaymentType == "gpay")
+	return r.PaymentMethod != nil &&
+		((r.PaymentMethod.GoogleToken != nil && *r.PaymentMethod.GoogleToken != "") || r.PaymentMethod.PaymentType == "gpay")
 }
 
 func (r *Request) GetGoogleToken() (*string, error) {
@@ -372,6 +376,7 @@ func (r *Request) GetGoogleToken() (*string, error) {
 	}
 
 	outputBase64 := base64.StdEncoding.EncodeToString([]byte(unescapedToken))
+
 	return &outputBase64, nil
 }
 

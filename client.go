@@ -94,6 +94,7 @@ func (c *client) VerificationLink(request *Request, runOpts ...RunOption) (*url.
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.ApiUrl, createTokenRequest)
+
 		return nil, nil
 	}
 
@@ -132,6 +133,7 @@ func (c *client) Status(request *Request, runOpts ...RunOption) (*ipay.Response,
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.ApiUrl, statusRequest)
+
 		return nil, nil
 	}
 
@@ -154,6 +156,7 @@ func (c *client) PaymentURL(request *Request, runOpts ...RunOption) (*ipay.Payme
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.ApiXMLUrl, XMLPaymentURLRequest)
+
 		return nil, nil
 	}
 
@@ -201,6 +204,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 	)
 
 	operationKind := consts.Payment
+
 	if isPreauth {
 		operationKind = consts.Hold
 	}
@@ -272,6 +276,7 @@ func (c *client) handleMobilePayment(request *Request, isPreauth bool, runOpts *
 
 	if runOpts.isDryRun() {
 		runOpts.handleDryRun(endpoint, paymentRequest)
+
 		return nil, nil
 	}
 
@@ -321,6 +326,7 @@ func (c *client) handleStandardPayment(request *Request, preauth bool, runOpts *
 
 	if runOpts.isDryRun() {
 		runOpts.handleDryRun(consts.ApiUrl, holdRequest)
+
 		return nil, nil
 	}
 
@@ -355,6 +361,7 @@ func (c *client) Capture(request *Request, runOpts ...RunOption) (*ipay.Response
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.ApiUrl, captureRequest)
+
 		return nil, nil
 	}
 
@@ -379,6 +386,7 @@ func (c *client) Refund(request *Request, runOpts ...RunOption) (*ipay.Response,
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.ApiUrl, refundRequest)
+
 		return nil, nil
 	}
 
@@ -416,6 +424,7 @@ func (c *client) Credit(request *Request, runOpts ...RunOption) (*ipay.Response,
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.ApiUrl, creditRequest)
+
 		return nil, nil
 	}
 
@@ -444,6 +453,7 @@ func (c *client) A2CPaymentStatus(request *Request, runOpts ...RunOption) (*ipay
 	if (extID == nil || *extID == "") && pmtID == 0 {
 		return nil, fmt.Errorf("A2CPaymentStatus: either ext_id or pmt_id must be provided")
 	}
+
 	if extID != nil && *extID != "" && pmtID != 0 {
 		return nil, fmt.Errorf("A2CPaymentStatus: only one of ext_id or pmt_id must be provided")
 	}
@@ -463,6 +473,7 @@ func (c *client) A2CPaymentStatus(request *Request, runOpts ...RunOption) (*ipay
 
 	if runOptions.isDryRun() {
 		runOptions.handleDryRun(consts.ApiUrl, statusRequest)
+
 		return nil, nil
 	}
 
@@ -485,6 +496,7 @@ func (c *client) A2CBalance(request *Request, runOpts ...RunOption) (*ipay.Respo
 
 	if runOptions.isDryRun() {
 		runOptions.handleDryRun(consts.ApiUrl, balanceRequest)
+
 		return nil, nil
 	}
 
@@ -492,6 +504,7 @@ func (c *client) A2CBalance(request *Request, runOpts ...RunOption) (*ipay.Respo
 	if err != nil {
 		return response, err
 	}
+
 	if response == nil || !response.HasA2CBalanceFields() {
 		return response, &ipay.DecodeError{
 			Op:        "response.validate",

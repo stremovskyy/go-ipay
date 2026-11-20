@@ -85,6 +85,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "Hold error: %v\n", err)
 		os.Exit(1)
 	}
+
 	if holdResponse == nil {
 		fmt.Fprintln(os.Stderr, "Hold error: empty response")
 		os.Exit(1)

@@ -41,6 +41,7 @@ const (
 func readBoundedResponseBody(body io.Reader) ([]byte, bool, error) {
 	raw, err := io.ReadAll(io.LimitReader(body, maxResponseBodyBytes+1))
 	tooLarge := len(raw) > maxResponseBodyBytes
+
 	if tooLarge {
 		raw = raw[:maxResponseBodyBytes]
 	}
@@ -58,6 +59,7 @@ func diagnosticResponseBody(raw []byte) []byte {
 
 func isLikelyIPayJSONResponse(raw []byte) bool {
 	trimmed := bytes.TrimSpace(raw)
+
 	return len(trimmed) > 0 && (trimmed[0] == '{' || trimmed[0] == '[')
 }
 
@@ -67,6 +69,7 @@ func responseContentType(resp *stdhttp.Response) string {
 	}
 
 	raw := strings.TrimSpace(resp.Header.Get("Content-Type"))
+
 	if raw == "" {
 		return ""
 	}
@@ -81,6 +84,7 @@ func responseContentType(resp *stdhttp.Response) string {
 
 func cloneTags(tags map[string]string) map[string]string {
 	cloned := make(map[string]string, len(tags)+3)
+
 	for key, value := range tags {
 		cloned[key] = value
 	}
@@ -90,11 +94,13 @@ func cloneTags(tags map[string]string) map[string]string {
 
 func responseTags(tags map[string]string, resp *stdhttp.Response) map[string]string {
 	cloned := cloneTags(tags)
+
 	if resp == nil {
 		return cloned
 	}
 
 	cloned["http_status"] = strconv.Itoa(resp.StatusCode)
+
 	if contentType := responseContentType(resp); contentType != "" {
 		cloned["response_content_type"] = contentType
 	}
@@ -104,6 +110,7 @@ func responseTags(tags map[string]string, resp *stdhttp.Response) map[string]str
 
 func errorTags(tags map[string]string, kind string) map[string]string {
 	cloned := cloneTags(tags)
+
 	if kind != "" {
 		cloned["response_error_kind"] = kind
 	}

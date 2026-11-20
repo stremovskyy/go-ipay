@@ -144,6 +144,7 @@ var statusCodes = map[StatusCode]BankErrorStatusCode{
 // GetStatusCode retrieves status code information by its code.
 func GetStatusCode(code StatusCode) (BankErrorStatusCode, bool) {
 	statusCode, found := statusCodes[code]
+
 	return statusCode, found
 }
 

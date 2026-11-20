@@ -56,10 +56,12 @@ func main() {
 	if err != nil {
 		if res != nil {
 			res.PrettyPrint()
+
 			return
 		}
 
 		fmt.Println(err)
+
 		return
 	}
 

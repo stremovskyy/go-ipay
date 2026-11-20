@@ -101,6 +101,7 @@ func (e *IpayError) LogJSON() {
 	jsonError, err := json.Marshal(e)
 	if err != nil {
 		log.Printf("❌ Failed to marshal IpayError: %v\n", err)
+
 		return
 	}
 
@@ -128,11 +129,13 @@ func (r Response) GetError() error {
 	if r.Error != nil {
 		errorCode := parseGeneralErrorCode(r.ErrorCode)
 		errorMessage := strings.TrimSpace(*r.Error)
+
 		if errorMessage == "" {
 			errorMessage = "iPay General Error"
 		}
 
 		details := fmt.Sprintf("Error: %s", errorMessage)
+
 		if r.ErrorCode != nil && strings.TrimSpace(*r.ErrorCode) != "" {
 			details = fmt.Sprintf("%s, Code: %s", details, strings.TrimSpace(*r.ErrorCode))
 		}
@@ -153,6 +156,7 @@ func (r Response) GetError() error {
 				fmt.Sprintf("Reason: %s, Message: %s", statusCode.Reason, statusCode.Message),
 			)
 		}
+
 		return createIpayError(
 			900,
 			"Bank Error Note",
@@ -163,6 +167,7 @@ func (r Response) GetError() error {
 	// Authorization code errors
 	if r.ResAuthCode != 0 {
 		message := getErrorMessageA2CPay(r.ResAuthCode)
+
 		return createIpayError(
 			r.ResAuthCode,
 			"Authorization Code Error",
@@ -173,6 +178,7 @@ func (r Response) GetError() error {
 	switch r.GetPaymentStatus() {
 	case PaymentStatusSecurityRefusal:
 		return createIpayError(900, "Payment Status: Security Refusal", "")
+
 	case PaymentStatusFailed:
 		if groupCode := responseBankErrorGroupCode(r); groupCode > 0 {
 			if statusCode, found := ipay.GetStatusCodeByExtCode(groupCode); found {
@@ -191,9 +197,11 @@ func (r Response) GetError() error {
 		}
 
 		details := "Payment failed for unknown reasons"
+
 		if r.Pmt != nil && r.Pmt.BnkErrorGroup != nil && r.Pmt.BnkErrorNote != nil {
 			details = fmt.Sprintf("Bank Error: %s, Group: %v", r.Pmt.BnkErrorNote, r.Pmt.BnkErrorGroup)
 		}
+
 		return createIpayError(900, "Payment Failed", details)
 	}
 
@@ -206,6 +214,7 @@ func parseGeneralErrorCode(code *string) int {
 	}
 
 	raw := strings.TrimSpace(*code)
+
 	if raw == "" {
 		return 900
 	}
@@ -248,17 +257,22 @@ func parseErrorGroupCode(raw interface{}) int {
 		return int(v)
 	case float32:
 		return int(v)
+
 	case string:
 		value, err := strconv.Atoi(strings.TrimSpace(v))
 		if err != nil {
 			return 0
 		}
+
 		return value
+
 	case *string:
 		if v == nil {
 			return 0
 		}
+
 		return parseErrorGroupCode(*v)
+
 	default:
 		return 0
 	}

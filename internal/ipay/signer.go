@@ -68,6 +68,7 @@ func (s *signer) MobileSign(key string) *MobileSign {
 
 func sha3512(data string) string {
 	sum := sha3.Sum512([]byte(data))
+
 	return hex.EncodeToString(sum[:])
 }
 

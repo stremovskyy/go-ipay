@@ -57,21 +57,47 @@ func (c *Client) RepaymentProcessingFileApi(apiRequest *repayment.RequestWrapper
 }
 
 // RepaymentApi sends a Repayment API request with a CSV file in multipart/form-data.
-func (c *Client) RepaymentApi(apiRequest *repayment.RequestWrapper, fileName string, file io.Reader) (*repayment.Response, error) {
-	return c.sendRepaymentMultipartRequest(consts.RepaymentUrl, apiRequest, fileName, file, c.loggerFor(loggerTypeRepayment))
+func (c *Client) RepaymentApi(
+	apiRequest *repayment.RequestWrapper,
+	fileName string,
+	file io.Reader,
+) (*repayment.Response, error) {
+	return c.sendRepaymentMultipartRequest(
+		consts.RepaymentUrl,
+		apiRequest,
+		fileName,
+		file,
+		c.loggerFor(loggerTypeRepayment),
+	)
 }
 
-func (c *Client) sendRepaymentJSONRequest(apiURL string, apiRequest *repayment.RequestWrapper, logger *log.Logger) (*repayment.Response, error) {
+func (c *Client) sendRepaymentJSONRequest(
+	apiURL string,
+	apiRequest *repayment.RequestWrapper,
+	logger *log.Logger,
+) (*repayment.Response, error) {
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
 	if apiRequest == nil {
-		return nil, c.logAndReturnError("repayment request is nil", fmt.Errorf("request is nil"), logger, requestID, nil)
+		return nil, c.logAndReturnError(
+			"repayment request is nil",
+			fmt.Errorf("request is nil"),
+			logger,
+			requestID,
+			nil,
+		)
 	}
 
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot marshal repayment request", err, logger, requestID, tagsRetrieverRepayment(apiRequest))
+		return nil, c.logAndReturnError(
+			"cannot marshal repayment request",
+			err,
+			logger,
+			requestID,
+			tagsRetrieverRepayment(apiRequest),
+		)
 	}
 
 	logger.Debug("Request: %v", string(jsonBody))
@@ -99,6 +125,7 @@ func (c *Client) sendRepaymentJSONRequest(apiURL string, apiRequest *repayment.R
 	if err != nil {
 		return nil, c.logAndReturnError("cannot send repayment request", err, logger, requestID, tags)
 	}
+
 	defer c.safeClose(resp.Body, logger)
 
 	raw, err := io.ReadAll(resp.Body)
@@ -117,6 +144,7 @@ func (c *Client) sendRepaymentJSONRequest(apiURL string, apiRequest *repayment.R
 
 	if !isLikelyJSONResponse(resp, raw) {
 		apiErr := nonJSONRepaymentAPIError(resp, raw)
+
 		return nil, c.logAndReturnError("repayment API returned non-JSON response", apiErr, logger, requestID, tags)
 	}
 
@@ -128,17 +156,33 @@ func (c *Client) sendRepaymentJSONRequest(apiURL string, apiRequest *repayment.R
 	return response, response.GetError()
 }
 
-func (c *Client) sendRepaymentProcessingFileRequest(apiURL string, apiRequest *repayment.RequestWrapper, logger *log.Logger) ([]byte, error) {
+func (c *Client) sendRepaymentProcessingFileRequest(
+	apiURL string,
+	apiRequest *repayment.RequestWrapper,
+	logger *log.Logger,
+) ([]byte, error) {
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
 	if apiRequest == nil {
-		return nil, c.logAndReturnError("repayment request is nil", fmt.Errorf("request is nil"), logger, requestID, nil)
+		return nil, c.logAndReturnError(
+			"repayment request is nil",
+			fmt.Errorf("request is nil"),
+			logger,
+			requestID,
+			nil,
+		)
 	}
 
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot marshal repayment request", err, logger, requestID, tagsRetrieverRepayment(apiRequest))
+		return nil, c.logAndReturnError(
+			"cannot marshal repayment request",
+			err,
+			logger,
+			requestID,
+			tagsRetrieverRepayment(apiRequest),
+		)
 	}
 
 	logger.Debug("Request: %v", string(jsonBody))
@@ -166,6 +210,7 @@ func (c *Client) sendRepaymentProcessingFileRequest(apiURL string, apiRequest *r
 	if err != nil {
 		return nil, c.logAndReturnError("cannot send repayment request", err, logger, requestID, tags)
 	}
+
 	defer c.safeClose(resp.Body, logger)
 
 	raw, err := io.ReadAll(resp.Body)
@@ -183,10 +228,14 @@ func (c *Client) sendRepaymentProcessingFileRequest(apiURL string, apiRequest *r
 	}
 
 	isJSON := false
-	if ct := resp.Header.Get("Content-Type"); ct != "" && (ct == "application/json" || bytes.Contains([]byte(ct), []byte("application/json"))) {
+
+	if ct := resp.Header.Get("Content-Type"); ct != "" &&
+		(ct == "application/json" || bytes.Contains([]byte(ct), []byte("application/json"))) {
 		isJSON = true
 	}
+
 	trimmed := bytes.TrimSpace(raw)
+
 	if len(trimmed) > 0 && trimmed[0] == '{' {
 		isJSON = true
 	}
@@ -197,6 +246,7 @@ func (c *Client) sendRepaymentProcessingFileRequest(apiURL string, apiRequest *r
 		if parseErr != nil {
 			return raw, c.logAndReturnError("cannot unmarshal repayment response", parseErr, logger, requestID, tags)
 		}
+
 		if apiErr := parsed.GetError(); apiErr != nil {
 			return raw, apiErr
 		}
@@ -210,23 +260,55 @@ func (c *Client) sendRepaymentProcessingFileRequest(apiURL string, apiRequest *r
 	return raw, nil
 }
 
-func (c *Client) sendRepaymentMultipartRequest(apiURL string, apiRequest *repayment.RequestWrapper, fileName string, file io.Reader, logger *log.Logger) (*repayment.Response, error) {
+func (c *Client) sendRepaymentMultipartRequest(
+	apiURL string,
+	apiRequest *repayment.RequestWrapper,
+	fileName string,
+	file io.Reader,
+	logger *log.Logger,
+) (*repayment.Response, error) {
 	requestID := uuid.New().String()
 	logger.Debug("Request ID: %v", requestID)
 
 	if apiRequest == nil {
-		return nil, c.logAndReturnError("repayment request is nil", fmt.Errorf("request is nil"), logger, requestID, nil)
+		return nil, c.logAndReturnError(
+			"repayment request is nil",
+			fmt.Errorf("request is nil"),
+			logger,
+			requestID,
+			nil,
+		)
 	}
+
 	if file == nil {
-		return nil, c.logAndReturnError("repayment file is nil", fmt.Errorf("file is nil"), logger, requestID, tagsRetrieverRepayment(apiRequest))
+		return nil, c.logAndReturnError(
+			"repayment file is nil",
+			fmt.Errorf("file is nil"),
+			logger,
+			requestID,
+			tagsRetrieverRepayment(apiRequest),
+		)
 	}
+
 	if fileName == "" {
-		return nil, c.logAndReturnError("repayment file name is empty", fmt.Errorf("file name is empty"), logger, requestID, tagsRetrieverRepayment(apiRequest))
+		return nil, c.logAndReturnError(
+			"repayment file name is empty",
+			fmt.Errorf("file name is empty"),
+			logger,
+			requestID,
+			tagsRetrieverRepayment(apiRequest),
+		)
 	}
 
 	jsonBody, err := json.Marshal(apiRequest)
 	if err != nil {
-		return nil, c.logAndReturnError("cannot marshal repayment request", err, logger, requestID, tagsRetrieverRepayment(apiRequest))
+		return nil, c.logAndReturnError(
+			"cannot marshal repayment request",
+			err,
+			logger,
+			requestID,
+			tagsRetrieverRepayment(apiRequest),
+		)
 	}
 
 	logger.Debug("Request: %v", string(jsonBody))
@@ -257,6 +339,7 @@ func (c *Client) sendRepaymentMultipartRequest(apiURL string, apiRequest *repaym
 	if err != nil {
 		return nil, c.logAndReturnError("cannot send repayment request", err, logger, requestID, tags)
 	}
+
 	defer c.safeClose(resp.Body, logger)
 
 	raw, err := io.ReadAll(resp.Body)
@@ -275,6 +358,7 @@ func (c *Client) sendRepaymentMultipartRequest(apiURL string, apiRequest *repaym
 
 	if !isLikelyJSONResponse(resp, raw) {
 		apiErr := nonJSONRepaymentAPIError(resp, raw)
+
 		return nil, c.logAndReturnError("repayment API returned non-JSON response", apiErr, logger, requestID, tags)
 	}
 
@@ -289,12 +373,14 @@ func (c *Client) sendRepaymentMultipartRequest(apiURL string, apiRequest *repaym
 func isLikelyJSONResponse(resp *http.Response, raw []byte) bool {
 	if resp != nil {
 		ct := strings.ToLower(resp.Header.Get("Content-Type"))
+
 		if ct != "" && strings.Contains(ct, "application/json") {
 			return true
 		}
 	}
 
 	trimmed := bytes.TrimSpace(raw)
+
 	return len(trimmed) > 0 && (trimmed[0] == '{' || trimmed[0] == '[')
 }
 
@@ -303,6 +389,7 @@ func nonJSONRepaymentAPIError(resp *http.Response, raw []byte) error {
 
 	status := 0
 	contentType := ""
+
 	if resp != nil {
 		status = resp.StatusCode
 		contentType = resp.Header.Get("Content-Type")
@@ -314,12 +401,14 @@ func nonJSONRepaymentAPIError(resp *http.Response, raw []byte) error {
 	if body == "" {
 		body = "<empty body>"
 	}
+
 	if len(body) > maxBodyLen {
 		body = body[:maxBodyLen] + "...(truncated)"
 	}
 
 	// Include HTTP metadata to help debug gateways/proxies returning plain text.
 	msg := fmt.Sprintf("unexpected non-JSON response (status=%d, content-type=%q): %s", status, contentType, body)
+
 	return &repayment.APIError{Message: msg}
 }
 
@@ -336,11 +425,13 @@ func buildRepaymentMultipartBody(jsonBody []byte, fileName string, file io.Reade
 		reqPart, err := w.CreatePart(reqHeader)
 		if err != nil {
 			_ = pw.CloseWithError(fmt.Errorf("repayment multipart: create request field: %w", err))
+
 			return
 		}
 
 		if _, err := reqPart.Write(jsonBody); err != nil {
 			_ = pw.CloseWithError(fmt.Errorf("repayment multipart: write request field: %w", err))
+
 			return
 		}
 
@@ -353,17 +444,20 @@ func buildRepaymentMultipartBody(jsonBody []byte, fileName string, file io.Reade
 		part, err := w.CreatePart(fileHeader)
 		if err != nil {
 			_ = pw.CloseWithError(fmt.Errorf("repayment multipart: create file field: %w", err))
+
 			return
 		}
 
 		if _, err := io.Copy(part, file); err != nil {
 			_ = pw.CloseWithError(fmt.Errorf("repayment multipart: copy file: %w", err))
+
 			return
 		}
 
 		// Close multipart writer first to ensure the closing boundary is written.
 		if err := w.Close(); err != nil {
 			_ = pw.CloseWithError(fmt.Errorf("repayment multipart: close writer: %w", err))
+
 			return
 		}
 

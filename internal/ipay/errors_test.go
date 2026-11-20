@@ -4,6 +4,7 @@ import "testing"
 
 func TestGetStatusCode_Includes66Required3DS(t *testing.T) {
 	code, found := GetStatusCode(StatusCode("66-required_3ds"))
+
 	if !found {
 		t.Fatalf("expected status code 66-required_3ds to be found")
 	}
@@ -15,6 +16,7 @@ func TestGetStatusCode_Includes66Required3DS(t *testing.T) {
 
 func TestGetStatusCode_Includes67CardCountryNotAllowed(t *testing.T) {
 	code, found := GetStatusCode(StatusCode("67-card_country_not_allowed"))
+
 	if !found {
 		t.Fatalf("expected status code 67-card_country_not_allowed to be found")
 	}
@@ -26,6 +28,7 @@ func TestGetStatusCode_Includes67CardCountryNotAllowed(t *testing.T) {
 
 func TestGetStatusCodeByExtCode(t *testing.T) {
 	code, found := GetStatusCodeByExtCode(42)
+
 	if !found {
 		t.Fatalf("expected ext code 42 to be found")
 	}
@@ -37,6 +40,7 @@ func TestGetStatusCodeByExtCode(t *testing.T) {
 
 func TestGetStatusCodeByExtCode_NotFound(t *testing.T) {
 	_, found := GetStatusCodeByExtCode(999)
+
 	if found {
 		t.Fatalf("did not expect ext code 999 to be found")
 	}

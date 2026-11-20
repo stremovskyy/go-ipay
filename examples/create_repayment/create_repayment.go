@@ -72,9 +72,11 @@ func main() {
 	fmt.Printf("Status: %d\n", utils.SafeInt(resp.Status))
 	fmt.Printf("Invoice: %d\n", utils.SafeInt(resp.Invoice))
 	fmt.Printf("Amount: %d\n", utils.SafeInt(resp.Amount))
+
 	if resp.MchID != nil {
 		fmt.Printf("mch_id: %d\n", *resp.MchID)
 	}
+
 	fmt.Printf("mch_balance: %d\n", utils.SafeInt(resp.MchBalance))
 	fmt.Printf("success_payments: %d\n", utils.SafeInt(resp.SuccessPayments))
 	fmt.Printf("failed_payments: %d\n", utils.SafeInt(resp.FailedPayments))

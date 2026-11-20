@@ -53,8 +53,10 @@ func WithForceDiiaVerification(force bool) func(*RequestWrapper) {
 			if !force {
 				return
 			}
+
 			rw.Request.Body.Info = &Info{}
 		}
+
 		rw.Request.Body.Info.ForceDiiaVerification = force
 	}
 }
@@ -313,7 +315,6 @@ func WithDescription(description string) func(*RequestWrapper) {
 		for i := range rw.Request.Body.Transactions {
 			rw.Request.Body.Transactions[i].Desc = description
 		}
-
 	}
 }
 
@@ -371,7 +372,7 @@ func WithTrackingData(data *int64) func(*RequestWrapper) {
 
 func WithReceiverTIN(tin *string) func(*RequestWrapper) {
 	return func(rw *RequestWrapper) {
-		var c = Cvd{
+		c := Cvd{
 			TaxID: tin,
 		}
 

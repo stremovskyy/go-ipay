@@ -26,6 +26,7 @@ package utils
 
 func MapToStringSlice(metadata map[string]string) []string {
 	var result []string
+
 	for key, value := range metadata {
 		result = append(result, key+":"+value)
 	}

@@ -81,6 +81,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "PaymentURL error: %v\n", err)
 		os.Exit(1)
 	}
+
 	if paymentResponse == nil {
 		fmt.Fprintln(os.Stderr, "PaymentURL error: empty response")
 		os.Exit(1)

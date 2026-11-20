@@ -66,12 +66,15 @@ func (e *TransportError) Error() string {
 
 	parts := []string{ErrTransport.Error()}
 	parts = appendResponseContext(parts, e.Op, e.Action, e.Operation, e.Method, e.Endpoint, e.RequestID)
+
 	if e.StatusCode != 0 {
 		parts = append(parts, fmt.Sprintf("status=%d", e.StatusCode))
 	}
+
 	if e.ContentType != "" {
 		parts = append(parts, fmt.Sprintf("content-type=%q", e.ContentType))
 	}
+
 	if e.Cause != nil {
 		parts = append(parts, e.Cause.Error())
 	}
@@ -119,15 +122,19 @@ func (e *UnexpectedResponseError) Error() string {
 
 	parts := []string{ErrUnexpectedResponse.Error()}
 	parts = appendResponseContext(parts, e.Op, e.Action, e.Operation, e.Method, e.Endpoint, e.RequestID)
+
 	if e.StatusCode != 0 {
 		parts = append(parts, fmt.Sprintf("status=%d", e.StatusCode))
 	}
+
 	if e.ContentType != "" {
 		parts = append(parts, fmt.Sprintf("content-type=%q", e.ContentType))
 	}
+
 	if e.Message != "" {
 		parts = append(parts, e.Message)
 	}
+
 	if e.Cause != nil {
 		parts = append(parts, e.Cause.Error())
 	}
@@ -175,15 +182,19 @@ func (e *DecodeError) Error() string {
 
 	parts := []string{ErrDecode.Error()}
 	parts = appendResponseContext(parts, e.Op, e.Action, e.Operation, e.Method, e.Endpoint, e.RequestID)
+
 	if e.StatusCode != 0 {
 		parts = append(parts, fmt.Sprintf("status=%d", e.StatusCode))
 	}
+
 	if e.ContentType != "" {
 		parts = append(parts, fmt.Sprintf("content-type=%q", e.ContentType))
 	}
+
 	if e.Message != "" {
 		parts = append(parts, e.Message)
 	}
+
 	if e.Cause != nil {
 		parts = append(parts, e.Cause.Error())
 	}
@@ -217,6 +228,7 @@ func RequiresA2CStatusCheck(err error) bool {
 	var candidate interface {
 		requiresA2CStatusCheck() bool
 	}
+
 	if !errors.As(err, &candidate) {
 		return false
 	}
@@ -244,17 +256,21 @@ func appendResponseContext(
 	if op != "" {
 		parts = append(parts, op)
 	}
+
 	if action != "" {
 		parts = append(parts, "action="+string(action))
 	}
+
 	if operation != "" {
 		parts = append(parts, "operation="+operation)
 	}
+
 	if method != "" && endpoint != "" {
 		parts = append(parts, method+" "+endpoint)
 	} else if endpoint != "" {
 		parts = append(parts, endpoint)
 	}
+
 	if requestID != "" {
 		parts = append(parts, "request_id="+requestID)
 	}

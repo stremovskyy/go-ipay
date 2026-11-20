@@ -23,6 +23,7 @@ func TestGetErrorMessageA2CPay_SanctionsCodes(t *testing.T) {
 
 	for _, tc := range tests {
 		got := getErrorMessageA2CPay(tc.code)
+
 		if got != tc.want {
 			t.Fatalf("unexpected message for code %d: got %q, want %q", tc.code, got, tc.want)
 		}

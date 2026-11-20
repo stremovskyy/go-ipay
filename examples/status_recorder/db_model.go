@@ -30,6 +30,7 @@ import (
 
 type IpayRequestRecord struct {
 	gorm.Model
+
 	Kind          string  `gorm:"column:kind;size:32;not null"`
 	CorrelationID string  `gorm:"column:correlation_id;size:255;not null"`
 	ReferenceID   *string `gorm:"column:ref_id"`
@@ -46,8 +47,10 @@ func (r *IpayRequestRecord) SetRequestID(v string) { r.CorrelationID = v }
 func (r *IpayRequestRecord) SetPrimaryID(v *string) {
 	if v == nil {
 		r.ReferenceID = nil
+
 		return
 	}
+
 	tmp := *v
 	r.ReferenceID = &tmp
 }

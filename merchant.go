@@ -58,7 +58,6 @@ type Merchant struct {
 
 func (m *Merchant) GetMerchantID() *int64 {
 	id, err := strconv.ParseInt(m.MerchantID, 10, 64)
-
 	if err != nil {
 		return nil
 	}

@@ -97,6 +97,7 @@ func (c *client) CreateRepayment(request *CreateRepaymentRequest, runOpts ...Run
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
 	if request.Merchant == nil {
 		return nil, ErrMerchantIsNil
 	}
@@ -106,22 +107,26 @@ func (c *client) CreateRepayment(request *CreateRepaymentRequest, runOpts ...Run
 	if request.Merchant.Login == "" {
 		return nil, fmt.Errorf("create repayment: merchant login is empty")
 	}
+
 	if request.Merchant.RepaymentKey == "" {
 		return nil, fmt.Errorf("create repayment: merchant repayment key is empty")
 	}
 
 	mchID := request.MchID
+
 	if mchID == 0 {
 		mid := request.Merchant.GetMerchantID()
 		if mid == nil {
 			return nil, fmt.Errorf("create repayment: invalid merchant ID")
 		}
+
 		mchID = *mid
 	}
 
 	if request.ExtID == "" {
 		return nil, fmt.Errorf("create repayment: ext_id is empty")
 	}
+
 	if len(request.ExtID) > 50 {
 		return nil, fmt.Errorf("create repayment: ext_id is too long (max 50)")
 	}
@@ -143,6 +148,7 @@ func (c *client) CreateRepayment(request *CreateRepaymentRequest, runOpts ...Run
 		if err != nil {
 			return nil, fmt.Errorf("create repayment: encode transactions CSV: %w", err)
 		}
+
 		reader = bytes.NewReader(raw)
 		fileName = "transactions.csv"
 		txCount = len(request.Transactions)
@@ -150,10 +156,12 @@ func (c *client) CreateRepayment(request *CreateRepaymentRequest, runOpts ...Run
 		if request.TransactionsFilePath == "" {
 			return nil, fmt.Errorf("create repayment: transactions file path is empty")
 		}
+
 		f, err := os.Open(request.TransactionsFilePath)
 		if err != nil {
 			return nil, fmt.Errorf("create repayment: open transactions file: %w", err)
 		}
+
 		defer func() { _ = f.Close() }()
 
 		file = f
@@ -210,10 +218,12 @@ func (c *client) CreateRepayment(request *CreateRepaymentRequest, runOpts ...Run
 		}
 
 		opts.handleDryRun(consts.RepaymentUrl, payload)
+
 		return nil, nil
 	}
 
 	var apiFileReader io.Reader = reader
+
 	if file != nil {
 		apiFileReader = file
 	}
@@ -222,6 +232,7 @@ func (c *client) CreateRepayment(request *CreateRepaymentRequest, runOpts ...Run
 	if err != nil {
 		return resp, fmt.Errorf("create repayment API call: %w", err)
 	}
+
 	if resp == nil {
 		return nil, fmt.Errorf("create repayment: empty response from API")
 	}
@@ -234,6 +245,7 @@ func (c *client) CancelRepayment(request *CancelRepaymentRequest, runOpts ...Run
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
 	if request.Merchant == nil {
 		return nil, ErrMerchantIsNil
 	}
@@ -264,6 +276,7 @@ func (c *client) CancelRepayment(request *CancelRepaymentRequest, runOpts ...Run
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.RepaymentUrl, wrapper)
+
 		return nil, nil
 	}
 
@@ -271,6 +284,7 @@ func (c *client) CancelRepayment(request *CancelRepaymentRequest, runOpts ...Run
 	if err != nil {
 		return resp, fmt.Errorf("cancel repayment API call: %w", err)
 	}
+
 	if resp == nil {
 		return nil, fmt.Errorf("cancel repayment: empty response from API")
 	}
@@ -279,10 +293,14 @@ func (c *client) CancelRepayment(request *CancelRepaymentRequest, runOpts ...Run
 }
 
 // GetRepaymentStatus returns the current repayment status.
-func (c *client) GetRepaymentStatus(request *GetRepaymentStatusRequest, runOpts ...RunOption) (*repayment.Response, error) {
+func (c *client) GetRepaymentStatus(
+	request *GetRepaymentStatusRequest,
+	runOpts ...RunOption,
+) (*repayment.Response, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
 	if request.Merchant == nil {
 		return nil, ErrMerchantIsNil
 	}
@@ -313,6 +331,7 @@ func (c *client) GetRepaymentStatus(request *GetRepaymentStatusRequest, runOpts 
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.RepaymentUrl, wrapper)
+
 		return nil, nil
 	}
 
@@ -320,6 +339,7 @@ func (c *client) GetRepaymentStatus(request *GetRepaymentStatusRequest, runOpts 
 	if err != nil {
 		return resp, fmt.Errorf("get repayment status API call: %w", err)
 	}
+
 	if resp == nil {
 		return nil, fmt.Errorf("get repayment status: empty response from API")
 	}
@@ -328,10 +348,14 @@ func (c *client) GetRepaymentStatus(request *GetRepaymentStatusRequest, runOpts 
 }
 
 // GetRepaymentProcessingFile returns the CSV processing results for a repayment.
-func (c *client) GetRepaymentProcessingFile(request *GetRepaymentProcessingFileRequest, runOpts ...RunOption) ([]byte, error) {
+func (c *client) GetRepaymentProcessingFile(
+	request *GetRepaymentProcessingFileRequest,
+	runOpts ...RunOption,
+) ([]byte, error) {
 	if request == nil {
 		return nil, ErrRequestIsNil
 	}
+
 	if request.Merchant == nil {
 		return nil, ErrMerchantIsNil
 	}
@@ -362,6 +386,7 @@ func (c *client) GetRepaymentProcessingFile(request *GetRepaymentProcessingFileR
 
 	if opts.isDryRun() {
 		opts.handleDryRun(consts.RepaymentUrl, wrapper)
+
 		return nil, nil
 	}
 
@@ -369,6 +394,7 @@ func (c *client) GetRepaymentProcessingFile(request *GetRepaymentProcessingFileR
 	if err != nil {
 		return raw, fmt.Errorf("get repayment processing file API call: %w", err)
 	}
+
 	if len(raw) == 0 {
 		return nil, fmt.Errorf("get repayment processing file: empty response from API")
 	}
@@ -384,6 +410,7 @@ func repaymentAuth(merchant *Merchant) (repayment.Auth, error) {
 	if merchant.Login == "" {
 		return repayment.Auth{}, fmt.Errorf("merchant login is empty")
 	}
+
 	if merchant.RepaymentKey == "" {
 		return repayment.Auth{}, fmt.Errorf("merchant repayment key is empty")
 	}
@@ -429,9 +456,11 @@ func encodeRepaymentTransactionsCSV(transactions []RepaymentTransaction) ([]byte
 		if tx.PmtID == 0 {
 			return nil, fmt.Errorf("transaction[%d]: pmt_id is empty", i)
 		}
+
 		if tx.ExtID == "" {
 			return nil, fmt.Errorf("transaction[%d]: ext_id is empty", i)
 		}
+
 		if len(tx.ExtID) > 50 {
 			return nil, fmt.Errorf("transaction[%d]: ext_id is too long (max 50)", i)
 		}
@@ -447,6 +476,7 @@ func encodeRepaymentTransactionsCSV(transactions []RepaymentTransaction) ([]byte
 	}
 
 	w.Flush()
+
 	if err := w.Error(); err != nil {
 		return nil, fmt.Errorf("flush CSV: %w", err)
 	}

@@ -92,6 +92,7 @@ func (m *MchAmount) UnmarshalJSON(data []byte) error {
 		SmchID json.RawMessage `json:"smch_id"`
 		Amount json.RawMessage `json:"amount"`
 	}
+
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
@@ -121,6 +122,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	}
 
 	aux.responseAlias = (*responseAlias)(r)
+
 	if err := json.Unmarshal(data, &aux); err != nil {
 		return err
 	}
@@ -129,15 +131,18 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("pmt_status: %w", err)
 	}
+
 	r.PmtStatus = status
 	r.ExtId = parseFlexibleExtID(aux.ExtId)
 
 	if err := unmarshalOptionalInt64(aux.CurrentBalance, &r.CurrentBalance, &r.currentBalancePresent); err != nil {
 		return fmt.Errorf("current_balance: %w", err)
 	}
+
 	if err := unmarshalOptionalInt64(aux.Overdraft, &r.Overdraft, &r.overdraftPresent); err != nil {
 		return fmt.Errorf("overdraft: %w", err)
 	}
+
 	if err := unmarshalOptionalInt64(aux.Credit, &r.Credit, &r.creditPresent); err != nil {
 		return fmt.Errorf("credit: %w", err)
 	}
@@ -147,6 +152,7 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 
 func unmarshalOptionalInt64(raw json.RawMessage, destination *int64, present *bool) error {
 	trimmed := bytes.TrimSpace(raw)
+
 	if len(trimmed) == 0 || bytes.Equal(trimmed, []byte("null")) {
 		return nil
 	}
@@ -154,6 +160,7 @@ func unmarshalOptionalInt64(raw json.RawMessage, destination *int64, present *bo
 	if err := json.Unmarshal(trimmed, destination); err != nil {
 		return err
 	}
+
 	*present = true
 
 	return nil
@@ -181,6 +188,7 @@ func parseFlexibleExtID(raw json.RawMessage) *string {
 	var structured struct {
 		ExtID json.RawMessage `json:"ext_id"`
 	}
+
 	if err := json.Unmarshal(raw, &structured); err != nil {
 		return nil
 	}
@@ -195,18 +203,22 @@ func parseFlexibleExtID(raw json.RawMessage) *string {
 
 func parseFlexibleString(raw json.RawMessage) (*string, error) {
 	rawText := strings.TrimSpace(string(raw))
+
 	if rawText == "" || rawText == "null" {
 		return nil, nil
 	}
 
 	var asString string
+
 	if err := json.Unmarshal(raw, &asString); err == nil {
 		return &asString, nil
 	}
 
 	var asNumber json.Number
+
 	if err := json.Unmarshal(raw, &asNumber); err == nil {
 		value := asNumber.String()
+
 		return &value, nil
 	}
 
@@ -216,6 +228,7 @@ func parseFlexibleString(raw json.RawMessage) (*string, error) {
 func (p *Response) PrettyPrint() {
 	if p == nil {
 		fmt.Println("❌ Error: Response is nil")
+
 		return
 	}
 
@@ -234,6 +247,7 @@ func (p *Response) PrettyPrint() {
 
 		// Find the longest label for alignment
 		maxLabelLength := 0
+
 		for _, detail := range details {
 			if len(detail.label) > maxLabelLength {
 				maxLabelLength = len(detail.label)
@@ -250,6 +264,7 @@ func (p *Response) PrettyPrint() {
 		// Print transactions
 		if len(p.Transactions) > 0 {
 			fmt.Println("\n💳 Transactions:")
+
 			for i, tx := range p.Transactions {
 				fmt.Printf("\nTransaction #%d:\n", i+1)
 				fmt.Printf(" Transaction ID: %d\n", utils.SafeInt(tx.TrnId))
@@ -283,6 +298,7 @@ func (p *Response) PrettyPrint() {
 
 	// Find the longest label for alignment
 	maxLabelLength := 0
+
 	for _, detail := range details {
 		if len(detail.label) > maxLabelLength {
 			maxLabelLength = len(detail.label)
@@ -297,8 +313,10 @@ func (p *Response) PrettyPrint() {
 
 	if len(p.Transactions) > 0 {
 		fmt.Println("\n💳 Transactions:")
+
 		for i, tx := range p.Transactions {
 			fmt.Printf("\nTransaction #%d:\n", i+1)
+
 			if tx.TrnId != nil {
 				fmt.Printf("  Transaction ID: %d\n", *tx.TrnId)
 			}
@@ -307,6 +325,7 @@ func (p *Response) PrettyPrint() {
 
 	// Print error information if available
 	hasError := p.Pmt.BnkErrorGroup != nil || p.BnkErrorNote != nil || p.Error != nil || p.ErrorCode != nil
+
 	if hasError {
 		if p.Pmt.BnkErrorGroup != nil {
 			if ok := p.Pmt.BnkErrorGroup.(float64); ok != 0 {
@@ -359,6 +378,7 @@ func (r Response) mobilePaymentStatus() PaymentStatus {
 
 	return PaymentStatus(parsedIntStatus)
 }
+
 func (r Response) getInt64FromInterface(value interface{}) int64 {
 	if value == nil {
 		return 0
@@ -375,39 +395,49 @@ func (r Response) getInt64FromInterface(value interface{}) int64 {
 		return int64(v)
 	case int64:
 		return v
+
 	case uint:
 		parsed, err := strconv.ParseInt(strconv.FormatUint(uint64(v), 10), 10, 64)
 		if err != nil {
 			return 0
 		}
+
 		return parsed
+
 	case uint8:
 		return int64(v)
 	case uint16:
 		return int64(v)
 	case uint32:
 		return int64(v)
+
 	case uint64:
 		if v > math.MaxInt64 {
 			return 0
 		}
+
 		return int64(v)
+
 	case float32:
 		return int64(v)
 	case float64:
 		return int64(v)
+
 	case json.Number:
 		if i, err := v.Int64(); err == nil {
 			return i
 		}
+
 		if f, err := strconv.ParseFloat(v.String(), 64); err == nil {
 			return int64(f)
 		}
+
 	case string:
 		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
 			return i
 		}
 	}
+
 	return 0
 }
 

@@ -57,10 +57,12 @@ func TestNewCipher(t *testing.T) {
 			wantKey: "my secret key",
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
 				got := NewCipher(tt.args.key).(*encrypter) // Type assertion to access the key
+
 				if got.key != tt.wantKey {
 					t.Errorf("NewCipher() key = %v, want %v", got.key, tt.wantKey)
 				}
@@ -119,6 +121,7 @@ func Test_encrypter_EncryptData(t *testing.T) {
 			wantErr: true,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(
 			tt.name, func(t *testing.T) {
@@ -127,16 +130,20 @@ func Test_encrypter_EncryptData(t *testing.T) {
 					logger: tt.fields.logger,
 				}
 				got, err := c.EncryptData(tt.args.rawData)
+
 				if (err != nil) != tt.wantErr {
 					t.Errorf("EncryptData() error = %v, wantErr %v", err, tt.wantErr)
+
 					return
 				}
+
 				if !tt.wantErr && got == "" {
 					t.Errorf("EncryptData() expected non-empty output")
 				}
 
 				if !tt.wantErr {
 					parts := strings.Split(got, ".")
+
 					if len(parts) != 3 {
 						t.Fatalf("EncryptData() expected 3 parts, got %d (%v)", len(parts), parts)
 					}
@@ -145,6 +152,7 @@ func Test_encrypter_EncryptData(t *testing.T) {
 					if err != nil {
 						t.Fatalf("EncryptData() invalid ciphertext base64: %v", err)
 					}
+
 					if len(cipherText) == 0 {
 						t.Fatalf("EncryptData() ciphertext is empty")
 					}
@@ -153,6 +161,7 @@ func Test_encrypter_EncryptData(t *testing.T) {
 					if err != nil {
 						t.Fatalf("EncryptData() invalid tag base64: %v", err)
 					}
+
 					if len(tag) != 16 {
 						t.Fatalf("EncryptData() expected tag length 16, got %d", len(tag))
 					}
@@ -161,11 +170,11 @@ func Test_encrypter_EncryptData(t *testing.T) {
 					if err != nil {
 						t.Fatalf("EncryptData() invalid IV base64: %v", err)
 					}
+
 					if len(iv) != 12 {
 						t.Fatalf("EncryptData() expected IV length 12, got %d", len(iv))
 					}
 				}
-
 			},
 		)
 	}

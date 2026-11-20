@@ -44,5 +44,6 @@ func UnmarshalXmlResponse(data []byte) (*PaymentResponse, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot unmarshal XML: %w", err)
 	}
+
 	return &resp, nil
 }

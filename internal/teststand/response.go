@@ -9,6 +9,7 @@ import (
 
 func Response(status int, contentType string, body []byte) *http.Response {
 	h := make(http.Header)
+
 	if contentType != "" {
 		h.Set("Content-Type", contentType)
 	}
